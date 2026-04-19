@@ -163,6 +163,27 @@ io.on('connection', (socket) => {
     // 4. DÉCONNEXION & MIGRATION
     // ==========================================
 
+    socket.on('leaveRoom', (roomCode) => {
+        const room = rooms[roomCode];
+        if (!room) return;
+
+        const index = room.clients.findIndex(c => c.id === socket.id);
+        if (index === -1) return;
+
+        socket.leave(roomCode);
+        room.clients.splice(index, 1);
+
+        if (room.clients.length === 0) {
+            delete rooms[roomCode];
+        } else {
+            if (index === 0) {
+                io.to(room.clients[0].id).emit('hostMigrated');
+            }
+            io.to(roomCode).emit('playersUpdated', room.clients);
+        }
+        console.log(`🚪 ${socket.id} a quitté le salon ${roomCode}`);
+    });
+
     socket.on('disconnect', () => {
         for (const roomCode in rooms) {
             const room = rooms[roomCode];
