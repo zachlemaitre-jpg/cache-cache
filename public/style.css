@@ -88,9 +88,12 @@ canvas {
 /* Game screen : canvas à gauche, sidebar à droite */
 #game-screen {
     flex-direction: row !important;
-    align-items: flex-start !important;
+    justify-content: center !important; /* Centre horizontalement */
+    align-items: center !important;     /* Centre verticalement */
     max-width: none !important;
     gap: 16px;
+    width: 100vw;
+    height: 100vh;
 }
 
 /* Wrapper relatif pour superposer le HUD sur le canvas */

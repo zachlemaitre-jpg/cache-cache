@@ -1,5 +1,36 @@
 const socket = io();
 
+const imagePaths = {
+    // === TRAQUÉ (HIDER) ===
+    hider_down: 'assets/hider_down.png',
+    hider_up: 'assets/hider_up.png',
+    hider_left: 'assets/hider_left.png',
+    hider_right: 'assets/hider_right.png',
+
+    // === CHASSEUR (HUNTER) - IDLE (À l'arrêt) ===
+    hunter_idle_down: 'assets/hunter_idle_down.png',
+    hunter_idle_up: 'assets/hunter_idle_up.png',
+    hunter_idle_left: 'assets/hunter_idle_left.png',
+    hunter_idle_right: 'assets/hunter_idle_right.png',
+
+    // === CHASSEUR (HUNTER) - WALK (Marche) ===
+    hunter_walk1_down: 'assets/hunter_walk1_down.png',
+    hunter_walk2_down: 'assets/hunter_walk2_down.png',
+    hunter_walk1_up: 'assets/hunter_walk1_up.png',
+    hunter_walk2_up: 'assets/hunter_walk2_up.png',
+    hunter_walk1_left: 'assets/hunter_walk1_left.png',
+    hunter_walk2_left: 'assets/hunter_walk2_left.png',
+    hunter_walk1_right: 'assets/hunter_walk1_right.png',
+    hunter_walk2_right: 'assets/hunter_walk2_right.png',
+    
+    // === DÉCORS ET MEUBLES ===
+    [TILES.FLOOR]: 'assets/sol.png',
+    [TILES.WALL]: 'assets/mur.png',
+    [TILES.WARDROBE_CLOSED_L]: 'assets/AF-L.png',
+    [TILES.WARDROBE_CLOSED_R]: 'assets/AF-R.png'
+    // (Garde le reste de tes meubles ici si tu en as d'autres)
+};
+
 // ==========================================
 // 1. VARIABLES GLOBALES
 // ==========================================
@@ -291,6 +322,7 @@ function initGameEngine() {
 }
 
 function generateInitialState() {
+    // 1. Définition de la carte de base
     mapTiles = [
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         [1, 0, 0, 0, 0, 20, 21, 0, 0, 1],
@@ -299,14 +331,34 @@ function generateInitialState() {
         [1, 1, 1, 1, 1, 99, 1, 1, 1, 1]
     ];
 
+    // 2. Initialisation des chronos
     timeRemaining = gameSettings.roundDuration;
-    hunterCountdown = 10000; // 10 secondes de grâce pour les Traqués
+    hunterCountdown = 10000; // 10 secondes d'aveuglement pour le chasseur
 
+    // 3. Points d'apparition (sur des cases de sol vides)
+    const spawnPoints = [ 
+        {x: 48, y: 48}, 
+        {x: 80, y: 48}, 
+        {x: 112, y: 48}, 
+        {x: 144, y: 48}, 
+        {x: 48, y: 80} 
+    ];
+    let spawnIdx = 0;
+
+    // 4. Réinitialisation de l'état de chaque joueur
     for (const id in playersState) {
-        playersState[id].x = 36;
-        playersState[id].y = 36;
+        // Position et statut de survie
+        playersState[id].x = spawnPoints[spawnIdx % spawnPoints.length].x;
+        playersState[id].y = spawnPoints[spawnIdx % spawnPoints.length].y;
         playersState[id].alive = true;
         playersState[id].hidden = false;
+        
+        // --- NOUVELLES VARIABLES D'ANIMATION ---
+        playersState[id].dir = 'down';   // Direction du regard (up, down, left, right)
+        playersState[id].moving = false; // Est-il en train de marcher ?
+        playersState[id].animTimer = 0;  // Chrono pour changer de frame
+        
+        spawnIdx++; // On passe au point d'apparition suivant pour le prochain joueur
     }
 }
 
@@ -326,106 +378,86 @@ function gameLoop(time) {
 
 // --- LE CERVEAU DU JEU (Exécuté uniquement par l'Hôte) ---
 function computeHostPhysics(deltaMs) {
-    // 0. Sécurité anti-lag : si le navigateur de l'hôte freeze un instant, 
-    // on limite le delta pour éviter que les joueurs ne passent à travers les murs.
     if (deltaMs > 100) deltaMs = 100;
 
-    // 1. Gestion du temps de la manche
-    timeRemaining = Math.max(0, timeRemaining - deltaMs);
-    if (timeRemaining === 0) {
-        // TODO: Gérer la fin de partie (ex: Victoire des Traqués)
-    }
-
-    // 1b. Décompte initial : le Chasseur est bloqué pendant 10 secondes
+    // 1. Décompte initial (le Chasseur attend)
     hunterCountdown = Math.max(0, hunterCountdown - deltaMs);
 
-    // 2. J'ajoute les touches de mon propre clavier (l'Hôte) à la liste des inputs
+    // 2. Récupération des touches de l'Hôte
     clientsInputs[socket.id] = { ...keys };
 
-    // 3. Boucle principale : Mise à jour de chaque joueur
+    // 3. Boucle sur tous les joueurs
     for (const clientId in playersState) {
         const p = playersState[clientId];
         const input = clientsInputs[clientId] || { up: false, down: false, left: false, right: false, action1: false, action2: false };
 
-        // On ignore les joueurs morts ou spectateurs
         if (!p.alive || p.role === 'SPECTATOR') continue;
 
-        // Le Chasseur ne peut pas agir pendant le décompte initial
-        if (p.role === 'HUNTER' && hunterCountdown > 0) continue;
+        // Le Chasseur est bloqué pendant les 10 premières secondes
+        if (p.role === 'HUNTER' && hunterCountdown > 0) {
+            p.moving = false;
+            continue;
+        }
 
-        // --- GESTION DES ACTIONS (Touche E et F) ---
-        // On détecte si la touche vient TOUT JUSTE d'être pressée
+        // --- GESTION DES ACTIONS (E / F) ---
         const justPressedAction1 = input.action1 && !p.lastAction1;
-        p.lastAction1 = input.action1; // On mémorise pour la frame suivante
-
+        p.lastAction1 = input.action1;
         const justPressedAction2 = input.action2 && !p.lastAction2;
         p.lastAction2 = input.action2;
 
         if (p.role === 'HIDER') {
-            // Le Traqué appuie sur E (Action 1) : Entrer ou Sortir d'une cachette
-            if (justPressedAction1) {
-                handleHiderAction(p);
-            }
-            
-            // Si le Traqué est caché dans un meuble, il ne peut pas se déplacer !
+            if (justPressedAction1) handleHiderAction(p);
             if (p.hidden) continue; 
-
         } else if (p.role === 'HUNTER') {
-            // Le Chasseur appuie sur E ou F : Fouiller un meuble
-            if (justPressedAction1 || justPressedAction2) {
-                handleHunterSearch(p);
-            }
-
-            // GESTION DU KILL DIRECT (Collision Chasseur <-> Traqué)
+            if (justPressedAction1 || justPressedAction2) handleHunterSearch(p);
+            
+            // Kill au contact
             for (const targetId in playersState) {
                 const target = playersState[targetId];
-                // Si la cible est un traqué, vivant, et PAS caché dans un meuble
                 if (target.role === 'HIDER' && target.alive && !target.hidden) {
-                    const dx = (target.x + target.size / 2) - (p.x + p.size / 2);
-                    const dy = (target.y + target.size / 2) - (p.y + p.size / 2);
-                    
-                    // Si la distance entre les deux centres est inférieure à leur taille
+                    const dx = (target.x + target.size/2) - (p.x + p.size/2);
+                    const dy = (target.y + target.size/2) - (p.y + p.size/2);
                     if (Math.hypot(dx, dy) < p.size) {
                         target.alive = false;
-                        console.log(target.pseudo + " a été attrapé en plein air !");
                     }
                 }
             }
         }
 
-        // --- GESTION DU DÉPLACEMENT ET DES COLLISIONS ---
+        // --- GESTION DU DÉPLACEMENT ET ANIMATION ---
         let vx = 0, vy = 0;
         if (input.up) vy -= 1;
         if (input.down) vy += 1;
         if (input.left) vx -= 1;
         if (input.right) vx += 1;
 
-        // Normalisation (Pour que le joueur n'aille pas plus vite en diagonale)
-        const len = Math.hypot(vx, vy);
-        if (len > 0) { 
-            vx /= len; 
-            vy /= len; 
+        if (vx !== 0 || vy !== 0) {
+            p.moving = true;
+            p.animTimer += deltaMs;
+            
+            // Déterminer la direction (priorité X puis Y)
+            if (Math.abs(vx) > Math.abs(vy)) {
+                p.dir = vx > 0 ? 'right' : 'left';
+            } else {
+                p.dir = vy > 0 ? 'down' : 'up';
+            }
+        } else {
+            p.moving = false;
+            p.animTimer = 0;
         }
-        
-        // Distance parcourue pendant cette frame
-        const dist = p.speed * (deltaMs / 1000.0);
 
-        // NOUVEAU SYSTÈME DE COLLISION (Test axe par axe pour glisser sur les murs)
+        const len = Math.hypot(vx, vy);
+        if (len > 0) { vx /= len; vy /= len; }
+        
+        const dist = p.speed * (deltaMs / 1000.0);
         let newX = p.x + vx * dist;
         let newY = p.y + vy * dist;
         
-        // Axe X (Horizontal)
-        if (!collides(newX, p.y, p.size)) {
-            p.x = newX;
-        }
-
-        // Axe Y (Vertical)
-        if (!collides(p.x, newY, p.size)) {
-            p.y = newY;
-        }
+        if (!collides(newX, p.y, p.size)) p.x = newX;
+        if (!collides(p.x, newY, p.size)) p.y = newY;
     }
 
-    // 4. Envoyer la "photographie" officielle du jeu à tous les invités
+    // 4. Envoi de l'état aux invités
     socket.emit('stateSnapshot', {
         room: currentRoom,
         state: {
@@ -436,14 +468,8 @@ function computeHostPhysics(deltaMs) {
         }
     });
 
-    // 5. Mettre à jour le HUD de l'Hôte
     updateHUD();
 }
-
-
-// ==========================================
-// 5. MOTEUR GRAPHIQUE (CANVAS)
-// ==========================================
 
 // ==========================================
 // 5. MOTEUR GRAPHIQUE (CANVAS)
@@ -512,18 +538,16 @@ function drawTile(tileId, worldX, worldY) {
 }
 
 function drawGame() {
-    // 1. Nettoyage et réglages
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = false;
 
-    // Pas de map → rien à dessiner
     if (!mapTiles || mapTiles.length === 0) return;
 
-    // 2. CALCUL DE LA CAMÉRA — si notre joueur n'existe pas encore, on centre sur (0,0)
     const me = playersState[socket.id];
     let camX = 0, camY = 0;
     if (me) {
+        // Centrage parfait sur le joueur
         camX = (me.x + me.size / 2) * ZOOM_FACTOR - (canvas.width / 2);
         camY = (me.y + me.size / 2) * ZOOM_FACTOR - (canvas.height / 2);
     }
@@ -532,30 +556,47 @@ function drawGame() {
     ctx.translate(-camX, -camY);
     ctx.scale(ZOOM_FACTOR, ZOOM_FACTOR);
 
-    // 3. DESSIN DE LA MAP (avec fallback couleur si l'image est absente)
+    // DESSIN DE LA MAP
     for (let ty = 0; ty < mapTiles.length; ty++) {
         for (let tx = 0; tx < mapTiles[0].length; tx++) {
             const tileId = mapTiles[ty][tx];
             const worldX = tx * TILE_SIZE;
             const worldY = ty * TILE_SIZE;
 
-            // Sol en premier (clé numérique 0, PAS images.floor)
             drawTile(TILES.FLOOR, worldX, worldY);
-
-            // Meuble / mur par-dessus
-            if (tileId !== TILES.FLOOR) {
-                drawTile(tileId, worldX, worldY);
-            }
+            if (tileId !== TILES.FLOOR) drawTile(tileId, worldX, worldY);
         }
     }
 
-    // 4. DESSIN DES JOUEURS (avec fallback carré coloré)
+    // DESSIN DES JOUEURS ANIMÉS
     for (const id in playersState) {
         const p = playersState[id];
         if (!p.alive || p.role === 'SPECTATOR') continue;
         if (p.role === 'HIDER' && p.hidden && id !== socket.id) continue;
 
-        const imgToDraw = (p.role === 'HUNTER') ? images.hunter : images.hider;
+        const direction = p.dir || 'down'; // Direction actuelle (bas par défaut)
+        let spriteKey = '';
+
+        // --- SÉLECTION DE L'IMAGE SELON LE RÔLE ---
+        if (p.role === 'HUNTER') {
+            if (p.moving) {
+                // Si le chasseur bouge, on alterne entre walk1 et walk2
+                const step = (Math.floor(p.animTimer / 200) % 2) + 1;
+                spriteKey = `hunter_walk${step}_${direction}`;
+            } else {
+                // Si le chasseur est à l'arrêt, il reste dans sa direction en "idle"
+                spriteKey = `hunter_idle_${direction}`;
+            }
+        } else {
+            // Pour le traqué, on applique simplement la direction
+            spriteKey = `hider_${direction}`;
+        }
+        
+        // On récupère l'image correspondante. (Avec sécurité si une image manque)
+        const imgFallback = (p.role === 'HUNTER') ? images.hunter_idle_down : images.hider_down;
+        const imgToDraw = images[spriteKey] || imgFallback;
+
+        // Positionnement et Taille
         const spriteSize = 32;
         const drawX = p.x - (spriteSize - p.size) / 2;
         const drawY = p.y - (spriteSize - p.size) / 2;
@@ -563,43 +604,29 @@ function drawGame() {
         if (imgToDraw && imgToDraw.complete && imgToDraw.naturalWidth > 0) {
             ctx.drawImage(imgToDraw, drawX, drawY, spriteSize, spriteSize);
         } else {
+            // Fallback ultime (carré de couleur) si vraiment rien n'a chargé
             ctx.fillStyle = (p.role === 'HUNTER') ? '#e63946' : '#2196f3';
             ctx.fillRect(drawX, drawY, spriteSize, spriteSize);
         }
 
+        // Pseudo
         ctx.fillStyle = 'white';
         ctx.font = '5px "Press Start 2P"';
         ctx.fillText(p.pseudo, p.x - 5, p.y - 5);
     }
 
     ctx.restore();
-
     drawMinimap();
 
-    // Overlay de décompte : le Chasseur voit noir pendant 10 secondes
+    // Filtre noir pour le Chasseur au début
     if (myRole === 'HUNTER' && hunterCountdown > 0) {
-        const secondsLeft = Math.ceil(hunterCountdown / 1000);
-        const cx = canvas.width / 2;
-        const cy = canvas.height / 2;
-
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.93)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.95)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
         ctx.textAlign = 'center';
-
-        ctx.fillStyle = '#e63946';
-        ctx.font = '18px "Press Start 2P"';
-        ctx.fillText('CHASSEUR', cx, cy - 70);
-
         ctx.fillStyle = '#ffffff';
-        ctx.font = '64px "Press Start 2P"';
-        ctx.fillText(secondsLeft, cx, cy + 20);
-
-        ctx.fillStyle = '#aaaaaa';
-        ctx.font = '9px "Press Start 2P"';
-        ctx.fillText('LES TRAQUES SE CACHENT...', cx, cy + 70);
-
-        ctx.textAlign = 'left'; // reset
+        ctx.font = '60px "Press Start 2P"';
+        ctx.fillText(Math.ceil(hunterCountdown / 1000), canvas.width/2, canvas.height/2 + 20);
+        ctx.textAlign = 'left';
     }
 }
 
