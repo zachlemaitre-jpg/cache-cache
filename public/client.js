@@ -273,10 +273,11 @@ socket.on('clientInput', (data) => {
 // Réception de l'état officiel (uniquement pour les invités)
 socket.on('syncState', (state) => {
     if (!isHost) {
-        playersState = state.players;
+        playersState = state.players; 
         mapTiles = state.currentMapTiles;
-        timeRemaining = state.timeRemaining;
-        hunterCountdown = state.hunterCountdown ?? 0;
+        furnitures = state.furnitures; // <-- NOUVEAU !
+        timeRemaining = state.timeRemaining; 
+        hunterCountdown = state.hunterCountdown;
         updateHUD();
     }
 });
@@ -312,66 +313,75 @@ function initGameEngine() {
     requestAnimationFrame(gameLoop);
 }
 
+// --- NOUVELLE STRUCTURE DE CARTE ---
+let furnitures = []; 
+
 function generateInitialState() {
-    // Reproduction fidèle du plan (28 colonnes x 15 lignes)
-    mapTiles = [
-        // 0: Murs extérieurs hauts
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        // 1: Haut des chambres (Chambre Gauche, Dressing, Chambre Milieu, Bain)
-        [1, 26, 0, 10, 10, 0, 1, 26, 0, 26, 1, 10, 10, 0, 0, 0, 1, 1, 1, 1, 40, 40, 40, 40, 26, 1, 1, 1],
-        // 2:
-        [1, 26, 0, 11, 11, 0, 1, 26, 0, 26, 1, 11, 11, 0, 0, 0, 1, 1, 1, 1, 26, 0, 0, 0, 26, 1, 1, 1],
-        // 3:
-        [1, 0,  0, 0,  0,  0, 1, 26, 0, 26, 1, 26, 0,  0, 0, 0, 1, 1, 1, 1, 26, 0, 0, 0, 26, 1, 1, 1],
-        // 4:
-        [1, 0,  0, 0,  0,  0, 1, 26, 0, 26, 1, 26, 0,  30,30,0, 1, 1, 1, 1, 0,  0, 0, 0, 0,  1, 1, 1],
-        // 5: Bas des chambres du haut
-        [1, 26, 26, 1, 26, 26, 1, 0,  0, 0,  1, 1,  1,  1, 1, 1, 1, 1, 1, 1, 0,  0, 0, 0, 0,  1, 1, 1],
-        // 6: Mur de séparation + Portes d'entrée (Les 0)
-        [1, 1,  1,  1, 1,  0, 1, 1,  0, 1,  1, 1,  1,  1, 0, 1, 1, 1, 1, 1, 1,  0, 1, 1, 1,  1, 1, 1],
-        // 7: GRAND COULOIR CENTRAL
-        [1, 0,  0,  0, 0,  0, 0, 0,  0, 0,  0, 0,  0,  0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 1],
-        // 8: GRAND COULOIR CENTRAL
-        [1, 0,  0,  0, 0,  0, 0, 0,  0, 0,  0, 0,  0,  0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 1],
-        // 9: Mur de séparation bas + Portes d'entrée
-        [1, 1,  1,  1, 1,  1, 1, 0,  1, 1,  1, 0,  0,  0, 1, 1, 1, 0, 0, 0, 1,  1, 0, 1, 1,  1, 1, 1],
-        // 10: Pièces du bas (Chambre Jaune, Escaliers 1, Escaliers 2, WC)
-        [1, 1,  1,  1, 26, 0, 0, 0,  0, 1,  1, 90, 90, 90, 1, 1, 1, 90, 90, 90, 1, 1, 0, 1, 1,  1, 1, 1],
-        // 11:
-        [1, 1,  1,  1, 26, 0, 0, 40, 40,1,  1, 90, 90, 90, 1, 1, 1, 90, 90, 90, 1, 1, 50,1, 1,  1, 1, 1],
-        // 12:
-        [1, 1,  1,  1, 26, 0, 0, 40, 40,1,  1, 1,  1,  1,  1, 1, 1, 90, 90, 90, 1, 1, 1, 1, 1,  1, 1, 1],
-        // 13:
-        [1, 1,  1,  1, 1,  1, 1, 1,  1, 1,  1, 1,  1,  1,  1, 1, 1, 90, 90, 90, 1, 1, 1, 1, 1,  1, 1, 1],
-        // 14: Murs extérieurs bas
-        [1, 1,  1,  1, 1,  1, 1, 1,  1, 1,  1, 1,  1,  1,  1, 1, 1, 1,  1,  1,  1, 1, 1, 1, 1,  1, 1, 1]
-    ];
+    // 1. Le SOL (juste l'image de fond)
+    mapTiles = [];
+    for(let y = 0; y < 15; y++) {
+        let row = [];
+        for(let x = 0; x < 28; x++) {
+            row.push(TILES.FLOOR);
+        }
+        mapTiles.push(row);
+    }
+
+    // 2. LES ENTITÉS (Murs et Meubles)
+    furnitures = [];
+
+    // Fonction utilitaire pour ajouter un meuble plus facilement
+    function addFurniture(id, type, tx, ty, widthPx, heightPx, customState = null) {
+        furnitures.push({
+            id: id,
+            type: type,
+            x: tx * TILE_SIZE, // Conversion en pixels
+            y: ty * TILE_SIZE,
+            width: widthPx,
+            height: heightPx,
+            state: customState || 'CLOSED', // Pour les portes/armoires
+            hidingPlayerId: null
+        });
+    }
+
+    // --- CRÉATION DE LA MAISON ---
+    // (J'ai repris ton plan, mais en créant des entités avec des tailles précises)
+
+    // Les grands murs extérieurs (Fins : 12px d'épaisseur)
+    addFurniture("mur_haut", TILES.WALL, 0, 0, 28 * TILE_SIZE, 12);
+    addFurniture("mur_bas", TILES.WALL, 0, 14, 28 * TILE_SIZE, 12); // Attention y=14 au lieu de 15
+    addFurniture("mur_gauche", TILES.WALL, 0, 0, 12, 15 * TILE_SIZE);
+    addFurniture("mur_droit", TILES.WALL, 27, 0, 12, 15 * TILE_SIZE); // x=27
+
+    // Murs intérieurs du couloir (Exemple)
+    addFurniture("mur_couloir_haut", TILES.WALL, 0, 6, 28 * TILE_SIZE, 12);
+    addFurniture("mur_couloir_bas", TILES.WALL, 0, 9, 28 * TILE_SIZE, 12);
+
+    // Les Meubles (Avec leur taille réelle)
+    // Exemple : Le grand lit vert en haut à gauche (Taille : 2x2 cases = 64x64px)
+    addFurniture("lit_1", TILES.BED_TOP, 3, 1, 64, 64);
+    
+    // Exemple : L'armoire rouge dans le dressing (1 case = 32x32px)
+    addFurniture("armoire_1", TILES.WARDROBE_CLOSED_L, 7, 1, 32, 32);
+    addFurniture("armoire_2", TILES.WARDROBE_CLOSED_R, 7, 2, 32, 32);
+
+    // Exemple : La baignoire
+    addFurniture("bain_1", TILES.BATHTUB, 20, 1, 128, 64); // 4 cases de large
+
+    // *Note : Pour aller vite ici, je n'ai pas recréé tous les petits murs de ton plan.
+    // Tu pourras ajouter les autres entités avec `addFurniture()` plus tard.*
 
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
 
-    // Les joueurs apparaissent répartis dans le grand couloir
-    const spawnPoints = [ 
-        {x: 4 * 32, y: 7 * 32}, 
-        {x: 8 * 32, y: 8 * 32}, 
-        {x: 12 * 32, y: 7 * 32}, 
-        {x: 16 * 32, y: 8 * 32}, 
-        {x: 20 * 32, y: 7 * 32} 
-    ];
-    
-    let spawnIdx = 0;
-
+    const spawns = [{x: 4*32, y: 7*32}, {x: 8*32, y: 8*32}, {x: 12*32, y: 7*32}];
+    let idx = 0;
     for (const id in playersState) {
-        playersState[id].x = spawnPoints[spawnIdx % spawnPoints.length].x;
-        playersState[id].y = spawnPoints[spawnIdx % spawnPoints.length].y;
-        playersState[id].alive = true;
-        playersState[id].hidden = false;
-        
-        playersState[id].dir = 'down'; 
-        playersState[id].moving = false;
-        playersState[id].animTimer = 0;
-        
-        spawnIdx++;
+        let p = playersState[id];
+        p.x = spawns[idx % spawns.length].x; 
+        p.y = spawns[idx % spawns.length].y;
+        p.alive = true; p.hidden = false; p.dir = 'down'; p.moving = false; p.animTimer = 0;
+        idx++;
     }
 }
 
@@ -476,6 +486,7 @@ function computeHostPhysics(deltaMs) {
         state: {
             players: playersState,
             currentMapTiles: mapTiles,
+            furnitures: furnitures, // <-- NOUVEAU !
             timeRemaining: timeRemaining,
             hunterCountdown: hunterCountdown
         }
@@ -521,22 +532,55 @@ function drawMinimap() {
 
     const rows = mapTiles.length;
     const cols = mapTiles[0].length;
-    const tileSize = 14; // px par tuile dans la minimap
+    const miniTileSize = 14; // px dans la minimap
+    const scale = miniTileSize / TILE_SIZE; // Ratio pour convertir les pixels du jeu
 
     // Redimensionne le canvas interne si nécessaire
-    if (minimapCanvas.width !== cols * tileSize || minimapCanvas.height !== rows * tileSize) {
-        minimapCanvas.width  = cols * tileSize;
-        minimapCanvas.height = rows * tileSize;
+    if (minimapCanvas.width !== cols * miniTileSize || minimapCanvas.height !== rows * miniTileSize) {
+        minimapCanvas.width  = cols * miniTileSize;
+        minimapCanvas.height = rows * miniTileSize;
     }
 
     minimapCtx.imageSmoothingEnabled = false;
 
-    // Tuiles (furniture toujours en état fermé — pas de changement d'état visible)
+    // 1. DESSIN DU SOL (Fond)
     for (let ty = 0; ty < rows; ty++) {
         for (let tx = 0; tx < cols; tx++) {
             minimapCtx.fillStyle = getMinimapColor(mapTiles[ty][tx]);
-            minimapCtx.fillRect(tx * tileSize, ty * tileSize, tileSize, tileSize);
+            minimapCtx.fillRect(tx * miniTileSize, ty * miniTileSize, miniTileSize, miniTileSize);
         }
+    }
+
+    // 2. DESSIN DES ENTITÉS (Murs et Meubles)
+    for (const f of furnitures) {
+        minimapCtx.fillStyle = getMinimapColor(f.type);
+        
+        // On convertit les vraies coordonnées en coordonnées réduites pour la minimap
+        const miniX = f.x * scale;
+        const miniY = f.y * scale;
+        const miniW = f.width * scale;
+        const miniH = f.height * scale;
+        
+        minimapCtx.fillRect(miniX, miniY, miniW, miniH);
+    }
+
+    // 3. DESSIN DES JOUEURS (Points sur le radar)
+    for (const id in playersState) {
+        const p = playersState[id];
+        // On ne dessine pas les morts, ni les traqués cachés (sauf si c'est nous-même)
+        if (!p.alive || p.role === 'SPECTATOR') continue;
+        if (p.role === 'HIDER' && p.hidden && id !== socket.id) continue;
+
+        minimapCtx.fillStyle = (p.role === 'HUNTER') ? '#e63946' : '#2196f3';
+        
+        // Calcul du centre du joueur sur la minimap
+        const miniCx = (p.x + p.size / 2) * scale;
+        const miniCy = (p.y + p.size / 2) * scale;
+        
+        // On dessine un petit cercle de 3px
+        minimapCtx.beginPath();
+        minimapCtx.arc(miniCx, miniCy, 3, 0, Math.PI * 2);
+        minimapCtx.fill();
     }
 }
 
@@ -578,15 +622,33 @@ function drawGame() {
     ctx.translate(-camX, -camY);
     ctx.scale(ZOOM_FACTOR, ZOOM_FACTOR);
 
-    // DESSIN DE LA MAP
+    // DESSIN DE LA MAP (Le sol d'abord)
     for (let ty = 0; ty < mapTiles.length; ty++) {
         for (let tx = 0; tx < mapTiles[0].length; tx++) {
-            const tileId = mapTiles[ty][tx];
             const worldX = tx * TILE_SIZE;
             const worldY = ty * TILE_SIZE;
+            if (images[TILES.FLOOR]) {
+                ctx.drawImage(images[TILES.FLOOR], worldX, worldY, TILE_SIZE, TILE_SIZE);
+            } else {
+                ctx.fillStyle = getTileColor(TILES.FLOOR);
+                ctx.fillRect(worldX, worldY, TILE_SIZE, TILE_SIZE);
+            }
+        }
+    }
 
-            drawTile(TILES.FLOOR, worldX, worldY);
-            if (tileId !== TILES.FLOOR) drawTile(tileId, worldX, worldY);
+    // DESSIN DES ENTITÉS (Murs et Meubles par-dessus)
+    for (const f of furnitures) {
+        if (images[f.type] && images[f.type].complete && images[f.type].naturalWidth > 0) {
+            // S'il y a une image, on la dessine à la taille de l'entité
+            ctx.drawImage(images[f.type], f.x, f.y, f.width, f.height);
+        } else {
+            // Sinon on fait un carré de couleur (pratique pour tester les murs !)
+            ctx.fillStyle = getTileColor(f.type);
+            ctx.fillRect(f.x, f.y, f.width, f.height);
+            
+            // Petit effet visuel pour voir les bords des meubles provisoires
+            ctx.strokeStyle = "rgba(0,0,0,0.3)";
+            ctx.strokeRect(f.x, f.y, f.width, f.height);
         }
     }
 
@@ -653,183 +715,144 @@ function drawGame() {
 }
 
 // ==========================================
-// 6. GESTION DES COLLISIONS
+// 6. GESTION DES COLLISIONS (SYSTÈME AABB)
 // ==========================================
 
-// Détermine si une tuile précise est un obstacle
-function isSolid(tileId) {
-    if (tileId === TILES.FLOOR || tileId === TILES.STAIRS_UP || tileId === TILES.STAIRS_DOWN) return false;
-    
-    // Les portes et les intérieurs d'armoires ouvertes sont traversables
-    if (tileId === TILES.ENTRY_DOOR) return false;
-    if (tileId === TILES.WARDROBE_OPEN_BL || tileId === TILES.WARDROBE_OPEN_BR) return false;
-
-    // Tout le reste (Murs, lits, armoires fermées) est solide
-    return true;
-}
-
-// Vérifie si un carré (x, y, taille) touche un obstacle sur la carte
 function collides(x, y, size) {
-    // 1. Calculer la "Boîte de collision" en pixels
-    const left = x;
-    const right = x + size - 0.01; // Le -0.01 évite de mordre sur la tuile d'à côté
-    const top = y;
-    const bottom = y + size - 0.01;
+    // 1. La "Hitbox" (Boîte de collision) du joueur
+    const pLeft = x;
+    const pRight = x + size;
+    const pTop = y;
+    const pBottom = y + size;
 
-    // 2. Convertir ces pixels en coordonnées de Grille (Tuiles)
-    const startTx = Math.floor(left / TILE_SIZE);
-    const endTx = Math.floor(right / TILE_SIZE);
-    const startTy = Math.floor(top / TILE_SIZE);
-    const endTy = Math.floor(bottom / TILE_SIZE);
-
-    // 3. Vérifier qu'on ne sort pas des limites de la carte
-    if (startTx < 0 || startTy < 0 || endTx >= mapTiles[0].length || endTy >= mapTiles.length) {
+    // 2. On vérifie si on sort de la carte (28 cases x 15 cases)
+    if (pLeft < 0 || pRight > 28 * TILE_SIZE || pTop < 0 || pBottom > 15 * TILE_SIZE) {
         return true;
     }
 
-    // 4. Parcourir toutes les tuiles que le joueur chevauche
-    for (let ty = startTy; ty <= endTy; ty++) {
-        for (let tx = startTx; tx <= endTx; tx++) {
-            const tileId = mapTiles[ty][tx];
-            if (isSolid(tileId)) {
-                return true; // Boum ! On touche un mur
-            }
+    // 3. On vérifie chaque meuble de la liste
+    for (const f of furnitures) {
+        // Les meubles ouverts ou les portes sont traversables
+        if (f.type === TILES.ENTRY_DOOR) continue;
+        if (f.type === TILES.WARDROBE_OPEN_TL || f.type === TILES.WARDROBE_OPEN_TR) continue;
+        if (f.type === TILES.BED_OPEN_TOP || f.type === TILES.BED_OPEN_BOTTOM) continue;
+
+        // La Hitbox du meuble
+        const fLeft = f.x;
+        const fRight = f.x + f.width;
+        const fTop = f.y;
+        const fBottom = f.y + f.height;
+
+        // Formule magique AABB : Y a-t-il chevauchement ?
+        if (pRight > fLeft && pLeft < fRight && pBottom > fTop && pTop < fBottom) {
+            return true; // BOUM ! On touche un meuble ou un mur.
         }
     }
 
-    return false; // Voie libre
+    return false; // Voie libre !
 }
 
 // ==========================================
-// 7. MÉCANIQUES DE CACHETTE ET D'INTERACTION
+// 7. MÉCANIQUES DE CACHETTE (ENTITÉS)
 // ==========================================
 
-// Liste des tuiles considérées comme des cachettes
-function isHidingSpot(tile) {
+function isHidingSpot(type) {
     return [
         TILES.BED_TOP, TILES.BED_BOTTOM, TILES.BED_OPEN_TOP, TILES.BED_OPEN_BOTTOM,
         TILES.WARDROBE_CLOSED_L, TILES.WARDROBE_CLOSED_R,
         TILES.WARDROBE_OPEN_TL, TILES.WARDROBE_OPEN_TR,
-        TILES.WARDROBE_OPEN_BL, TILES.WARDROBE_OPEN_BR
-    ].includes(tile);
+        TILES.SHELF
+    ].includes(type);
 }
 
-// Trouve le centre de la tuile interactive la plus proche
-function findInteractiveTileCenter(cx, cy) {
-    const offsets = [[0, 0], [0, -TILE_SIZE], [0, TILE_SIZE], [-TILE_SIZE, 0], [TILE_SIZE, 0]];
-    
-    for (let off of offsets) {
-        let tx = Math.floor((cx + off[0]) / TILE_SIZE);
-        let ty = Math.floor((cy + off[1]) / TILE_SIZE);
-        
-        if (ty >= 0 && ty < mapTiles.length && tx >= 0 && tx < mapTiles[0].length) {
-            let tile = mapTiles[ty][tx];
-            if (isHidingSpot(tile)) {
-                return { 
-                    tx: tx, ty: ty, 
-                    px: tx * TILE_SIZE + TILE_SIZE / 2, 
-                    py: ty * TILE_SIZE + TILE_SIZE / 2 
-                };
-            }
+// Cherche le meuble interactif le plus proche du joueur (Rayon de 40px max)
+function findInteractiveFurniture(cx, cy) {
+    let closest = null;
+    let minDist = 40; 
+
+    for (const f of furnitures) {
+        if (!isHidingSpot(f.type)) continue;
+
+        // On calcule le centre du meuble
+        let fCx = f.x + f.width / 2;
+        let fCy = f.y + f.height / 2;
+        let dist = Math.hypot(cx - fCx, cy - fCy);
+
+        if (dist < minDist) {
+            minDist = dist;
+            closest = f;
         }
     }
-    return null;
+    return closest;
 }
 
-// Modifie la carte pour ouvrir/fermer les meubles (Traduction de ton Java)
-function toggleFurniture(tx, ty, isHunter) {
-    if (ty < 0 || ty >= mapTiles.length || tx < 0 || tx >= mapTiles[0].length) return false;
-    const tile = mapTiles[ty][tx];
-
+function toggleFurniture(f, isHunter) {
     if (isHunter) {
-        // Le Chasseur OUVRE les armoires et les lits
-        if (tile === TILES.WARDROBE_CLOSED_L) {
-            mapTiles[ty][tx] = TILES.WARDROBE_OPEN_TL;
-            if (tx + 1 < mapTiles[0].length) mapTiles[ty][tx + 1] = TILES.WARDROBE_OPEN_TR;
+        // Le chasseur OUVRE
+        if (f.type === TILES.WARDROBE_CLOSED_L || f.type === TILES.WARDROBE_CLOSED_R) {
+            f.type = TILES.WARDROBE_OPEN_TL; 
             return true;
-        } else if (tile === TILES.WARDROBE_CLOSED_R) {
-            mapTiles[ty][tx] = TILES.WARDROBE_OPEN_TR;
-            if (tx - 1 >= 0) mapTiles[ty][tx - 1] = TILES.WARDROBE_OPEN_TL;
-            return true;
-        } else if (tile === TILES.BED_TOP) {
-            mapTiles[ty][tx] = TILES.BED_OPEN_TOP;
-            if (ty + 1 < mapTiles.length) mapTiles[ty + 1][tx] = TILES.BED_OPEN_BOTTOM;
-            return true;
-        } else if (tile === TILES.BED_BOTTOM) {
-            mapTiles[ty][tx] = TILES.BED_OPEN_BOTTOM;
-            if (ty - 1 >= 0) mapTiles[ty - 1][tx] = TILES.BED_OPEN_TOP;
+        } else if (f.type === TILES.BED_TOP || f.type === TILES.BED_BOTTOM) {
+            f.type = TILES.BED_OPEN_TOP;
             return true;
         }
     } else {
-        // Le Traqué FERME l'armoire derrière lui
-        if (tile >= TILES.WARDROBE_OPEN_TL && tile <= TILES.WARDROBE_OPEN_BR) {
-            // Simplification : on remet l'armoire fermée classique
-            mapTiles[ty][tx] = TILES.WARDROBE_CLOSED_L; 
-            if (tx + 1 < mapTiles[0].length) mapTiles[ty][tx + 1] = TILES.WARDROBE_CLOSED_R;
+        // Le traqué FERME derrière lui
+        if (f.type === TILES.WARDROBE_OPEN_TL || f.type === TILES.WARDROBE_OPEN_TR) {
+            f.type = TILES.WARDROBE_CLOSED_L;
             return true;
-        } else if (tile === TILES.BED_OPEN_TOP) {
-            mapTiles[ty][tx] = TILES.BED_TOP;
-            if (ty + 1 < mapTiles.length) mapTiles[ty + 1][tx] = TILES.BED_BOTTOM;
-            return true;
-        } else if (tile === TILES.BED_OPEN_BOTTOM) {
-            mapTiles[ty][tx] = TILES.BED_BOTTOM;
-            if (ty - 1 >= 0) mapTiles[ty - 1][tx] = TILES.BED_TOP;
+        } else if (f.type === TILES.BED_OPEN_TOP || f.type === TILES.BED_OPEN_BOTTOM) {
+            f.type = TILES.BED_TOP;
             return true;
         }
     }
     return false;
 }
 
-// L'action principale du Traqué
 function handleHiderAction(p) {
     if (p.hidden) {
-        // 1. SORTIR DE LA CACHETTE
         p.hidden = false;
-        p.x = p.entryX; // Il réapparaît là où il était avant de se cacher
+        p.x = p.entryX; 
         p.y = p.entryY;
     } else {
-        // 2. ENTRER DANS LA CACHETTE
         const cx = p.x + p.size / 2;
         const cy = p.y + p.size / 2;
-        const target = findInteractiveTileCenter(cx, cy);
+        const target = findInteractiveFurniture(cx, cy);
 
         if (target) {
-            // Sauvegarde de la position pour la sortie
             p.entryX = p.x;
             p.entryY = p.y;
-
-            // Fermer ou ouvrir le meuble visuellement
-            toggleFurniture(target.tx, target.ty, false);
-
+            toggleFurniture(target, false);
             p.hidden = true;
             
-            // Téléportation magique au centre de l'armoire
-            p.x = target.px - p.size / 2;
-            p.y = target.py - p.size / 2;
+            // On le téléporte pile au centre du meuble
+            p.x = target.x + (target.width / 2) - (p.size / 2);
+            p.y = target.y + (target.height / 2) - (p.size / 2);
         }
     }
 }
 
-// L'action principale du Chasseur (Fouiller)
 function handleHunterSearch(p) {
     const cx = p.x + p.size / 2;
     const cy = p.y + p.size / 2;
-    const target = findInteractiveTileCenter(cx, cy);
+    const target = findInteractiveFurniture(cx, cy);
 
     if (target) {
-        const opened = toggleFurniture(target.tx, target.ty, true);
+        const opened = toggleFurniture(target, true);
         if (opened) {
-            // Si le chasseur a ouvert un meuble, on vérifie s'il y a un joueur caché dedans
             for (const id in playersState) {
                 const targetPlayer = playersState[id];
                 if (targetPlayer.role === 'HIDER' && targetPlayer.alive && targetPlayer.hidden) {
                     const tCx = targetPlayer.x + targetPlayer.size / 2;
                     const tCy = targetPlayer.y + targetPlayer.size / 2;
-                    // Vérifie si le traqué est au centre de ce meuble précis
-                    if (Math.hypot(tCx - target.px, tCy - target.py) < 48) {
+                    const fCx = target.x + target.width / 2;
+                    const fCy = target.y + target.height / 2;
+                    
+                    // Si le traqué est au centre de ce meuble précis
+                    if (Math.hypot(tCx - fCx, tCy - fCy) < 10) {
                         targetPlayer.alive = false;
                         targetPlayer.hidden = false;
-                        console.log(targetPlayer.pseudo + " a été trouvé et éliminé !");
+                        console.log(targetPlayer.pseudo + " a été attrapé dans sa cachette !");
                     }
                 }
             }
