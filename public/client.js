@@ -190,7 +190,7 @@ socket.on('playersUpdated', (players) => {
             if (!playersState[p.id]) {
                 playersState[p.id] = {
                     id: p.id, pseudo: p.pseudo, role: p.role,
-                    x: 64, y: 64, size: 24, speed: 120, alive: true, hidden: false
+                    x: 36, y: 36, size: 24, speed: 120, alive: true, hidden: false
                 };
             } else {
                 playersState[p.id].role = p.role;
@@ -303,8 +303,8 @@ function generateInitialState() {
     hunterCountdown = 10000; // 10 secondes de grâce pour les Traqués
 
     for (const id in playersState) {
-        playersState[id].x = 48;
-        playersState[id].y = 48;
+        playersState[id].x = 36;
+        playersState[id].y = 36;
         playersState[id].alive = true;
         playersState[id].hidden = false;
     }
@@ -465,35 +465,29 @@ function getMinimapColor(tileId) {
     return '#6b3a1f'; // Tous les meubles (ouverts ou fermés) → même brun
 }
 
+const minimapCanvas = document.getElementById('minimap-canvas');
+const minimapCtx = minimapCanvas.getContext('2d');
+
 function drawMinimap() {
     if (!mapTiles || mapTiles.length === 0) return;
 
     const rows = mapTiles.length;
     const cols = mapTiles[0].length;
+    const tileSize = 14; // px par tuile dans la minimap
 
-    // Taille max de la minimap en pixels écran
-    const maxW = 180;
-    const maxH = 120;
-    const tileSize = Math.max(2, Math.floor(Math.min(maxW / cols, maxH / rows)));
-    const mmW = tileSize * cols;
-    const mmH = tileSize * rows;
+    // Redimensionne le canvas interne si nécessaire
+    if (minimapCanvas.width !== cols * tileSize || minimapCanvas.height !== rows * tileSize) {
+        minimapCanvas.width  = cols * tileSize;
+        minimapCanvas.height = rows * tileSize;
+    }
 
-    const margin = 14;
-    const mmX = canvas.width - mmW - margin;
-    const mmY = margin;
+    minimapCtx.imageSmoothingEnabled = false;
 
-    // Fond semi-transparent + bordure pixel
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.72)';
-    ctx.fillRect(mmX - 4, mmY - 4, mmW + 8, mmH + 8);
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(mmX - 4, mmY - 4, mmW + 8, mmH + 8);
-
-    // Tuiles (état normalisé : furniture toujours fermée)
+    // Tuiles (furniture toujours en état fermé — pas de changement d'état visible)
     for (let ty = 0; ty < rows; ty++) {
         for (let tx = 0; tx < cols; tx++) {
-            ctx.fillStyle = getMinimapColor(mapTiles[ty][tx]);
-            ctx.fillRect(mmX + tx * tileSize, mmY + ty * tileSize, tileSize, tileSize);
+            minimapCtx.fillStyle = getMinimapColor(mapTiles[ty][tx]);
+            minimapCtx.fillRect(tx * tileSize, ty * tileSize, tileSize, tileSize);
         }
     }
 }

@@ -37,7 +37,7 @@ body {
     font-size: 2rem; 
     margin-bottom: 20px; 
     text-shadow: 4px 4px #000;
-    color: var(--gold);
+    color: var(--hunter-color);
 }
 
 .menu-box, .players-panel, .settings-panel {
@@ -85,10 +85,19 @@ canvas {
     display: block;
 }
 
+/* Game screen : canvas à gauche, sidebar à droite */
+#game-screen {
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    max-width: none !important;
+    gap: 16px;
+}
+
 /* Wrapper relatif pour superposer le HUD sur le canvas */
 .game-wrapper {
     position: relative;
     display: inline-block;
+    flex-shrink: 0;
 }
 
 #game-hud {
@@ -103,9 +112,7 @@ canvas {
     z-index: 10;
 }
 
-#game-hud > * {
-    pointer-events: auto;
-}
+#game-hud > * { pointer-events: auto; }
 
 #time-left {
     font-size: 0.65rem;
@@ -121,10 +128,23 @@ canvas {
     text-shadow: 2px 2px #000;
 }
 
-.game-back-btn {
-    font-size: 0.5rem;
-    padding: 8px 12px;
-    background: rgba(0, 0, 0, 0.75);
+/* Sidebar droite : minimap + bouton retour */
+.game-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: stretch;
+    width: 150px;
+    flex-shrink: 0;
+    padding-top: 4px;
+}
+
+#minimap-canvas {
+    width: 100%;
+    image-rendering: pixelated;
+    border: var(--pixel-border);
+    box-shadow: 4px 4px 0 #000;
+    background: #000;
 }
 
 /* ==========================================

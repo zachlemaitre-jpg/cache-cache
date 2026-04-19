@@ -11,7 +11,7 @@
 
     <div id="main-menu" class="screen">
         <h1 class="title">CACHE-CACHE</h1>
-        <p class="subtitle">Édition Multijoueur Web</p>
+        <p class="subtitle">version test</p>
         
         <div class="menu-box">
             <input type="text" id="pseudo-input" placeholder="Ton Pseudo" maxlength="12">
@@ -70,8 +70,12 @@
             <div id="game-hud">
                 <div id="time-left">Temps : --</div>
                 <div id="game-message"></div>
-                <button class="btn back-btn game-back-btn" onclick="returnToLobby()">&#x21A9; SALON</button>
             </div>
+        </div>
+
+        <div class="game-sidebar">
+            <canvas id="minimap-canvas"></canvas>
+            <button class="btn back-btn" onclick="returnToLobby()">&#x21A9; SALON</button>
         </div>
     </div>
 
