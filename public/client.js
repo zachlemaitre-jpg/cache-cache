@@ -74,18 +74,18 @@ let imagesLoaded = 0;
 const totalImages = Object.keys(imagePaths).length;
 
 function loadImages() {
+    console.log(`[Images] Chargement de ${totalImages} images...`);
     for (const key in imagePaths) {
         images[key] = new Image();
         images[key].src = imagePaths[key];
         images[key].onload = () => {
             imagesLoaded++;
-            if (imagesLoaded === totalImages) {
-                console.log("✅ Toutes les images sont chargées !");
-            }
+            console.log(`[Images] ${imagesLoaded}/${totalImages} — OK : ${imagePaths[key]}`);
         };
         images[key].onerror = () => {
-            console.error(`❌ Erreur de chargement pour l'image : ${imagePaths[key]}`);
-        }
+            imagesLoaded++; // On compte quand même pour ne pas bloquer le rendu
+            console.error(`[Images] MANQUANT (${imagesLoaded}/${totalImages}) : ${imagePaths[key]}`);
+        };
     }
 }
 loadImages();
@@ -173,7 +173,13 @@ socket.on('playersUpdated', (players) => {
     hidersList.innerHTML  = '';
     spectatorsList.innerHTML = '';
 
-    if (isHost && isPlaying) {
+    // Synchroniser playersState pendant le lobby ET en jeu (hôte uniquement).
+    // Sans ça, playersState serait vide au lancement et la caméra planterait.
+    if (isHost) {
+        const knownIds = new Set(players.map(p => p.id));
+        for (const id in playersState) {
+            if (!knownIds.has(id)) delete playersState[id];
+        }
         players.forEach(p => {
             if (!playersState[p.id]) {
                 playersState[p.id] = {
@@ -182,8 +188,10 @@ socket.on('playersUpdated', (players) => {
                 };
             } else {
                 playersState[p.id].role = p.role;
+                playersState[p.id].pseudo = p.pseudo;
             }
         });
+        console.log(`[Lobby] playersState : ${Object.keys(playersState).length} joueur(s)`);
     }
 
     players.forEach(p => {
@@ -409,67 +417,83 @@ function computeHostPhysics(deltaMs) {
 
 const ZOOM_FACTOR = 3; // On multiplie la taille par 3 pour l'effet Pixel Art
 
+// Couleurs de secours par type de tuile (Pixel Art fallback)
+function getTileFallbackColor(tileId) {
+    if (tileId === TILES.FLOOR)      return '#4a4a3a';
+    if (tileId === TILES.WALL)       return '#888888';
+    if (tileId === TILES.ENTRY_DOOR) return '#c8a000';
+    if (tileId === TILES.STAIRS_UP || tileId === TILES.STAIRS_DOWN) return '#aaaaaa';
+    if (tileId >= TILES.BED_TOP && tileId <= TILES.BED_OPEN_BOTTOM) return '#8B4513';
+    return '#5c3317'; // Armoires
+}
+
+function drawTile(tileId, worldX, worldY) {
+    if (images[tileId] && images[tileId].complete && images[tileId].naturalWidth > 0) {
+        ctx.drawImage(images[tileId], worldX, worldY, TILE_SIZE, TILE_SIZE);
+    } else {
+        ctx.fillStyle = getTileFallbackColor(tileId);
+        ctx.fillRect(worldX, worldY, TILE_SIZE, TILE_SIZE);
+    }
+}
+
 function drawGame() {
     // 1. Nettoyage et réglages
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Désactive le lissage pour garder l'aspect pixel bien net
     ctx.imageSmoothingEnabled = false;
 
-    if (!mapTiles || mapTiles.length === 0 || imagesLoaded < totalImages) return;
+    // Pas de map → rien à dessiner
+    if (!mapTiles || mapTiles.length === 0) return;
 
+    // 2. CALCUL DE LA CAMÉRA — si notre joueur n'existe pas encore, on centre sur (0,0)
     const me = playersState[socket.id];
-    if (!me) return;
-
-    // 2. CALCUL DE LA CAMÉRA (Suivi du personnage)
-    // On veut que le personnage soit au milieu exact du canvas
-    // La position du personnage est p.x, p.y. 
-    // On multiplie par ZOOM_FACTOR pour savoir où il est dans le monde zoomé.
-    const camX = (me.x + me.size / 2) * ZOOM_FACTOR - (canvas.width / 2);
-    const camY = (me.y + me.size / 2) * ZOOM_FACTOR - (canvas.height / 2);
+    let camX = 0, camY = 0;
+    if (me) {
+        camX = (me.x + me.size / 2) * ZOOM_FACTOR - (canvas.width / 2);
+        camY = (me.y + me.size / 2) * ZOOM_FACTOR - (canvas.height / 2);
+    }
 
     ctx.save();
-    
-    // On déplace le monde à l'inverse de la caméra
     ctx.translate(-camX, -camY);
-    
-    // On applique le zoom global
     ctx.scale(ZOOM_FACTOR, ZOOM_FACTOR);
 
-    // 3. DESSIN DE LA MAP
+    // 3. DESSIN DE LA MAP (avec fallback couleur si l'image est absente)
     for (let ty = 0; ty < mapTiles.length; ty++) {
         for (let tx = 0; tx < mapTiles[0].length; tx++) {
             const tileId = mapTiles[ty][tx];
             const worldX = tx * TILE_SIZE;
             const worldY = ty * TILE_SIZE;
 
-            ctx.drawImage(images.floor, worldX, worldY, TILE_SIZE, TILE_SIZE);
+            // Sol en premier (clé numérique 0, PAS images.floor)
+            drawTile(TILES.FLOOR, worldX, worldY);
 
-            if (tileId !== TILES.FLOOR && images[tileId]) {
-                ctx.drawImage(images[tileId], worldX, worldY, TILE_SIZE, TILE_SIZE);
+            // Meuble / mur par-dessus
+            if (tileId !== TILES.FLOOR) {
+                drawTile(tileId, worldX, worldY);
             }
         }
     }
 
-    // 4. DESSIN DES JOUEURS
+    // 4. DESSIN DES JOUEURS (avec fallback carré coloré)
     for (const id in playersState) {
         const p = playersState[id];
         if (!p.alive || p.role === 'SPECTATOR') continue;
         if (p.role === 'HIDER' && p.hidden && id !== socket.id) continue;
 
         const imgToDraw = (p.role === 'HUNTER') ? images.hunter : images.hider;
-        
-        if (imgToDraw) {
-            const spriteSize = 32;
-            const drawX = p.x - (spriteSize - p.size) / 2;
-            const drawY = p.y - (spriteSize - p.size) / 2;
+        const spriteSize = 32;
+        const drawX = p.x - (spriteSize - p.size) / 2;
+        const drawY = p.y - (spriteSize - p.size) / 2;
+
+        if (imgToDraw && imgToDraw.complete && imgToDraw.naturalWidth > 0) {
             ctx.drawImage(imgToDraw, drawX, drawY, spriteSize, spriteSize);
+        } else {
+            ctx.fillStyle = (p.role === 'HUNTER') ? '#e63946' : '#2196f3';
+            ctx.fillRect(drawX, drawY, spriteSize, spriteSize);
         }
-        
-        // Pseudo (on réduit la police car elle subit le scale du zoom)
+
         ctx.fillStyle = 'white';
-        ctx.font = '5px "Press Start 2P"'; 
+        ctx.font = '5px "Press Start 2P"';
         ctx.fillText(p.pseudo, p.x - 5, p.y - 5);
     }
 
