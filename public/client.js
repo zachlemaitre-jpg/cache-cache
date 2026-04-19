@@ -252,6 +252,7 @@ socket.on('hostMigrated', () => {
 });
 
 socket.on('gameStarted', () => {
+    document.getElementById('game-message').style.display = 'none';
     showScreen('game-screen');
     initGameEngine();
 });
@@ -262,6 +263,7 @@ socket.on('returnedToLobby', () => {
     mapTiles = [];
     playersState = {};
     clientsInputs = {};
+    document.getElementById('game-message').style.display = 'none';
     showScreen('lobby-screen');
 });
 
@@ -317,110 +319,90 @@ function initGameEngine() {
 let furnitures = []; 
 
 function generateInitialState() {
-    // 1. Le SOL (juste l'image de fond)
+    // 1. Le SOL
     mapTiles = [];
     for(let y = 0; y < 15; y++) {
         let row = [];
-        for(let x = 0; x < 28; x++) {
-            row.push(TILES.FLOOR);
-        }
+        for(let x = 0; x < 28; x++) { row.push(TILES.FLOOR); }
         mapTiles.push(row);
     }
 
     furnitures = [];
 
-    // NOUVELLE FONCTION : Accepte directement les pixels (px, py) pour une précision absolue !
     function addFurniture(id, type, px, py, widthPx, heightPx, customState = null) {
         furnitures.push({
-            id: id, type: type,
-            x: px, y: py,
-            width: widthPx, height: heightPx,
-            state: customState || 'CLOSED',
-            hidingPlayerId: null
+            id: id, type: type, x: px, y: py, width: widthPx, height: heightPx,
+            state: customState || 'CLOSED', hidingPlayerId: null
         });
     }
 
     const W = 12; // Épaisseur des murs
 
     // ==========================================
-    // STRUCTURE DES MURS (Fins et précis)
+    // STRUCTURE DES MURS (Corrigée pour les portes)
     // ==========================================
-    // Murs extérieurs
     addFurniture("m_ht", TILES.WALL, 0, 0, 896, W);
     addFurniture("m_bs", TILES.WALL, 0, 480 - W, 896, W);
     addFurniture("m_ga", TILES.WALL, 0, 0, W, 480);
     addFurniture("m_dr", TILES.WALL, 896 - W, 0, W, 480);
 
-    // Murs Horizontaux (Couloir Central : y=200 en haut, y=260 en bas)
-    addFurniture("m_ch_1", TILES.WALL, 280, 200, 30, W); // Porte Grande Chambre
-    addFurniture("m_ch_2", TILES.WALL, 350, 200, 70, W); // Entre Dressing et Chambre Bleu
-    addFurniture("m_ch_3", TILES.WALL, 460, 200, 220, W); // Long mur
-    addFurniture("m_ch_4", TILES.WALL, 720, 200, 176, W); // Fin vers SDB
+    // Murs Horizontaux du couloir
+    addFurniture("m_ch_0", TILES.WALL, 0, 200, 220, W); // NOUVEAU: Mur Grande Chambre
+    addFurniture("m_ch_1", TILES.WALL, 280, 200, 30, W); 
+    addFurniture("m_ch_2", TILES.WALL, 350, 200, 70, W); 
+    addFurniture("m_ch_3", TILES.WALL, 460, 200, 220, W); 
+    addFurniture("m_ch_4", TILES.WALL, 720, 200, 176, W); 
 
-    addFurniture("m_cb_1", TILES.WALL, 280, 260, 40, W); 
-    addFurniture("m_cb_2", TILES.WALL, 360, 260, 80, W); // Porte Chambre Jaune
-    addFurniture("m_cb_3", TILES.WALL, 480, 260, 180, W); // Devant escaliers
-    addFurniture("m_cb_4", TILES.WALL, 700, 260, 196, W); // Devant WC
+    addFurniture("m_cb_0", TILES.WALL, 0, 260, 220, W); // NOUVEAU: Mur Chambre Jaune
+    addFurniture("m_cb_1", TILES.WALL, 280, 260, 80, W); // CORRIGÉ: Décalé pour libérer l'étagère
+    addFurniture("m_cb_2", TILES.WALL, 410, 260, 70, W); // CORRIGÉ
+    addFurniture("m_cb_3", TILES.WALL, 480, 260, 180, W); 
+    addFurniture("m_cb_4", TILES.WALL, 700, 260, 196, W); 
 
-    // Murs Verticaux de séparation
-    addFurniture("m_v_1", TILES.WALL, 280, 0, W, 200); // Dressing Gauche
-    addFurniture("m_v_2", TILES.WALL, 360, 0, W, 200); // Dressing Droite
-    addFurniture("m_v_3", TILES.WALL, 600, 0, W, 200); // Chambre Bureau Droite
-    
-    addFurniture("m_v_4", TILES.WALL, 280, 260, W, 220); // Chambre Jaune Gauche
-    addFurniture("m_v_5", TILES.WALL, 460, 260, W, 220); // Escaliers Gauche
-    addFurniture("m_v_6", TILES.WALL, 600, 260, W, 220); // Escaliers Droite
-    addFurniture("m_v_7", TILES.WALL, 660, 260, W, 100); // WC Gauche
-    addFurniture("m_v_8", TILES.WALL, 740, 260, W, 100); // WC Droite
-    addFurniture("m_wc_b", TILES.WALL, 660, 360, 92, W); // WC Bas
+    // Murs Verticaux
+    addFurniture("m_v_1", TILES.WALL, 280, 0, W, 200); 
+    addFurniture("m_v_2", TILES.WALL, 360, 0, W, 200); 
+    addFurniture("m_v_3", TILES.WALL, 600, 0, W, 200); 
+    addFurniture("m_v_4", TILES.WALL, 280, 260, W, 220); 
+    addFurniture("m_v_5", TILES.WALL, 460, 260, W, 220); 
+    addFurniture("m_v_6", TILES.WALL, 600, 260, W, 220); 
+    addFurniture("m_v_7", TILES.WALL, 660, 260, W, 100); 
+    addFurniture("m_v_8", TILES.WALL, 740, 260, W, 100); 
+    addFurniture("m_wc_b", TILES.WALL, 660, 360, 92, W); 
 
     // ==========================================
-    // PLACEMENT DES MEUBLES (Couleurs du plan)
+    // PLACEMENT DES MEUBLES
     // ==========================================
-    // --- HAUT GAUCHE (Grande Chambre) ---
-    addFurniture("lit_double", TILES.BED_TOP, 80, 40, 100, 100); // Vert
-    addFurniture("arm_g1", TILES.SHELF, 20, 40, 20, 60); // Rouge gauche
-    addFurniture("arm_g2", TILES.SHELF, 60, 320, 40, 100); // Lits rouges
+    addFurniture("lit_double", TILES.BED_TOP, 80, 40, 100, 100); 
+    addFurniture("arm_g1", TILES.SHELF, 20, 40, 20, 60); 
+    addFurniture("arm_g2", TILES.SHELF, 60, 320, 40, 100); 
     addFurniture("arm_g3", TILES.SHELF, 140, 320, 40, 100);
 
-    // --- HAUT MILIEU 1 (Dressing étroit) ---
-    addFurniture("arm_d1", TILES.SHELF, 292, 20, 20, 160);
-    addFurniture("arm_d2", TILES.SHELF, 340, 20, 20, 160);
+    // Dressing aminci (16px au lieu de 20px) pour te laisser passer !
+    addFurniture("arm_d1", TILES.SHELF, 292, 20, 16, 160); 
+    addFurniture("arm_d2", TILES.SHELF, 344, 20, 16, 160);
 
-    // --- HAUT MILIEU 2 (Chambre Bureau) ---
-    addFurniture("lit_simple", TILES.BED_TOP, 380, 20, 90, 50); // Vert
+    addFurniture("lit_simple", TILES.BED_TOP, 380, 20, 90, 50); 
     addFurniture("arm_b1", TILES.SHELF, 372, 90, 20, 40);
     addFurniture("arm_b2", TILES.SHELF, 372, 140, 20, 60);
-    addFurniture("bureau", TILES.DESK, 410, 150, 70, 40); // Bleu
+    addFurniture("bureau", TILES.DESK, 410, 150, 70, 40); 
 
-    // --- HAUT DROITE (Salle de Bain) ---
-    addFurniture("baignoire", TILES.BATHTUB, 720, 20, 150, 60); // Jaune
+    addFurniture("baignoire", TILES.BATHTUB, 720, 20, 150, 60); 
     addFurniture("arm_s1", TILES.SHELF, 720, 80, 30, 80);
     addFurniture("arm_s2", TILES.SHELF, 840, 80, 30, 80);
 
-    // --- BAS GAUCHE (Chambre Jaune) ---
     addFurniture("arm_j1", TILES.SHELF, 292, 280, 60, 130);
     addFurniture("arm_j2", TILES.SHELF, 330, 430, 30, 30);
-    addFurniture("douche", TILES.BATHTUB, 370, 370, 90, 90); // Quart de cercle jaune
+    addFurniture("douche", TILES.BATHTUB, 370, 370, 90, 90); 
 
-    // --- BAS MILIEU (Escaliers) ---
     addFurniture("escalier_1", TILES.STAIRS_UP, 472, 260, 88, 100);
     addFurniture("escalier_2", TILES.STAIRS_DOWN, 612, 260, 88, 220);
+    addFurniture("wc", TILES.TOILET, 690, 300, 32, 40);
 
-    // --- BAS DROITE (Toilettes) ---
-    addFurniture("wc", TILES.TOILET, 690, 300, 32, 40); // Marron
-
-    // ==========================================
-    // INITIALISATION DE LA PARTIE
-    // ==========================================
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
 
-    // Les joueurs apparaissent au milieu du grand couloir
-    const spawns = [
-        {x: 400, y: 220}, {x: 500, y: 220}, 
-        {x: 600, y: 220}, {x: 700, y: 220}
-    ];
+    const spawns = [{x: 400, y: 220}, {x: 500, y: 220}, {x: 600, y: 220}, {x: 700, y: 220}];
     let idx = 0;
     
     for (const id in playersState) {
@@ -434,6 +416,8 @@ function generateInitialState() {
 
 let lastTime = 0;
 
+let lastTime = 0;
+
 function gameLoop(time) {
     if (!isPlaying) return;
     
@@ -442,8 +426,60 @@ function gameLoop(time) {
 
     if (isHost) computeHostPhysics(deltaMs);
     drawGame();
+    
+    // NOUVEAU : On vérifie qui a gagné à chaque image !
+    checkVictory(); 
 
-    requestAnimationFrame(gameLoop);
+    if (isPlaying) {
+        requestAnimationFrame(gameLoop);
+    }
+}
+
+function checkVictory() {
+    if (!isPlaying || timeRemaining === undefined) return;
+
+    let hasHider = false;
+    let hidersAlive = false;
+
+    for (const id in playersState) {
+        if (playersState[id].role === 'HIDER') {
+            hasHider = true;
+            if (playersState[id].alive) hidersAlive = true;
+        }
+    }
+
+    // 1. Si tous les traqués sont attrapés (et qu'il y en avait au moins un)
+    if (hasHider && !hidersAlive) {
+        triggerGameOver("VICTOIRE CHASSEUR", "#e63946");
+    } 
+    // 2. Si le temps est écoulé
+    else if (timeRemaining <= 0) {
+        if (hidersAlive) {
+            triggerGameOver("VICTOIRE TRAQUÉS", "#2196f3");
+        } else {
+            triggerGameOver("VICTOIRE CHASSEUR", "#e63946");
+        }
+    }
+}
+
+function triggerGameOver(text, color) {
+    isPlaying = false; // Gèle l'écran
+    
+    const msgDiv = document.getElementById('game-message');
+    msgDiv.innerText = text;
+    msgDiv.style.color = color;
+    msgDiv.style.fontSize = '2rem';
+    msgDiv.style.position = 'absolute';
+    msgDiv.style.top = '50%';
+    msgDiv.style.left = '50%';
+    msgDiv.style.transform = 'translate(-50%, -50%)';
+    msgDiv.style.padding = '30px 50px';
+    msgDiv.style.background = 'rgba(0, 0, 0, 0.9)';
+    msgDiv.style.border = `6px solid ${color}`;
+    msgDiv.style.textShadow = '4px 4px #000';
+    msgDiv.style.display = 'block';
+    msgDiv.style.zIndex = '100';
+    msgDiv.style.textAlign = 'center';
 }
 
 // --- LE CERVEAU DU JEU (Exécuté uniquement par l'Hôte) ---
