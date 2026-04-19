@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cache-Cache en Ligne</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="main-menu" class="screen">
+        <h1 class="title">CACHE-CACHE</h1>
+        <p class="subtitle">Édition Multijoueur Web</p>
+        
+        <div class="menu-box">
+            <input type="text" id="pseudo-input" placeholder="Ton Pseudo" maxlength="12">
+            <input type="text" id="room-input" placeholder="Code du salon (vide = Créer)" maxlength="6">
+            <button class="btn primary" onclick="joinOrCreateRoom()">CRÉER / REJOINDRE</button>
+        </div>
+    </div>
+
+    <div id="lobby-screen" class="screen hidden">
+        <h1 class="title">SALON : <span id="room-code-display" class="gold-text">XXXXXX</span></h1>
+        
+        <div class="lobby-layout">
+            <div class="players-panel">
+                <h3>Joueurs connectés</h3>
+                <ul id="players-list"></ul>
+            </div>
+
+            <div class="settings-panel">
+                <h3>Choix du Rôle</h3>
+                <div class="roles-container">
+                    <button class="btn role-btn hunter" onclick="requestRole('REQUEST_HUNTER')">CHASSEUR</button>
+                    <button class="btn role-btn hider" onclick="requestRole('REQUEST_HIDER')">TRAQUÉ</button>
+                </div>
+
+                <div id="host-settings" class="disabled-for-client">
+                    <h3>Temps de jeu</h3>
+                    <div class="time-container">
+                        <button class="btn time-btn" id="btn-time-120" onclick="setTime('SET_TIME_120')">2 Min</button>
+                        <button class="btn time-btn" id="btn-time-180" onclick="setTime('SET_TIME_180')">3 Min</button>
+                        <button class="btn time-btn" id="btn-time-240" onclick="setTime('SET_TIME_240')">4 Min</button>
+                    </div>
+                    <button id="start-btn" class="btn success" onclick="startGame()">LANCER LA PARTIE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-screen" class="screen hidden">
+        <canvas id="game-canvas" width="768" height="768"></canvas>
+        
+        <div id="game-hud">
+            <div id="time-left">Temps : --</div>
+            <div id="game-message"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+</body>
+</html>
