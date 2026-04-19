@@ -527,62 +527,7 @@ function getTileFallbackColor(tileId) {
 const minimapCanvas = document.getElementById('minimap-canvas');
 const minimapCtx = minimapCanvas.getContext('2d');
 
-function drawMinimap() {
-    if (!mapTiles || mapTiles.length === 0) return;
 
-    const rows = mapTiles.length;
-    const cols = mapTiles[0].length;
-    const miniTileSize = 14; // px dans la minimap
-    const scale = miniTileSize / TILE_SIZE; // Ratio pour convertir les pixels du jeu
-
-    // Redimensionne le canvas interne si nécessaire
-    if (minimapCanvas.width !== cols * miniTileSize || minimapCanvas.height !== rows * miniTileSize) {
-        minimapCanvas.width  = cols * miniTileSize;
-        minimapCanvas.height = rows * miniTileSize;
-    }
-
-    minimapCtx.imageSmoothingEnabled = false;
-
-    // 1. DESSIN DU SOL (Fond)
-    for (let ty = 0; ty < rows; ty++) {
-        for (let tx = 0; tx < cols; tx++) {
-            minimapCtx.fillStyle = getMinimapColor(mapTiles[ty][tx]);
-            minimapCtx.fillRect(tx * miniTileSize, ty * miniTileSize, miniTileSize, miniTileSize);
-        }
-    }
-
-    // 2. DESSIN DES ENTITÉS (Murs et Meubles)
-    for (const f of furnitures) {
-        minimapCtx.fillStyle = getMinimapColor(f.type);
-        
-        // On convertit les vraies coordonnées en coordonnées réduites pour la minimap
-        const miniX = f.x * scale;
-        const miniY = f.y * scale;
-        const miniW = f.width * scale;
-        const miniH = f.height * scale;
-        
-        minimapCtx.fillRect(miniX, miniY, miniW, miniH);
-    }
-
-    // 3. DESSIN DES JOUEURS (Points sur le radar)
-    for (const id in playersState) {
-        const p = playersState[id];
-        // On ne dessine pas les morts, ni les traqués cachés (sauf si c'est nous-même)
-        if (!p.alive || p.role === 'SPECTATOR') continue;
-        if (p.role === 'HIDER' && p.hidden && id !== socket.id) continue;
-
-        minimapCtx.fillStyle = (p.role === 'HUNTER') ? '#e63946' : '#2196f3';
-        
-        // Calcul du centre du joueur sur la minimap
-        const miniCx = (p.x + p.size / 2) * scale;
-        const miniCy = (p.y + p.size / 2) * scale;
-        
-        // On dessine un petit cercle de 3px
-        minimapCtx.beginPath();
-        minimapCtx.arc(miniCx, miniCy, 3, 0, Math.PI * 2);
-        minimapCtx.fill();
-    }
-}
 
 // Couleurs de secours par type de tuile (Pixel Art fallback)
 function getTileFallbackColor(tileId) {
@@ -613,7 +558,7 @@ function drawGame() {
     const me = playersState[socket.id];
     let camX = 0, camY = 0;
     if (me) {
-        // Centrage parfait sur le joueur
+        // Centrage de la caméra sur toi
         camX = (me.x + me.size / 2) * ZOOM_FACTOR - (canvas.width / 2);
         camY = (me.y + me.size / 2) * ZOOM_FACTOR - (canvas.height / 2);
     }
@@ -622,19 +567,141 @@ function drawGame() {
     ctx.translate(-camX, -camY);
     ctx.scale(ZOOM_FACTOR, ZOOM_FACTOR);
 
-    // DESSIN DE LA MAP (Le sol d'abord)
+    // 1. DESSIN DU SOL
     for (let ty = 0; ty < mapTiles.length; ty++) {
         for (let tx = 0; tx < mapTiles[0].length; tx++) {
             const worldX = tx * TILE_SIZE;
             const worldY = ty * TILE_SIZE;
-            if (images[TILES.FLOOR]) {
+            if (images[TILES.FLOOR] && images[TILES.FLOOR].complete) {
                 ctx.drawImage(images[TILES.FLOOR], worldX, worldY, TILE_SIZE, TILE_SIZE);
             } else {
-                ctx.fillStyle = getTileColor(TILES.FLOOR);
+                ctx.fillStyle = getTileFallbackColor(TILES.FLOOR);
                 ctx.fillRect(worldX, worldY, TILE_SIZE, TILE_SIZE);
             }
         }
     }
+
+    // 2. DESSIN DES ENTITÉS (Murs et Meubles)
+    for (const f of furnitures) {
+        if (f.type === TILES.WALL) {
+            // Pour éviter l'étirement laid, on dessine les longs murs en gris
+            ctx.fillStyle = '#666666'; 
+            ctx.fillRect(f.x, f.y, f.width, f.height);
+            ctx.strokeStyle = '#333333';
+            ctx.strokeRect(f.x, f.y, f.width, f.height);
+        } 
+        else if (images[f.type] && images[f.type].complete && images[f.type].naturalWidth > 0) {
+            // Pour les autres meubles, on dessine l'image normalement
+            ctx.drawImage(images[f.type], f.x, f.y, f.width, f.height);
+        } else {
+            // Fallback s'il manque une image
+            ctx.fillStyle = getTileFallbackColor(f.type);
+            ctx.fillRect(f.x, f.y, f.width, f.height);
+            ctx.strokeStyle = "rgba(0,0,0,0.5)";
+            ctx.strokeRect(f.x, f.y, f.width, f.height);
+        }
+    }
+
+    // 3. DESSIN DES JOUEURS ANIMÉS
+    for (const id in playersState) {
+        const p = playersState[id];
+        if (!p.alive || p.role === 'SPECTATOR') continue;
+        if (p.role === 'HIDER' && p.hidden && id !== socket.id) continue;
+
+        const direction = p.dir || 'down';
+        let spriteKey = '';
+
+        if (p.role === 'HUNTER') {
+            if (p.moving) {
+                const step = (Math.floor(p.animTimer / 200) % 2) + 1;
+                spriteKey = `hunter_walk${step}_${direction}`;
+            } else {
+                spriteKey = `hunter_idle_${direction}`;
+            }
+        } else {
+            spriteKey = `hider_${direction}`;
+        }
+        
+        const imgFallback = (p.role === 'HUNTER') ? 'hunter_idle_down' : 'hider_down';
+        const imgToDraw = images[spriteKey] || images[imgFallback];
+
+        const spriteSize = 32;
+        const drawX = p.x - (spriteSize - p.size) / 2;
+        const drawY = p.y - (spriteSize - p.size) / 2;
+
+        if (imgToDraw && imgToDraw.complete && imgToDraw.naturalWidth > 0) {
+            ctx.drawImage(imgToDraw, drawX, drawY, spriteSize, spriteSize);
+        } else {
+            ctx.fillStyle = (p.role === 'HUNTER') ? '#e63946' : '#2196f3';
+            ctx.fillRect(p.x, p.y, p.size, p.size);
+        }
+
+        ctx.fillStyle = 'white';
+        ctx.font = '5px "Press Start 2P"';
+        ctx.fillText(p.pseudo, p.x - 5, p.y - 5);
+    }
+
+    ctx.restore();
+    drawMinimap();
+
+    // Filtre noir pour le Chasseur
+    if (myRole === 'HUNTER' && hunterCountdown > 0) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.95)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '60px "Press Start 2P"';
+        ctx.fillText(Math.ceil(hunterCountdown / 1000), canvas.width/2, canvas.height/2 + 20);
+        ctx.textAlign = 'left';
+    }
+}
+
+function drawMinimap() {
+    if (!mapTiles || mapTiles.length === 0) return;
+
+    const rows = mapTiles.length;
+    const cols = mapTiles[0].length;
+    const miniTileSize = 14; 
+    const scale = miniTileSize / TILE_SIZE;
+
+    if (minimapCanvas.width !== cols * miniTileSize || minimapCanvas.height !== rows * miniTileSize) {
+        minimapCanvas.width  = cols * miniTileSize;
+        minimapCanvas.height = rows * miniTileSize;
+    }
+
+    minimapCtx.imageSmoothingEnabled = false;
+
+    // 1. SOL
+    for (let ty = 0; ty < rows; ty++) {
+        for (let tx = 0; tx < cols; tx++) {
+            minimapCtx.fillStyle = getMinimapColor(mapTiles[ty][tx]);
+            minimapCtx.fillRect(tx * miniTileSize, ty * miniTileSize, miniTileSize, miniTileSize);
+        }
+    }
+
+    // 2. MURS ET MEUBLES
+    if (typeof furnitures !== 'undefined') {
+        for (const f of furnitures) {
+            minimapCtx.fillStyle = getMinimapColor(f.type);
+            minimapCtx.fillRect(f.x * scale, f.y * scale, f.width * scale, f.height * scale);
+        }
+    }
+
+    // 3. JOUEURS
+    for (const id in playersState) {
+        const p = playersState[id];
+        if (!p.alive || p.role === 'SPECTATOR') continue;
+        if (p.role === 'HIDER' && p.hidden && id !== socket.id) continue;
+
+        minimapCtx.fillStyle = (p.role === 'HUNTER') ? '#e63946' : '#2196f3';
+        const miniCx = (p.x + p.size / 2) * scale;
+        const miniCy = (p.y + p.size / 2) * scale;
+        
+        minimapCtx.beginPath();
+        minimapCtx.arc(miniCx, miniCy, 3, 0, Math.PI * 2);
+        minimapCtx.fill();
+    }
+}
 
     // DESSIN DES ENTITÉS (Murs et Meubles par-dessus)
     for (const f of furnitures) {
