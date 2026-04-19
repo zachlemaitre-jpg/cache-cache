@@ -1,6 +1,6 @@
 const socket = io();
 
-// 1. ON DÉFINIT LES TUILES EN PREMIER
+// 1. D'ABORD LES TUILES
 const TILES = {
     FLOOR: 0, WALL: 1, ENTRY_DOOR: 99,
     BED_TOP: 10, BED_BOTTOM: 11, BED_OPEN_TOP: 12, BED_OPEN_BOTTOM: 13,
@@ -9,7 +9,7 @@ const TILES = {
     STAIRS_UP: 90, STAIRS_DOWN: 91
 };
 
-// 2. ENSUITE ON PEUT S'EN SERVIR POUR LES IMAGES
+// 2. ENSUITE LE DICTIONNAIRE D'IMAGES (Un seul !)
 const imagePaths = {
     // === TRAQUÉ (HIDER) ===
     hider_down: 'assets/hider_down.png',
@@ -17,13 +17,13 @@ const imagePaths = {
     hider_left: 'assets/hider_left.png',
     hider_right: 'assets/hider_right.png',
 
-    // === CHASSEUR (HUNTER) - IDLE (À l'arrêt) ===
+    // === CHASSEUR (HUNTER) - IDLE ===
     hunter_idle_down: 'assets/hunter_idle_down.png',
     hunter_idle_up: 'assets/hunter_idle_up.png',
     hunter_idle_left: 'assets/hunter_idle_left.png',
     hunter_idle_right: 'assets/hunter_idle_right.png',
 
-    // === CHASSEUR (HUNTER) - WALK (Marche) ===
+    // === CHASSEUR (HUNTER) - WALK ===
     hunter_walk1_down: 'assets/hunter_walk1_down.png',
     hunter_walk2_down: 'assets/hunter_walk2_down.png',
     hunter_walk1_up: 'assets/hunter_walk1_up.png',
@@ -86,22 +86,6 @@ window.addEventListener('keyup', (e) => {
 // --- Préchargement des Images ---
 const images = {};
 // Associe chaque type de tuile (et les personnages) à son chemin d'image
-const imagePaths = {
-    // Joueurs
-    hunter: 'assets/hunter_idle_down.png',
-    hider: 'assets/hider_down.png',
-    
-    // Décors basiques
-    [TILES.FLOOR]: 'assets/sol.png',
-    [TILES.WALL]: 'assets/mur.png',
-    
-    // Meubles (Utilise bien les ID de ton objet TILES)
-    [TILES.WARDROBE_CLOSED_L]: 'assets/AF-L.png',
-    [TILES.WARDROBE_CLOSED_R]: 'assets/AF-R.png',
-    // Ajoute les autres ici au fur et à mesure...
-    // [TILES.BED_TOP]: 'assets/BED-T.png',
-    // [TILES.BED_BOTTOM]: 'assets/BED-B.png',
-};
 
 let imagesLoaded = 0;
 const totalImages = Object.keys(imagePaths).length;
