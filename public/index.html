@@ -22,22 +22,34 @@
 
     <div id="lobby-screen" class="screen hidden">
         <h1 class="title">SALON : <span id="room-code-display" class="gold-text">XXXXXX</span></h1>
-        
+
         <div class="lobby-layout">
             <div class="players-panel">
-                <h3>Joueurs connectés</h3>
-                <ul id="players-list"></ul>
+                <div class="players-columns">
+                    <div class="team-column hunters-column">
+                        <h3 class="column-title hunter-title">CHASSEURS</h3>
+                        <ul id="hunters-list"></ul>
+                    </div>
+                    <div class="team-column hiders-column">
+                        <h3 class="column-title hider-title">TRAQUES</h3>
+                        <ul id="hiders-list"></ul>
+                    </div>
+                </div>
+                <div class="spectators-section">
+                    <h4 class="spectator-title">SPECTATEURS</h4>
+                    <ul id="spectators-list"></ul>
+                </div>
             </div>
 
             <div class="settings-panel">
-                <h3>Choix du Rôle</h3>
+                <h3 class="panel-title">Choix du Role</h3>
                 <div class="roles-container">
                     <button class="btn role-btn hunter" onclick="requestRole('REQUEST_HUNTER')">CHASSEUR</button>
-                    <button class="btn role-btn hider" onclick="requestRole('REQUEST_HIDER')">TRAQUÉ</button>
+                    <button class="btn role-btn hider" onclick="requestRole('REQUEST_HIDER')">TRAQUE</button>
                 </div>
 
                 <div id="host-settings" class="disabled-for-client">
-                    <h3>Temps de jeu</h3>
+                    <h3 class="panel-title">Temps de jeu</h3>
                     <div class="time-container">
                         <button class="btn time-btn" id="btn-time-120" onclick="setTime('SET_TIME_120')">2 Min</button>
                         <button class="btn time-btn" id="btn-time-180" onclick="setTime('SET_TIME_180')">3 Min</button>
@@ -45,6 +57,8 @@
                     </div>
                     <button id="start-btn" class="btn success" onclick="startGame()">LANCER LA PARTIE</button>
                 </div>
+
+                <button class="btn back-btn" onclick="leaveRoom()">RETOUR</button>
             </div>
         </div>
     </div>

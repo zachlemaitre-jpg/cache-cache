@@ -122,6 +122,14 @@ function startGame() {
     if (isHost && currentRoom) socket.emit('startGame', currentRoom);
 }
 
+function leaveRoom() {
+    if (currentRoom) socket.emit('leaveRoom', currentRoom);
+    currentRoom = '';
+    isHost = false;
+    myRole = 'SPECTATOR';
+    showScreen('main-menu');
+}
+
 function updateTimeButtons(duration) {
     document.getElementById('btn-time-120').classList.toggle('active', duration === 120000);
     document.getElementById('btn-time-180').classList.toggle('active', duration === 180000);
@@ -157,14 +165,17 @@ socket.on('lobbyJoined', (data) => {
 });
 
 socket.on('playersUpdated', (players) => {
-    const list = document.getElementById('players-list');
-    list.innerHTML = ''; 
+    const huntersList   = document.getElementById('hunters-list');
+    const hidersList    = document.getElementById('hiders-list');
+    const spectatorsList = document.getElementById('spectators-list');
 
-    // Mettre à jour l'état local des joueurs si on est l'hôte
+    huntersList.innerHTML = '';
+    hidersList.innerHTML  = '';
+    spectatorsList.innerHTML = '';
+
     if (isHost && isPlaying) {
         players.forEach(p => {
             if (!playersState[p.id]) {
-                // Nouveau joueur arrivé en cours de route (spectateur)
                 playersState[p.id] = {
                     id: p.id, pseudo: p.pseudo, role: p.role,
                     x: 64, y: 64, size: 24, speed: 120, alive: true, hidden: false
@@ -176,15 +187,19 @@ socket.on('playersUpdated', (players) => {
     }
 
     players.forEach(p => {
-        if (p.id === socket.id) myRole = p.role; 
+        if (p.id === socket.id) myRole = p.role;
 
         const li = document.createElement('li');
-        let roleTag = `<span style="color:#aaa">SPECTATEUR</span>`;
-        if (p.role === 'HUNTER') roleTag = `<span class="tag-hunter">CHASSEUR</span>`;
-        if (p.role === 'HIDER') roleTag = `<span class="tag-hider">TRAQUÉ</span>`;
+        const crown = (p.id === players[0].id) ? ' \u{1F451}' : '';
+        li.textContent = p.pseudo + crown;
 
-        li.innerHTML = `<span>${p.pseudo} ${p.id === players[0].id ? '👑' : ''}</span> ${roleTag}`;
-        list.appendChild(li);
+        if (p.role === 'HUNTER') {
+            huntersList.appendChild(li);
+        } else if (p.role === 'HIDER') {
+            hidersList.appendChild(li);
+        } else {
+            spectatorsList.appendChild(li);
+        }
     });
 });
 

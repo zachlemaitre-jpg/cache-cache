@@ -77,9 +77,180 @@ input {
 .disabled-for-client { pointer-events: none; opacity: 0.5; }
 
 /* Le Canvas */
-canvas { 
+canvas {
     border: var(--pixel-border);
     box-shadow: 10px 10px 0px #000;
     background: #000;
     image-rendering: pixelated; /* Empêche le flou lors du zoom */
+}
+
+/* ==========================================
+   LOBBY - LAYOUT GLOBAL
+   ========================================== */
+
+.subtitle {
+    font-size: 0.6rem;
+    color: #aaa;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.gold-text { color: var(--gold); }
+
+.lobby-layout {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    align-items: flex-start;
+}
+
+/* Players panel : prend 60% de l'espace */
+.players-panel {
+    flex: 3;
+}
+
+/* Settings panel : prend 40% */
+.settings-panel {
+    flex: 2;
+}
+
+.panel-title {
+    font-size: 0.65rem;
+    color: var(--gold);
+    border-bottom: 2px solid #333;
+    padding-bottom: 8px;
+}
+
+/* ==========================================
+   LOBBY - COLONNES JOUEURS
+   ========================================== */
+
+.players-columns {
+    display: flex;
+    gap: 12px;
+}
+
+.team-column {
+    flex: 1;
+    padding: 12px;
+    border: 4px solid #fff;
+    box-shadow: 4px 4px 0px #000;
+}
+
+.hunters-column {
+    border-color: var(--hunter-color);
+    box-shadow: 4px 4px 0px #6b0000;
+}
+
+.hiders-column {
+    border-color: var(--hider-color);
+    box-shadow: 4px 4px 0px #003d6b;
+}
+
+.column-title {
+    font-size: 0.55rem;
+    text-align: center;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid currentColor;
+}
+
+.hunter-title { color: var(--hunter-color); }
+.hider-title  { color: var(--hider-color); }
+
+.team-column ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 60px;
+}
+
+.team-column li {
+    font-size: 0.5rem;
+    padding: 6px 8px;
+    border: 2px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.04);
+}
+
+/* Section spectateurs */
+.spectators-section {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 2px solid #333;
+}
+
+.spectator-title {
+    font-size: 0.5rem;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.spectators-section ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 24px;
+}
+
+.spectators-section li {
+    font-size: 0.45rem;
+    color: #888;
+    padding: 4px 8px;
+    border: 2px solid #333;
+}
+
+/* ==========================================
+   LOBBY - SETTINGS PANEL
+   ========================================== */
+
+.roles-container {
+    display: flex;
+    gap: 8px;
+}
+
+.btn.role-btn.hunter {
+    background: var(--hunter-color);
+    border-color: #8b0000;
+    flex: 1;
+}
+
+.btn.role-btn.hider {
+    background: var(--hider-color);
+    border-color: #1565c0;
+    flex: 1;
+}
+
+.time-container {
+    display: flex;
+    gap: 6px;
+}
+
+.btn.time-btn {
+    background: #222;
+    border-color: #555;
+    flex: 1;
+    font-size: 0.55rem;
+    padding: 10px 6px;
+}
+
+.btn.time-btn.active {
+    background: var(--gold);
+    color: #000;
+    border-color: #b8860b;
+}
+
+/* Bouton RETOUR - style pixel identique aux autres boutons */
+.btn.back-btn {
+    background: #1a1a1a;
+    border-color: #555;
+    color: #aaa;
+    width: 100%;
+    margin-top: 4px;
+}
+
+.btn.back-btn:hover {
+    background: #2a2a2a;
+    color: #fff;
 }
