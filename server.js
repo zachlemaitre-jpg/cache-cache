@@ -126,9 +126,23 @@ io.on('connection', (socket) => {
 
     socket.on('startGame', (roomCode) => {
         const room = rooms[roomCode];
-        // Seul l'hôte peut lancer
         if (room && room.clients[0].id === socket.id) {
             room.isPlaying = true;
+            room.timeRemaining = room.settings.roundDuration;
+            
+            // On lance un intervalle serveur pour le temps (plus fiable)
+            if (room.timerInterval) clearInterval(room.timerInterval);
+            
+            room.timerInterval = setInterval(() => {
+                if (room.timeRemaining > 0) {
+                    room.timeRemaining -= 1000;
+                    io.to(roomCode).emit('timerUpdate', room.timeRemaining);
+                } else {
+                    clearInterval(room.timerInterval);
+                    io.to(roomCode).emit('gameOver', { reason: 'TIME_UP' });
+                }
+            }, 1000);
+
             io.to(roomCode).emit('gameStarted');
         }
     });
@@ -162,6 +176,23 @@ io.on('connection', (socket) => {
     // ==========================================
     // 4. DÉCONNEXION & MIGRATION
     // ==========================================
+
+    socket.on('returnToLobby', (roomCode) => {
+        const room = rooms[roomCode];
+        if (!room) return;
+
+        if (room.clients[0].id === socket.id) {
+            // L'hôte ramène tout le monde au salon
+            room.isPlaying = false;
+            io.to(roomCode).emit('returnedToLobby');
+            io.to(roomCode).emit('playersUpdated', room.clients);
+            console.log(`🏠 Hôte a ramené tout le monde au salon ${roomCode}`);
+        } else {
+            // Un invité retourne seul au salon
+            socket.emit('returnedToLobby');
+            socket.emit('playersUpdated', room.clients);
+        }
+    });
 
     socket.on('leaveRoom', (roomCode) => {
         const room = rooms[roomCode];
