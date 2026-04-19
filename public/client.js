@@ -327,55 +327,102 @@ function generateInitialState() {
         mapTiles.push(row);
     }
 
-    // 2. LES ENTITÉS (Murs et Meubles)
     furnitures = [];
 
-    // Fonction utilitaire pour ajouter un meuble plus facilement
-    function addFurniture(id, type, tx, ty, widthPx, heightPx, customState = null) {
+    // NOUVELLE FONCTION : Accepte directement les pixels (px, py) pour une précision absolue !
+    function addFurniture(id, type, px, py, widthPx, heightPx, customState = null) {
         furnitures.push({
-            id: id,
-            type: type,
-            x: tx * TILE_SIZE, // Conversion en pixels
-            y: ty * TILE_SIZE,
-            width: widthPx,
-            height: heightPx,
-            state: customState || 'CLOSED', // Pour les portes/armoires
+            id: id, type: type,
+            x: px, y: py,
+            width: widthPx, height: heightPx,
+            state: customState || 'CLOSED',
             hidingPlayerId: null
         });
     }
 
-    // --- CRÉATION DE LA MAISON ---
-    // (J'ai repris ton plan, mais en créant des entités avec des tailles précises)
+    const W = 12; // Épaisseur des murs
 
-    // Les grands murs extérieurs (Fins : 12px d'épaisseur)
-    addFurniture("mur_haut", TILES.WALL, 0, 0, 28 * TILE_SIZE, 12);
-    addFurniture("mur_bas", TILES.WALL, 0, 14, 28 * TILE_SIZE, 12); // Attention y=14 au lieu de 15
-    addFurniture("mur_gauche", TILES.WALL, 0, 0, 12, 15 * TILE_SIZE);
-    addFurniture("mur_droit", TILES.WALL, 27, 0, 12, 15 * TILE_SIZE); // x=27
+    // ==========================================
+    // STRUCTURE DES MURS (Fins et précis)
+    // ==========================================
+    // Murs extérieurs
+    addFurniture("m_ht", TILES.WALL, 0, 0, 896, W);
+    addFurniture("m_bs", TILES.WALL, 0, 480 - W, 896, W);
+    addFurniture("m_ga", TILES.WALL, 0, 0, W, 480);
+    addFurniture("m_dr", TILES.WALL, 896 - W, 0, W, 480);
 
-    // Murs intérieurs du couloir (Exemple)
-    addFurniture("mur_couloir_haut", TILES.WALL, 0, 6, 28 * TILE_SIZE, 12);
-    addFurniture("mur_couloir_bas", TILES.WALL, 0, 9, 28 * TILE_SIZE, 12);
+    // Murs Horizontaux (Couloir Central : y=200 en haut, y=260 en bas)
+    addFurniture("m_ch_1", TILES.WALL, 280, 200, 30, W); // Porte Grande Chambre
+    addFurniture("m_ch_2", TILES.WALL, 350, 200, 70, W); // Entre Dressing et Chambre Bleu
+    addFurniture("m_ch_3", TILES.WALL, 460, 200, 220, W); // Long mur
+    addFurniture("m_ch_4", TILES.WALL, 720, 200, 176, W); // Fin vers SDB
 
-    // Les Meubles (Avec leur taille réelle)
-    // Exemple : Le grand lit vert en haut à gauche (Taille : 2x2 cases = 64x64px)
-    addFurniture("lit_1", TILES.BED_TOP, 3, 1, 64, 64);
+    addFurniture("m_cb_1", TILES.WALL, 280, 260, 40, W); 
+    addFurniture("m_cb_2", TILES.WALL, 360, 260, 80, W); // Porte Chambre Jaune
+    addFurniture("m_cb_3", TILES.WALL, 480, 260, 180, W); // Devant escaliers
+    addFurniture("m_cb_4", TILES.WALL, 700, 260, 196, W); // Devant WC
+
+    // Murs Verticaux de séparation
+    addFurniture("m_v_1", TILES.WALL, 280, 0, W, 200); // Dressing Gauche
+    addFurniture("m_v_2", TILES.WALL, 360, 0, W, 200); // Dressing Droite
+    addFurniture("m_v_3", TILES.WALL, 600, 0, W, 200); // Chambre Bureau Droite
     
-    // Exemple : L'armoire rouge dans le dressing (1 case = 32x32px)
-    addFurniture("armoire_1", TILES.WARDROBE_CLOSED_L, 7, 1, 32, 32);
-    addFurniture("armoire_2", TILES.WARDROBE_CLOSED_R, 7, 2, 32, 32);
+    addFurniture("m_v_4", TILES.WALL, 280, 260, W, 220); // Chambre Jaune Gauche
+    addFurniture("m_v_5", TILES.WALL, 460, 260, W, 220); // Escaliers Gauche
+    addFurniture("m_v_6", TILES.WALL, 600, 260, W, 220); // Escaliers Droite
+    addFurniture("m_v_7", TILES.WALL, 660, 260, W, 100); // WC Gauche
+    addFurniture("m_v_8", TILES.WALL, 740, 260, W, 100); // WC Droite
+    addFurniture("m_wc_b", TILES.WALL, 660, 360, 92, W); // WC Bas
 
-    // Exemple : La baignoire
-    addFurniture("bain_1", TILES.BATHTUB, 20, 1, 128, 64); // 4 cases de large
+    // ==========================================
+    // PLACEMENT DES MEUBLES (Couleurs du plan)
+    // ==========================================
+    // --- HAUT GAUCHE (Grande Chambre) ---
+    addFurniture("lit_double", TILES.BED_TOP, 80, 40, 100, 100); // Vert
+    addFurniture("arm_g1", TILES.SHELF, 20, 40, 20, 60); // Rouge gauche
+    addFurniture("arm_g2", TILES.SHELF, 60, 320, 40, 100); // Lits rouges
+    addFurniture("arm_g3", TILES.SHELF, 140, 320, 40, 100);
 
-    // *Note : Pour aller vite ici, je n'ai pas recréé tous les petits murs de ton plan.
-    // Tu pourras ajouter les autres entités avec `addFurniture()` plus tard.*
+    // --- HAUT MILIEU 1 (Dressing étroit) ---
+    addFurniture("arm_d1", TILES.SHELF, 292, 20, 20, 160);
+    addFurniture("arm_d2", TILES.SHELF, 340, 20, 20, 160);
 
+    // --- HAUT MILIEU 2 (Chambre Bureau) ---
+    addFurniture("lit_simple", TILES.BED_TOP, 380, 20, 90, 50); // Vert
+    addFurniture("arm_b1", TILES.SHELF, 372, 90, 20, 40);
+    addFurniture("arm_b2", TILES.SHELF, 372, 140, 20, 60);
+    addFurniture("bureau", TILES.DESK, 410, 150, 70, 40); // Bleu
+
+    // --- HAUT DROITE (Salle de Bain) ---
+    addFurniture("baignoire", TILES.BATHTUB, 720, 20, 150, 60); // Jaune
+    addFurniture("arm_s1", TILES.SHELF, 720, 80, 30, 80);
+    addFurniture("arm_s2", TILES.SHELF, 840, 80, 30, 80);
+
+    // --- BAS GAUCHE (Chambre Jaune) ---
+    addFurniture("arm_j1", TILES.SHELF, 292, 280, 60, 130);
+    addFurniture("arm_j2", TILES.SHELF, 330, 430, 30, 30);
+    addFurniture("douche", TILES.BATHTUB, 370, 370, 90, 90); // Quart de cercle jaune
+
+    // --- BAS MILIEU (Escaliers) ---
+    addFurniture("escalier_1", TILES.STAIRS_UP, 472, 260, 88, 100);
+    addFurniture("escalier_2", TILES.STAIRS_DOWN, 612, 260, 88, 220);
+
+    // --- BAS DROITE (Toilettes) ---
+    addFurniture("wc", TILES.TOILET, 690, 300, 32, 40); // Marron
+
+    // ==========================================
+    // INITIALISATION DE LA PARTIE
+    // ==========================================
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
 
-    const spawns = [{x: 4*32, y: 7*32}, {x: 8*32, y: 8*32}, {x: 12*32, y: 7*32}];
+    // Les joueurs apparaissent au milieu du grand couloir
+    const spawns = [
+        {x: 400, y: 220}, {x: 500, y: 220}, 
+        {x: 600, y: 220}, {x: 700, y: 220}
+    ];
     let idx = 0;
+    
     for (const id in playersState) {
         let p = playersState[id];
         p.x = spawns[idx % spawns.length].x; 
@@ -508,8 +555,8 @@ const ZOOM_FACTOR = 3; // On multiplie la taille par 3 pour l'effet Pixel Art
 // Renvoie la couleur d'une tuile pour la minimap.
 // La furniture est toujours montrée fermée (pas de changement d'état visible).
 function getMinimapColor(tileId) {
-    if (tileId === TILES.FLOOR) return '#ffffff'; // Sol blanc
-    if (tileId === TILES.WALL) return '#7e7e7e';  // Murs gris
+    if (tileId === TILES.FLOOR) return '#7e7e7e'; // NOUVEAU SOL : L'ancien gris des murs
+    if (tileId === TILES.WALL) return '#222222';  // NOUVEAUX MURS : Gris très foncé oppressant
     if (tileId === TILES.STAIRS_UP || tileId === TILES.STAIRS_DOWN) return '#b9d9f5'; // Bleu clair
     if (tileId === TILES.BED_TOP || tileId === TILES.BED_BOTTOM) return '#71b96a'; // Vert
     if (tileId === TILES.DESK) return '#3d4b96'; // Bleu foncé
@@ -520,8 +567,7 @@ function getMinimapColor(tileId) {
 }
 
 function getTileFallbackColor(tileId) {
-    // On utilise exactement les mêmes couleurs pour le jeu (en attendant tes images .png)
-    return getMinimapColor(tileId);
+    return getMinimapColor(tileId); // On utilise exactement les mêmes couleurs pour le jeu
 }
 
 const minimapCanvas = document.getElementById('minimap-canvas');
