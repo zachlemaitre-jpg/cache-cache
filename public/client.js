@@ -319,102 +319,132 @@ function initGameEngine() {
 let furnitures = []; 
 
 function generateInitialState() {
-    // 1. Le SOL
+    // 1. Initialisation du sol (Fond gris moyen)
     mapTiles = [];
     for(let y = 0; y < 15; y++) {
         let row = [];
-        for(let x = 0; x < 28; x++) { row.push(TILES.FLOOR); }
+        for(let x = 0; x < 28; x++) { 
+            row.push(TILES.FLOOR); 
+        }
         mapTiles.push(row);
     }
 
+    // 2. Initialisation de la liste des entités
     furnitures = [];
 
-    function addFurniture(id, type, px, py, widthPx, heightPx, customState = null) {
+    // Fonction utilitaire pour ajouter des objets au pixel près
+    function addFurniture(id, type, px, py, widthPx, heightPx) {
         furnitures.push({
-            id: id, type: type, x: px, y: py, width: widthPx, height: heightPx,
-            state: customState || 'CLOSED', hidingPlayerId: null
+            id: id,
+            type: type,
+            x: px,
+            y: py,
+            width: widthPx,
+            height: heightPx,
+            state: 'CLOSED',
+            hidingPlayerId: null
         });
     }
 
-    const W = 12; // Épaisseur des murs
+    const W = 12; // Épaisseur des murs (fin et réaliste)
 
     // ==========================================
-    // STRUCTURE DES MURS (Corrigée pour les portes)
+    // MURS EXTÉRIEURS (Gris très foncé)
     // ==========================================
-    addFurniture("m_ht", TILES.WALL, 0, 0, 896, W);
-    addFurniture("m_bs", TILES.WALL, 0, 480 - W, 896, W);
-    addFurniture("m_ga", TILES.WALL, 0, 0, W, 480);
-    addFurniture("m_dr", TILES.WALL, 896 - W, 0, W, 480);
-
-    // Murs Horizontaux du couloir
-    addFurniture("m_ch_0", TILES.WALL, 0, 200, 220, W); // NOUVEAU: Mur Grande Chambre
-    addFurniture("m_ch_1", TILES.WALL, 280, 200, 30, W); 
-    addFurniture("m_ch_2", TILES.WALL, 350, 200, 70, W); 
-    addFurniture("m_ch_3", TILES.WALL, 460, 200, 220, W); 
-    addFurniture("m_ch_4", TILES.WALL, 720, 200, 176, W); 
-
-    addFurniture("m_cb_0", TILES.WALL, 0, 260, 220, W); // NOUVEAU: Mur Chambre Jaune
-    addFurniture("m_cb_1", TILES.WALL, 280, 260, 80, W); // CORRIGÉ: Décalé pour libérer l'étagère
-    addFurniture("m_cb_2", TILES.WALL, 410, 260, 70, W); // CORRIGÉ
-    addFurniture("m_cb_3", TILES.WALL, 480, 260, 180, W); 
-    addFurniture("m_cb_4", TILES.WALL, 700, 260, 196, W); 
-
-    // Murs Verticaux
-    addFurniture("m_v_1", TILES.WALL, 280, 0, W, 200); 
-    addFurniture("m_v_2", TILES.WALL, 360, 0, W, 200); 
-    addFurniture("m_v_3", TILES.WALL, 600, 0, W, 200); 
-    addFurniture("m_v_4", TILES.WALL, 280, 260, W, 220); 
-    addFurniture("m_v_5", TILES.WALL, 460, 260, W, 220); 
-    addFurniture("m_v_6", TILES.WALL, 600, 260, W, 220); 
-    addFurniture("m_v_7", TILES.WALL, 660, 260, W, 100); 
-    addFurniture("m_v_8", TILES.WALL, 740, 260, W, 100); 
-    addFurniture("m_wc_b", TILES.WALL, 660, 360, 92, W); 
+    addFurniture("m_ext_ht", TILES.WALL, 0, 0, 896, W);
+    addFurniture("m_ext_bs", TILES.WALL, 0, 480 - W, 896, W);
+    addFurniture("m_ext_ga", TILES.WALL, 0, 0, W, 480);
+    addFurniture("m_ext_dr", TILES.WALL, 896 - W, 0, W, 480);
 
     // ==========================================
-    // PLACEMENT DES MEUBLES
+    // MURS DU COULOIR CENTRAL (Y entre 200 et 260)
     // ==========================================
-    addFurniture("lit_double", TILES.BED_TOP, 80, 40, 100, 100); 
-    addFurniture("arm_g1", TILES.SHELF, 20, 40, 20, 60); 
-    addFurniture("arm_g2", TILES.SHELF, 60, 320, 40, 100); 
-    addFurniture("arm_g3", TILES.SHELF, 140, 320, 40, 100);
+    // Mur Haut du couloir (avec trous pour les portes)
+    addFurniture("m_couloir_ht_1", TILES.WALL, 0, 200, 220, W);   // Chambre Gauche
+    addFurniture("m_couloir_ht_2", TILES.WALL, 280, 200, 30, W);  // Dressing gauche
+    addFurniture("m_couloir_ht_3", TILES.WALL, 350, 200, 70, W);  // Dressing droite
+    addFurniture("m_couloir_ht_4", TILES.WALL, 460, 200, 220, W); // Chambre Bureau
+    addFurniture("m_couloir_ht_5", TILES.WALL, 720, 200, 176, W); // Salle de Bain
 
-    // Dressing aminci (16px au lieu de 20px) pour te laisser passer !
-    addFurniture("arm_d1", TILES.SHELF, 292, 20, 16, 160); 
-    addFurniture("arm_d2", TILES.SHELF, 344, 20, 16, 160);
+    // Mur Bas du couloir
+    addFurniture("m_couloir_bs_1", TILES.WALL, 0, 260, 220, W);   // Chambre Jaune
+    addFurniture("m_couloir_bs_2", TILES.WALL, 280, 260, 80, W);  // Entre Ch. Jaune et Escaliers
+    addFurniture("m_couloir_bs_3", TILES.WALL, 410, 260, 70, W);  // Entrée Escaliers
+    addFurniture("m_couloir_bs_4", TILES.WALL, 480, 260, 180, W); // Mur Escaliers
+    addFurniture("m_couloir_bs_5", TILES.WALL, 700, 260, 196, W); // Entrée WC
 
-    addFurniture("lit_simple", TILES.BED_TOP, 380, 20, 90, 50); 
-    addFurniture("arm_b1", TILES.SHELF, 372, 90, 20, 40);
-    addFurniture("arm_b2", TILES.SHELF, 372, 140, 20, 60);
-    addFurniture("bureau", TILES.DESK, 410, 150, 70, 40); 
+    // ==========================================
+    // MURS DE SÉPARATION DES PIÈCES
+    // ==========================================
+    addFurniture("sep_v_1", TILES.WALL, 280, 0, W, 200);   // Gauche Dressing
+    addFurniture("sep_v_2", TILES.WALL, 360, 0, W, 200);   // Droite Dressing
+    addFurniture("sep_v_3", TILES.WALL, 600, 0, W, 200);   // Droite Chambre Bureau
+    
+    addFurniture("sep_v_4", TILES.WALL, 280, 260, W, 220); // Droite Chambre Jaune
+    addFurniture("sep_v_5", TILES.WALL, 460, 260, W, 220); // Gauche Escaliers
+    addFurniture("sep_v_6", TILES.WALL, 600, 260, W, 220); // Droite Escaliers
+    addFurniture("sep_v_7", TILES.WALL, 660, 260, W, 120); // Gauche WC
+    addFurniture("sep_v_8", TILES.WALL, 740, 260, W, 120); // Droite WC
+    addFurniture("sep_h_wc", TILES.WALL, 660, 380, 92, W); // Bas du bloc WC
 
-    addFurniture("baignoire", TILES.BATHTUB, 720, 20, 150, 60); 
-    addFurniture("arm_s1", TILES.SHELF, 720, 80, 30, 80);
-    addFurniture("arm_s2", TILES.SHELF, 840, 80, 30, 80);
+    // ==========================================
+    // MEUBLES ET RANGEMENTS (Blocs rouges, verts, bleus...)
+    // ==========================================
+    // --- Chambre Gauche ---
+    addFurniture("lit_v_1", TILES.BED_TOP, 80, 40, 100, 100); 
+    addFurniture("arm_r_1", TILES.SHELF, 20, 40, 20, 60); 
+    addFurniture("arm_r_2", TILES.SHELF, 60, 350, 40, 100); 
+    addFurniture("arm_r_3", TILES.SHELF, 140, 350, 40, 100);
 
-    addFurniture("arm_j1", TILES.SHELF, 292, 280, 60, 130);
-    addFurniture("arm_j2", TILES.SHELF, 330, 430, 30, 30);
-    addFurniture("douche", TILES.BATHTUB, 370, 370, 90, 90); 
+    // --- Dressing (Aminci à 12px pour laisser passer le joueur) ---
+    addFurniture("dress_1", TILES.SHELF, 292, 20, 12, 160); 
+    addFurniture("dress_2", TILES.SHELF, 348, 20, 12, 160);
 
-    addFurniture("escalier_1", TILES.STAIRS_UP, 472, 260, 88, 100);
-    addFurniture("escalier_2", TILES.STAIRS_DOWN, 612, 260, 88, 220);
-    addFurniture("wc", TILES.TOILET, 690, 300, 32, 40);
+    // --- Chambre Bureau ---
+    addFurniture("lit_v_2", TILES.BED_TOP, 380, 20, 90, 50); 
+    addFurniture("arm_r_4", TILES.SHELF, 372, 90, 20, 40);
+    addFurniture("arm_r_5", TILES.SHELF, 372, 140, 20, 50);
+    addFurniture("bureau_b", TILES.DESK, 410, 140, 70, 50); 
 
+    // --- Salle de Bain ---
+    addFurniture("bain_j", TILES.BATHTUB, 720, 20, 150, 60); 
+    addFurniture("arm_r_6", TILES.SHELF, 720, 90, 30, 80);
+    addFurniture("arm_r_7", TILES.SHELF, 840, 90, 30, 80);
+
+    // --- Chambre Jaune (Bas gauche) ---
+    addFurniture("arm_r_8", TILES.SHELF, 292, 280, 60, 130);
+    addFurniture("douche_j", TILES.BATHTUB, 370, 380, 80, 80); 
+
+    // --- Escaliers et WC ---
+    addFurniture("esc_1", TILES.STAIRS_UP, 472, 260, 88, 100);
+    addFurniture("esc_2", TILES.STAIRS_DOWN, 612, 260, 88, 210);
+    addFurniture("toilette_m", TILES.TOILET, 690, 310, 32, 40);
+
+    // ==========================================
+    // INITIALISATION DES VARIABLES DE JEU
+    // ==========================================
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
 
-    const spawns = [{x: 400, y: 220}, {x: 500, y: 220}, {x: 600, y: 220}, {x: 700, y: 220}];
+    // Points d'apparition dans le couloir (x=400, y=230 environ)
+    const spawns = [
+        {x: 400, y: 230}, {x: 500, y: 230}, 
+        {x: 600, y: 230}, {x: 300, y: 230}
+    ];
     let idx = 0;
     
     for (const id in playersState) {
         let p = playersState[id];
         p.x = spawns[idx % spawns.length].x; 
         p.y = spawns[idx % spawns.length].y;
-        p.alive = true; p.hidden = false; p.dir = 'down'; p.moving = false; p.animTimer = 0;
+        p.alive = true;
+        p.hidden = false;
+        p.dir = 'down';
+        p.moving = false;
+        p.animTimer = 0;
         idx++;
     }
 }
-
-let lastTime = 0;
 
 let lastTime = 0;
 
