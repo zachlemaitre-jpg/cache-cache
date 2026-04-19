@@ -1,5 +1,15 @@
 const socket = io();
 
+// 1. ON DÉFINIT LES TUILES EN PREMIER
+const TILES = {
+    FLOOR: 0, WALL: 1, ENTRY_DOOR: 99,
+    BED_TOP: 10, BED_BOTTOM: 11, BED_OPEN_TOP: 12, BED_OPEN_BOTTOM: 13,
+    WARDROBE_CLOSED_L: 20, WARDROBE_CLOSED_R: 21,
+    WARDROBE_OPEN_TL: 22, WARDROBE_OPEN_TR: 23, WARDROBE_OPEN_BL: 24, WARDROBE_OPEN_BR: 25,
+    STAIRS_UP: 90, STAIRS_DOWN: 91
+};
+
+// 2. ENSUITE ON PEUT S'EN SERVIR POUR LES IMAGES
 const imagePaths = {
     // === TRAQUÉ (HIDER) ===
     hider_down: 'assets/hider_down.png',
@@ -28,7 +38,6 @@ const imagePaths = {
     [TILES.WALL]: 'assets/mur.png',
     [TILES.WARDROBE_CLOSED_L]: 'assets/AF-L.png',
     [TILES.WARDROBE_CLOSED_R]: 'assets/AF-R.png'
-    // (Garde le reste de tes meubles ici si tu en as d'autres)
 };
 
 // ==========================================
@@ -45,14 +54,6 @@ const ctx = canvas.getContext('2d');
 const TILE_SIZE = 32;
 const FLOOR_HEIGHT_TILES = 12;
 const FLOOR_HEIGHT_PX = FLOOR_HEIGHT_TILES * TILE_SIZE;
-
-const TILES = {
-    FLOOR: 0, WALL: 1, ENTRY_DOOR: 99,
-    BED_TOP: 10, BED_BOTTOM: 11, BED_OPEN_TOP: 12, BED_OPEN_BOTTOM: 13,
-    WARDROBE_CLOSED_L: 20, WARDROBE_CLOSED_R: 21,
-    WARDROBE_OPEN_TL: 22, WARDROBE_OPEN_TR: 23, WARDROBE_OPEN_BL: 24, WARDROBE_OPEN_BR: 25,
-    STAIRS_UP: 90, STAIRS_DOWN: 91
-};
 
 let isPlaying = false;
 let mapTiles = [];
