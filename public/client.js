@@ -392,90 +392,70 @@ function computeHostPhysics(deltaMs) {
 // 5. MOTEUR GRAPHIQUE (CANVAS)
 // ==========================================
 
+const ZOOM_FACTOR = 3; // On multiplie la taille par 3 pour l'effet Pixel Art
+
 function drawGame() {
-    // 1. Fond Noir
+    // 1. Nettoyage et réglages
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Désactive le lissage pour garder l'aspect pixel bien net
+    ctx.imageSmoothingEnabled = false;
 
-    // On ne dessine que si tout est prêt
-    if (!mapTiles || mapTiles.length === 0 || imagesLoaded < totalImages) {
-        ctx.fillStyle = 'white';
-        ctx.fillText("Chargement en cours...", canvas.width/2 - 50, canvas.height/2);
-        return;
-    }
+    if (!mapTiles || mapTiles.length === 0 || imagesLoaded < totalImages) return;
 
-    // 2. Trouver mon joueur pour centrer la caméra
     const me = playersState[socket.id];
-    let camX = 0, camY = 0;
+    if (!me) return;
 
-    if (me) {
-        const centerX = me.x + me.size / 2;
-        const centerY = me.y + me.size / 2;
-        // On limite la caméra aux bords de la map
-        const mapW = mapTiles[0].length * TILE_SIZE;
-        const mapH = mapTiles.length * TILE_SIZE;
-        camX = Math.max(0, Math.min(centerX - canvas.width / 2, mapW - canvas.width));
-        camY = Math.max(0, Math.min(centerY - canvas.height / 2, mapH - canvas.height));
-    }
+    // 2. CALCUL DE LA CAMÉRA (Suivi du personnage)
+    // On veut que le personnage soit au milieu exact du canvas
+    // La position du personnage est p.x, p.y. 
+    // On multiplie par ZOOM_FACTOR pour savoir où il est dans le monde zoomé.
+    const camX = (me.x + me.size / 2) * ZOOM_FACTOR - (canvas.width / 2);
+    const camY = (me.y + me.size / 2) * ZOOM_FACTOR - (canvas.height / 2);
 
     ctx.save();
-    // On décale le contexte pour créer l'effet de caméra
+    
+    // On déplace le monde à l'inverse de la caméra
     ctx.translate(-camX, -camY);
+    
+    // On applique le zoom global
+    ctx.scale(ZOOM_FACTOR, ZOOM_FACTOR);
 
-    // 3. Dessin de la map (Tuiles)
+    // 3. DESSIN DE LA MAP
     for (let ty = 0; ty < mapTiles.length; ty++) {
         for (let tx = 0; tx < mapTiles[0].length; tx++) {
             const tileId = mapTiles[ty][tx];
             const worldX = tx * TILE_SIZE;
             const worldY = ty * TILE_SIZE;
 
-            // Dessin du sol de base partout en dessous
-            if (images[TILES.FLOOR]) {
-                ctx.drawImage(images[TILES.FLOOR], worldX, worldY, TILE_SIZE, TILE_SIZE);
-            }
+            ctx.drawImage(images.floor, worldX, worldY, TILE_SIZE, TILE_SIZE);
 
-            // Dessin de la tuile spécifique par dessus (mur, meuble, etc.)
-            if (tileId !== TILES.FLOOR) {
-                // Si on a chargé une image pour cet ID
-                if (images[tileId]) {
-                    ctx.drawImage(images[tileId], worldX, worldY, TILE_SIZE, TILE_SIZE);
-                } else {
-                    // Fallback (Au cas où on a oublié de charger l'image)
-                    ctx.fillStyle = (tileId === TILES.WALL) ? '#555' : '#8B4513';
-                    ctx.fillRect(worldX, worldY, TILE_SIZE, TILE_SIZE);
-                }
+            if (tileId !== TILES.FLOOR && images[tileId]) {
+                ctx.drawImage(images[tileId], worldX, worldY, TILE_SIZE, TILE_SIZE);
             }
         }
     }
 
-    // 4. Dessin des joueurs
+    // 4. DESSIN DES JOUEURS
     for (const id in playersState) {
         const p = playersState[id];
         if (!p.alive || p.role === 'SPECTATOR') continue;
-        
-        // Si c'est un traqué caché, on ne le dessine pas (sauf si c'est moi)
         if (p.role === 'HIDER' && p.hidden && id !== socket.id) continue;
 
-        // Choix du sprite
         const imgToDraw = (p.role === 'HUNTER') ? images.hunter : images.hider;
         
         if (imgToDraw) {
-            // Centrage de l'image (32x32) sur la hitbox du joueur (ex: 24x24)
             const spriteSize = 32;
             const drawX = p.x - (spriteSize - p.size) / 2;
             const drawY = p.y - (spriteSize - p.size) / 2;
-            
             ctx.drawImage(imgToDraw, drawX, drawY, spriteSize, spriteSize);
-        } else {
-            // Fallback
-            ctx.fillStyle = (p.role === 'HUNTER') ? 'red' : 'cyan';
-            ctx.fillRect(p.x, p.y, p.size, p.size);
         }
         
-        // Pseudo au-dessus du joueur
+        // Pseudo (on réduit la police car elle subit le scale du zoom)
         ctx.fillStyle = 'white';
-        ctx.font = '12px Arial';
-        ctx.fillText(p.pseudo, p.x - 10, p.y - 5);
+        ctx.font = '5px "Press Start 2P"'; 
+        ctx.fillText(p.pseudo, p.x - 5, p.y - 5);
     }
 
     ctx.restore();

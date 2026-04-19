@@ -1,13 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
 :root {
-    --bg-color: #0f0f1a;
+    --bg-color: #0d0d15;
     --panel-bg: #1a1a2e;
-    --text-color: #e8e8f0;
+    --text-color: #ffffff;
     --gold: #ffd60a;
     --hunter-color: #e63946;
     --hider-color: #2196f3;
+    /* On définit une bordure pixelisée épaisse */
+    --pixel-border: 4px solid #fff;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Press Start 2P', cursive; /* Police Pixel */
+}
 
 body {
     background-color: var(--bg-color);
@@ -17,78 +26,60 @@ body {
     align-items: center;
     height: 100vh;
     overflow: hidden;
+    image-rendering: pixelated; /* Très important pour que les images restent nettes */
 }
 
 .hidden { display: none !important; }
 .screen { width: 100%; max-width: 900px; display: flex; flex-direction: column; align-items: center; }
 
-.title { font-family: 'Space Mono', monospace; font-size: 3rem; margin-bottom: 5px; }
-.subtitle { letter-spacing: 0.3em; color: #888; text-transform: uppercase; margin-bottom: 30px; }
-.gold-text { color: var(--gold); }
+/* Titres très carrés */
+.title { 
+    font-size: 2rem; 
+    margin-bottom: 20px; 
+    text-shadow: 4px 4px #000;
+    color: var(--gold);
+}
 
-.menu-box {
+.menu-box, .players-panel, .settings-panel {
     background: var(--panel-bg);
-    padding: 30px;
-    border-radius: 12px;
+    padding: 20px;
+    border: var(--pixel-border); /* Bordures blanches épaisses et droites */
+    box-shadow: 8px 8px 0px #000; /* Ombre portée solide (pas de flou) */
     display: flex;
     flex-direction: column;
     gap: 15px;
-    width: 350px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 input {
-    padding: 12px;
-    border-radius: 8px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    text-align: center;
-    font-size: 1rem;
+    padding: 10px;
+    border: 4px solid #555;
+    background: #000;
+    color: var(--gold);
+    font-size: 0.8rem;
     outline: none;
-}
-input:focus { border-color: var(--gold); }
-
-.btn {
-    padding: 12px 20px;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
     text-transform: uppercase;
-    transition: transform 0.2s, opacity 0.2s;
+}
+
+/* Boutons style arcade */
+.btn {
+    padding: 15px;
+    border: 4px solid #000;
+    box-shadow: inset -4px -4px 0px rgba(0,0,0,0.5);
+    cursor: pointer;
+    font-size: 0.7rem;
     color: white;
 }
-.btn:hover { transform: translateY(-2px); opacity: 0.9; }
-.btn.primary { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-.btn.success { background: linear-gradient(135deg, #43e97b, #38f9d7); width: 100%; margin-top: 20px; color: black; font-size: 1.2rem;}
 
-/* LOBBY */
-.lobby-layout { display: flex; gap: 20px; width: 100%; }
-.players-panel, .settings-panel {
-    background: var(--panel-bg);
-    padding: 20px;
-    border-radius: 12px;
-    flex: 1;
+.btn.primary { background: #4facfe; border-color: #2196f3; }
+.btn.success { background: #43e97b; color: #000; }
+.btn:active { transform: translate(2px, 2px); box-shadow: none; }
+
+.disabled-for-client { pointer-events: none; opacity: 0.5; }
+
+/* Le Canvas */
+canvas { 
+    border: var(--pixel-border);
+    box-shadow: 10px 10px 0px #000;
+    background: #000;
+    image-rendering: pixelated; /* Empêche le flou lors du zoom */
 }
-.players-panel h3, .settings-panel h3 { color: var(--gold); margin-bottom: 15px; text-align: center;}
-
-#players-list { list-style: none; }
-#players-list li { padding: 10px; background: rgba(0,0,0,0.3); margin-bottom: 5px; border-radius: 6px; display: flex; justify-content: space-between;}
-.tag-hunter { color: var(--hunter-color); font-weight: bold; }
-.tag-hider { color: var(--hider-color); font-weight: bold; }
-
-.roles-container, .time-container { display: flex; gap: 10px; margin-bottom: 20px; }
-.role-btn { flex: 1; border: 2px solid transparent; background: rgba(255,255,255,0.05); }
-.role-btn.hunter:hover { border-color: var(--hunter-color); }
-.role-btn.hider:hover { border-color: var(--hider-color); }
-.time-btn { flex: 1; background: rgba(255,255,255,0.1); }
-.time-btn.active { background: var(--gold); color: black; }
-
-.disabled-for-client { pointer-events: none; opacity: 0.4; filter: grayscale(100%); }
-
-/* GAME CANVAS */
-#game-screen { position: relative; }
-canvas { background: #000; border: 2px solid #333; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
-#game-hud { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; pointer-events: none; }
-#time-left { font-size: 1.5rem; font-weight: bold; color: white; text-shadow: 2px 2px 4px black; }
