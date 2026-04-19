@@ -6,7 +6,11 @@ const TILES = {
     BED_TOP: 10, BED_BOTTOM: 11, BED_OPEN_TOP: 12, BED_OPEN_BOTTOM: 13,
     WARDROBE_CLOSED_L: 20, WARDROBE_CLOSED_R: 21,
     WARDROBE_OPEN_TL: 22, WARDROBE_OPEN_TR: 23, WARDROBE_OPEN_BL: 24, WARDROBE_OPEN_BR: 25,
-    STAIRS_UP: 90, STAIRS_DOWN: 91
+    SHELF: 26,     // Étagère/Armoire générique (Blocs rouges)
+    DESK: 30,      // Bureau (Bloc bleu)
+    BATHTUB: 40,   // Baignoire (Bloc jaune)
+    TOILET: 50,    // Toilettes (Bloc marron)
+    STAIRS_UP: 90, STAIRS_DOWN: 91 // Escaliers (Blocs bleu clair)
 };
 
 // 2. ENSUITE LE DICTIONNAIRE D'IMAGES (Un seul !)
@@ -307,43 +311,65 @@ function initGameEngine() {
 }
 
 function generateInitialState() {
-    // 1. Définition de la carte de base
+    // Reproduction fidèle du plan (28 colonnes x 15 lignes)
     mapTiles = [
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 0, 0, 0, 0, 20, 21, 0, 0, 1],
-        [1, 0, 10, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 11, 0, 0, 0, 0, 0, 0, 1],
-        [1, 1, 1, 1, 1, 99, 1, 1, 1, 1]
+        // 0: Murs extérieurs hauts
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        // 1: Haut des chambres (Chambre Gauche, Dressing, Chambre Milieu, Bain)
+        [1, 26, 0, 10, 10, 0, 1, 26, 0, 26, 1, 10, 10, 0, 0, 0, 1, 1, 1, 1, 40, 40, 40, 40, 26, 1, 1, 1],
+        // 2:
+        [1, 26, 0, 11, 11, 0, 1, 26, 0, 26, 1, 11, 11, 0, 0, 0, 1, 1, 1, 1, 26, 0, 0, 0, 26, 1, 1, 1],
+        // 3:
+        [1, 0,  0, 0,  0,  0, 1, 26, 0, 26, 1, 26, 0,  0, 0, 0, 1, 1, 1, 1, 26, 0, 0, 0, 26, 1, 1, 1],
+        // 4:
+        [1, 0,  0, 0,  0,  0, 1, 26, 0, 26, 1, 26, 0,  30,30,0, 1, 1, 1, 1, 0,  0, 0, 0, 0,  1, 1, 1],
+        // 5: Bas des chambres du haut
+        [1, 26, 26, 1, 26, 26, 1, 0,  0, 0,  1, 1,  1,  1, 1, 1, 1, 1, 1, 1, 0,  0, 0, 0, 0,  1, 1, 1],
+        // 6: Mur de séparation + Portes d'entrée (Les 0)
+        [1, 1,  1,  1, 1,  0, 1, 1,  0, 1,  1, 1,  1,  1, 0, 1, 1, 1, 1, 1, 1,  0, 1, 1, 1,  1, 1, 1],
+        // 7: GRAND COULOIR CENTRAL
+        [1, 0,  0,  0, 0,  0, 0, 0,  0, 0,  0, 0,  0,  0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 1],
+        // 8: GRAND COULOIR CENTRAL
+        [1, 0,  0,  0, 0,  0, 0, 0,  0, 0,  0, 0,  0,  0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 1],
+        // 9: Mur de séparation bas + Portes d'entrée
+        [1, 1,  1,  1, 1,  1, 1, 0,  1, 1,  1, 0,  0,  0, 1, 1, 1, 0, 0, 0, 1,  1, 0, 1, 1,  1, 1, 1],
+        // 10: Pièces du bas (Chambre Jaune, Escaliers 1, Escaliers 2, WC)
+        [1, 1,  1,  1, 26, 0, 0, 0,  0, 1,  1, 90, 90, 90, 1, 1, 1, 90, 90, 90, 1, 1, 0, 1, 1,  1, 1, 1],
+        // 11:
+        [1, 1,  1,  1, 26, 0, 0, 40, 40,1,  1, 90, 90, 90, 1, 1, 1, 90, 90, 90, 1, 1, 50,1, 1,  1, 1, 1],
+        // 12:
+        [1, 1,  1,  1, 26, 0, 0, 40, 40,1,  1, 1,  1,  1,  1, 1, 1, 90, 90, 90, 1, 1, 1, 1, 1,  1, 1, 1],
+        // 13:
+        [1, 1,  1,  1, 1,  1, 1, 1,  1, 1,  1, 1,  1,  1,  1, 1, 1, 90, 90, 90, 1, 1, 1, 1, 1,  1, 1, 1],
+        // 14: Murs extérieurs bas
+        [1, 1,  1,  1, 1,  1, 1, 1,  1, 1,  1, 1,  1,  1,  1, 1, 1, 1,  1,  1,  1, 1, 1, 1, 1,  1, 1, 1]
     ];
 
-    // 2. Initialisation des chronos
     timeRemaining = gameSettings.roundDuration;
-    hunterCountdown = 10000; // 10 secondes d'aveuglement pour le chasseur
+    hunterCountdown = 10000;
 
-    // 3. Points d'apparition (sur des cases de sol vides)
+    // Les joueurs apparaissent répartis dans le grand couloir
     const spawnPoints = [ 
-        {x: 48, y: 48}, 
-        {x: 80, y: 48}, 
-        {x: 112, y: 48}, 
-        {x: 144, y: 48}, 
-        {x: 48, y: 80} 
+        {x: 4 * 32, y: 7 * 32}, 
+        {x: 8 * 32, y: 8 * 32}, 
+        {x: 12 * 32, y: 7 * 32}, 
+        {x: 16 * 32, y: 8 * 32}, 
+        {x: 20 * 32, y: 7 * 32} 
     ];
+    
     let spawnIdx = 0;
 
-    // 4. Réinitialisation de l'état de chaque joueur
     for (const id in playersState) {
-        // Position et statut de survie
         playersState[id].x = spawnPoints[spawnIdx % spawnPoints.length].x;
         playersState[id].y = spawnPoints[spawnIdx % spawnPoints.length].y;
         playersState[id].alive = true;
         playersState[id].hidden = false;
         
-        // --- NOUVELLES VARIABLES D'ANIMATION ---
-        playersState[id].dir = 'down';   // Direction du regard (up, down, left, right)
-        playersState[id].moving = false; // Est-il en train de marcher ?
-        playersState[id].animTimer = 0;  // Chrono pour changer de frame
+        playersState[id].dir = 'down'; 
+        playersState[id].moving = false;
+        playersState[id].animTimer = 0;
         
-        spawnIdx++; // On passe au point d'apparition suivant pour le prochain joueur
+        spawnIdx++;
     }
 }
 
@@ -469,11 +495,20 @@ const ZOOM_FACTOR = 3; // On multiplie la taille par 3 pour l'effet Pixel Art
 // Renvoie la couleur d'une tuile pour la minimap.
 // La furniture est toujours montrée fermée (pas de changement d'état visible).
 function getMinimapColor(tileId) {
-    if (tileId === TILES.FLOOR)                             return '#4a5240';
-    if (tileId === TILES.WALL)                              return '#6e6e6e';
-    if (tileId === TILES.ENTRY_DOOR)                        return '#c8a000';
-    if (tileId === TILES.STAIRS_UP || tileId === TILES.STAIRS_DOWN) return '#999';
-    return '#6b3a1f'; // Tous les meubles (ouverts ou fermés) → même brun
+    if (tileId === TILES.FLOOR) return '#ffffff'; // Sol blanc
+    if (tileId === TILES.WALL) return '#7e7e7e';  // Murs gris
+    if (tileId === TILES.STAIRS_UP || tileId === TILES.STAIRS_DOWN) return '#b9d9f5'; // Bleu clair
+    if (tileId === TILES.BED_TOP || tileId === TILES.BED_BOTTOM) return '#71b96a'; // Vert
+    if (tileId === TILES.DESK) return '#3d4b96'; // Bleu foncé
+    if (tileId === TILES.BATHTUB) return '#e1cc55'; // Jaune
+    if (tileId === TILES.TOILET) return '#533215'; // Marron
+    if (tileId >= TILES.WARDROBE_CLOSED_L && tileId <= TILES.SHELF) return '#ec545b'; // Rouge
+    return '#000000';
+}
+
+function getTileFallbackColor(tileId) {
+    // On utilise exactement les mêmes couleurs pour le jeu (en attendant tes images .png)
+    return getMinimapColor(tileId);
 }
 
 const minimapCanvas = document.getElementById('minimap-canvas');
