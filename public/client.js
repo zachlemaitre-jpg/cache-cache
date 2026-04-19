@@ -24,10 +24,11 @@ const TILES = {
 };
 
 let isPlaying = false;
-let mapTiles = []; 
-let playersState = {}; 
+let mapTiles = [];
+let playersState = {};
 let timeRemaining = 0;
-let clientsInputs = {}; 
+let hunterCountdown = 0; // Décompte de 10s avant que le chasseur puisse jouer
+let clientsInputs = {};
 
 // --- Gestion des Touches ---
 const keys = { up: false, down: false, left: false, right: false, action1: false, action2: false };
@@ -127,7 +128,12 @@ function leaveRoom() {
     currentRoom = '';
     isHost = false;
     myRole = 'SPECTATOR';
+    isPlaying = false;
     showScreen('main-menu');
+}
+
+function returnToLobby() {
+    if (currentRoom) socket.emit('returnToLobby', currentRoom);
 }
 
 function updateTimeButtons(duration) {
@@ -228,6 +234,15 @@ socket.on('gameStarted', () => {
     initGameEngine();
 });
 
+socket.on('returnedToLobby', () => {
+    isPlaying = false;
+    hunterCountdown = 0;
+    mapTiles = [];
+    playersState = {};
+    clientsInputs = {};
+    showScreen('lobby-screen');
+});
+
 // Réception des inputs (uniquement pour l'Hôte)
 socket.on('clientInput', (data) => {
     if (isHost) clientsInputs[data.clientId] = data.input;
@@ -239,9 +254,21 @@ socket.on('syncState', (state) => {
         playersState = state.players;
         mapTiles = state.currentMapTiles;
         timeRemaining = state.timeRemaining;
-        document.getElementById('time-left').innerText = "Temps : " + Math.floor(timeRemaining / 1000);
+        hunterCountdown = state.hunterCountdown ?? 0;
+        updateHUD();
     }
 });
+
+function updateHUD() {
+    const hud = document.getElementById('time-left');
+    if (myRole === 'HUNTER' && hunterCountdown > 0) {
+        hud.innerText = 'ATTENDS : ' + Math.ceil(hunterCountdown / 1000) + 's';
+        hud.style.color = '#e63946';
+    } else {
+        hud.innerText = 'Temps : ' + Math.floor(timeRemaining / 1000);
+        hud.style.color = '';
+    }
+}
 
 
 // ==========================================
@@ -264,7 +291,6 @@ function initGameEngine() {
 }
 
 function generateInitialState() {
-    // Matrice de test (À remplacer par ta vraie map plus tard)
     mapTiles = [
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         [1, 0, 0, 0, 0, 20, 21, 0, 0, 1],
@@ -274,12 +300,13 @@ function generateInitialState() {
     ];
 
     timeRemaining = gameSettings.roundDuration;
-    
-    // Position initiale par défaut
+    hunterCountdown = 10000; // 10 secondes de grâce pour les Traqués
+
     for (const id in playersState) {
-        const p = playersState[id];
-        p.x = 64; 
-        p.y = 64;
+        playersState[id].x = 48;
+        playersState[id].y = 48;
+        playersState[id].alive = true;
+        playersState[id].hidden = false;
     }
 }
 
@@ -309,6 +336,9 @@ function computeHostPhysics(deltaMs) {
         // TODO: Gérer la fin de partie (ex: Victoire des Traqués)
     }
 
+    // 1b. Décompte initial : le Chasseur est bloqué pendant 10 secondes
+    hunterCountdown = Math.max(0, hunterCountdown - deltaMs);
+
     // 2. J'ajoute les touches de mon propre clavier (l'Hôte) à la liste des inputs
     clientsInputs[socket.id] = { ...keys };
 
@@ -319,6 +349,9 @@ function computeHostPhysics(deltaMs) {
 
         // On ignore les joueurs morts ou spectateurs
         if (!p.alive || p.role === 'SPECTATOR') continue;
+
+        // Le Chasseur ne peut pas agir pendant le décompte initial
+        if (p.role === 'HUNTER' && hunterCountdown > 0) continue;
 
         // --- GESTION DES ACTIONS (Touche E et F) ---
         // On détecte si la touche vient TOUT JUSTE d'être pressée
@@ -398,12 +431,13 @@ function computeHostPhysics(deltaMs) {
         state: {
             players: playersState,
             currentMapTiles: mapTiles,
-            timeRemaining: timeRemaining
+            timeRemaining: timeRemaining,
+            hunterCountdown: hunterCountdown
         }
     });
 
-    // 5. Mettre à jour l'interface (HUD) du joueur Hôte
-    document.getElementById('time-left').innerText = "Temps : " + Math.floor(timeRemaining / 1000);
+    // 5. Mettre à jour le HUD de l'Hôte
+    updateHUD();
 }
 
 
@@ -416,6 +450,53 @@ function computeHostPhysics(deltaMs) {
 // ==========================================
 
 const ZOOM_FACTOR = 3; // On multiplie la taille par 3 pour l'effet Pixel Art
+
+// ==========================================
+// MINIMAP
+// ==========================================
+
+// Renvoie la couleur d'une tuile pour la minimap.
+// La furniture est toujours montrée fermée (pas de changement d'état visible).
+function getMinimapColor(tileId) {
+    if (tileId === TILES.FLOOR)                             return '#4a5240';
+    if (tileId === TILES.WALL)                              return '#6e6e6e';
+    if (tileId === TILES.ENTRY_DOOR)                        return '#c8a000';
+    if (tileId === TILES.STAIRS_UP || tileId === TILES.STAIRS_DOWN) return '#999';
+    return '#6b3a1f'; // Tous les meubles (ouverts ou fermés) → même brun
+}
+
+function drawMinimap() {
+    if (!mapTiles || mapTiles.length === 0) return;
+
+    const rows = mapTiles.length;
+    const cols = mapTiles[0].length;
+
+    // Taille max de la minimap en pixels écran
+    const maxW = 180;
+    const maxH = 120;
+    const tileSize = Math.max(2, Math.floor(Math.min(maxW / cols, maxH / rows)));
+    const mmW = tileSize * cols;
+    const mmH = tileSize * rows;
+
+    const margin = 14;
+    const mmX = canvas.width - mmW - margin;
+    const mmY = margin;
+
+    // Fond semi-transparent + bordure pixel
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.72)';
+    ctx.fillRect(mmX - 4, mmY - 4, mmW + 8, mmH + 8);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(mmX - 4, mmY - 4, mmW + 8, mmH + 8);
+
+    // Tuiles (état normalisé : furniture toujours fermée)
+    for (let ty = 0; ty < rows; ty++) {
+        for (let tx = 0; tx < cols; tx++) {
+            ctx.fillStyle = getMinimapColor(mapTiles[ty][tx]);
+            ctx.fillRect(mmX + tx * tileSize, mmY + ty * tileSize, tileSize, tileSize);
+        }
+    }
+}
 
 // Couleurs de secours par type de tuile (Pixel Art fallback)
 function getTileFallbackColor(tileId) {
@@ -498,6 +579,34 @@ function drawGame() {
     }
 
     ctx.restore();
+
+    drawMinimap();
+
+    // Overlay de décompte : le Chasseur voit noir pendant 10 secondes
+    if (myRole === 'HUNTER' && hunterCountdown > 0) {
+        const secondsLeft = Math.ceil(hunterCountdown / 1000);
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.93)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.textAlign = 'center';
+
+        ctx.fillStyle = '#e63946';
+        ctx.font = '18px "Press Start 2P"';
+        ctx.fillText('CHASSEUR', cx, cy - 70);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '64px "Press Start 2P"';
+        ctx.fillText(secondsLeft, cx, cy + 20);
+
+        ctx.fillStyle = '#aaaaaa';
+        ctx.font = '9px "Press Start 2P"';
+        ctx.fillText('LES TRAQUES SE CACHENT...', cx, cy + 70);
+
+        ctx.textAlign = 'left'; // reset
+    }
 }
 
 // ==========================================
@@ -684,3 +793,9 @@ function handleHunterSearch(p) {
         }
     }
 }
+
+socket.on('timerUpdate', (timeLeft) => {
+    timeRemaining = timeLeft;
+    document.getElementById('time-left').innerText = "Temps : " + Math.floor(timeRemaining / 1000);
+});
+

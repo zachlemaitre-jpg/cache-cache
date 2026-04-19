@@ -81,7 +81,50 @@ canvas {
     border: var(--pixel-border);
     box-shadow: 10px 10px 0px #000;
     background: #000;
-    image-rendering: pixelated; /* Empêche le flou lors du zoom */
+    image-rendering: pixelated;
+    display: block;
+}
+
+/* Wrapper relatif pour superposer le HUD sur le canvas */
+.game-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+#game-hud {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 10;
+}
+
+#game-hud > * {
+    pointer-events: auto;
+}
+
+#time-left {
+    font-size: 0.65rem;
+    background: rgba(0, 0, 0, 0.75);
+    border: 3px solid #fff;
+    box-shadow: 3px 3px 0 #000;
+    padding: 8px 12px;
+}
+
+#game-message {
+    font-size: 0.6rem;
+    text-align: center;
+    text-shadow: 2px 2px #000;
+}
+
+.game-back-btn {
+    font-size: 0.5rem;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.75);
 }
 
 /* ==========================================

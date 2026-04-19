@@ -64,11 +64,14 @@
     </div>
 
     <div id="game-screen" class="screen hidden">
-        <canvas id="game-canvas" width="768" height="768"></canvas>
-        
-        <div id="game-hud">
-            <div id="time-left">Temps : --</div>
-            <div id="game-message"></div>
+        <div class="game-wrapper">
+            <canvas id="game-canvas" width="768" height="768"></canvas>
+
+            <div id="game-hud">
+                <div id="time-left">Temps : --</div>
+                <div id="game-message"></div>
+                <button class="btn back-btn game-back-btn" onclick="returnToLobby()">&#x21A9; SALON</button>
+            </div>
         </div>
     </div>
 
