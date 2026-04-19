@@ -70,21 +70,23 @@ let clientsInputs = {};
 const keys = { up: false, down: false, left: false, right: false, action1: false, action2: false };
 
 window.addEventListener('keydown', (e) => {
-    if (e.key === 'z' || e.key === 'ArrowUp') keys.up = true;
-    if (e.key === 's' || e.key === 'ArrowDown') keys.down = true;
-    if (e.key === 'q' || e.key === 'ArrowLeft') keys.left = true;
-    if (e.key === 'd' || e.key === 'ArrowRight') keys.right = true;
-    if (e.key === 'e') keys.action1 = true; 
-    if (e.key === 'f') keys.action2 = true; 
+    const key = e.key.toLowerCase(); // Transforme Z en z
+    if (key === 'z' || e.key === 'ArrowUp') keys.up = true;
+    if (key === 's' || e.key === 'ArrowDown') keys.down = true;
+    if (key === 'q' || e.key === 'ArrowLeft') keys.left = true;
+    if (key === 'd' || e.key === 'ArrowRight') keys.right = true;
+    if (key === 'e') keys.action1 = true; 
+    if (key === 'f') keys.action2 = true; 
 });
 
 window.addEventListener('keyup', (e) => {
-    if (e.key === 'z' || e.key === 'ArrowUp') keys.up = false;
-    if (e.key === 's' || e.key === 'ArrowDown') keys.down = false;
-    if (e.key === 'q' || e.key === 'ArrowLeft') keys.left = false;
-    if (e.key === 'd' || e.key === 'ArrowRight') keys.right = false;
-    if (e.key === 'e') keys.action1 = false;
-    if (e.key === 'f') keys.action2 = false;
+    const key = e.key.toLowerCase();
+    if (key === 'z' || e.key === 'ArrowUp') keys.up = false;
+    if (key === 's' || e.key === 'ArrowDown') keys.down = false;
+    if (key === 'q' || e.key === 'ArrowLeft') keys.left = false;
+    if (key === 'd' || e.key === 'ArrowRight') keys.right = false;
+    if (key === 'e') keys.action1 = false;
+    if (key === 'f') keys.action2 = false;
 });
 
 // --- Préchargement des Images ---
