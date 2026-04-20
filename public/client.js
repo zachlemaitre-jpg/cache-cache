@@ -371,15 +371,20 @@ function generateInitialState() {
     addFurniture("g_alc_2_g", TILES.WALL, 120, 340, W, 120); 
     addFurniture("g_alc_2_b", TILES.WALL, 120, 460, 40, W); 
     addFurniture("g_alc_2_d", TILES.WALL, 160, 340, W, 120); 
+    
+    // NOUVEAUX MURS AJOUTÉS EN BAS A GAUCHE
+    addFurniture("ajout_bas_1", TILES.WALL, 174, 346, 20, W); // De x=174 à 194
+    addFurniture("ajout_bas_2", TILES.WALL, 34, 346, 15, W);  // De x=34 à 49
 
     addDiagonalWall("g_diag", 192, 340, 248, 250, W);
 
     // COULOIR ET PIÈCE CENTRALE (CORRECTION PORTE)
     addFurniture("c_ht_start", TILES.WALL, 248, 200, 132, W); // Avant la pièce
-    // Mur bas de la pièce centrale avec PORTE à droite
-    addFurniture("c_bas_p1", TILES.WALL, 380, 200, 180, W); // Mur de la pièce
-    // (Trou de 40px ici pour la porte)
-    addFurniture("c_ht_end", TILES.WALL, 600, 200, 296, W); // Après la pièce
+    addFurniture("c_bas_p1", TILES.WALL, 380, 200, 180, W); // Mur de la pièce (Trou de 40px ici)
+    
+    // OUVERTURE DU MUR (Retrait entre 724 et 821)
+    addFurniture("c_ht_end_1", TILES.WALL, 600, 200, 124, W); // De 600 jusqu'à 724
+    addFurniture("c_ht_end_2", TILES.WALL, 821, 200, 75, W);  // Reprend de 821 jusqu'à la fin
 
     addFurniture("c_bs", TILES.WALL, 248, 250, 632, W); 
 
@@ -390,10 +395,13 @@ function generateInitialState() {
     addFurniture("c_enc_ht", TILES.WALL, 600, 90, 40, W); 
     addFurniture("c_dr_2", TILES.WALL, 600, 90, W, 110); 
 
-    // PIÈCE DROITE (avec renfoncement visible en haut à droite)
-    addFurniture("d_ht", TILES.WALL, 720, 140, 100, W);  // Mur du haut, raccourci jusqu'à x=820
-    addFurniture("d_dr", TILES.WALL, 820, 140, W, 110);  // Mur vertical décalé vers l'intérieur (renfoncement = x=832 à x=884)
-    addFurniture("d_niche_ht", TILES.WALL, 820, 90, 64, W); // Plafond du renfoncement à y=90
+    // PIÈCE DROITE
+    addFurniture("d_ht", TILES.WALL, 720, 140, 100, W);  
+    addFurniture("d_dr", TILES.WALL, 820, 140, W, 110);  
+    addFurniture("d_niche_ht", TILES.WALL, 820, 90, 64, W); 
+    
+    // NOUVEAU MUR VERTICAL A DROITE
+    addFurniture("ajout_droit", TILES.WALL, 721, 146, W, 60); // Descend de y=146 à y=206
 
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
