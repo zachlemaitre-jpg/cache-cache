@@ -65,6 +65,8 @@ let playersState = {};
 let timeRemaining = 0;
 let hunterCountdown = 0; // Décompte de 10s avant que le chasseur puisse jouer
 let clientsInputs = {};
+let wallSegments = [];     // NOUVEAU : Les murs qui bloquent la vue
+let currentVisiblePoly = null; // NOUVEAU : La forme de ce que le joueur voit
 
 // --- Gestion des Touches ---
 const keys = { up: false, down: false, left: false, right: false, action1: false, action2: false };
@@ -319,7 +321,6 @@ function initGameEngine() {
 let furnitures = []; 
 
 function generateInitialState() {
-    // 1. Initialisation du sol
     mapTiles = [];
     for(let y = 0; y < 15; y++) {
         let row = [];
@@ -327,7 +328,6 @@ function generateInitialState() {
         mapTiles.push(row);
     }
 
-    // 2. La liste des entités (Uniquement des murs, ZERO meuble)
     furnitures = [];
 
     function addFurniture(id, type, px, py, widthPx, heightPx) {
@@ -337,9 +337,8 @@ function generateInitialState() {
         });
     }
 
-    // Outil de création du mur incliné (Astuce de l'escalier)
     function addDiagonalWall(idPrefix, startX, startY, endX, endY, thickness) {
-        const steps = 30; // Nombre de marches pour lisser la ligne
+        const steps = 30;
         const dx = (endX - startX) / steps;
         const dy = (endY - startY) / steps;
         for (let i = 0; i <= steps; i++) {
@@ -347,84 +346,61 @@ function generateInitialState() {
         }
     }
 
-    const W = 12; // Épaisseur des murs
+    const W = 12; 
 
-    // ==========================================
-    // MURS EXTÉRIEURS DE SÉCURITÉ
-    // ==========================================
+    // MURS EXTÉRIEURS
     addFurniture("m_sec_ht", TILES.WALL, 0, 0, 896, W);
     addFurniture("m_sec_bs", TILES.WALL, 0, 480-W, 896, W);
     addFurniture("m_sec_ga", TILES.WALL, 0, 0, W, 480);
     addFurniture("m_sec_dr", TILES.WALL, 896-W, 0, W, 480);
 
-    // ==========================================
-    // CONTOURS DE LA PIÈCE GAUCHE
-    // ==========================================
-    addFurniture("g_ht", TILES.WALL, 24, 60, 236, W); // Haut
-    addFurniture("g_dr", TILES.WALL, 248, 60, W, 140); // Droite (jusqu'au couloir)
+    // PIÈCE GAUCHE
+    addFurniture("g_ht", TILES.WALL, 24, 60, 236, W); 
+    addFurniture("g_dr", TILES.WALL, 248, 60, W, 140); 
+    addFurniture("g_ga_1", TILES.WALL, 24, 60, W, 80); 
+    addFurniture("g_enc_ht", TILES.WALL, 12, 140, 12, W); 
+    addFurniture("g_enc_ga", TILES.WALL, 12, 140, W, 24); 
+    addFurniture("g_enc_bs", TILES.WALL, 12, 164, 12, W); 
+    addFurniture("g_ga_2", TILES.WALL, 24, 164, W, 176); 
 
-    // Mur gauche avec la petite encoche
-    addFurniture("g_ga_1", TILES.WALL, 24, 60, W, 80); // Partie haute
-    addFurniture("g_enc_ht", TILES.WALL, 12, 140, 12, W); // Encoche vers la gauche
-    addFurniture("g_enc_ga", TILES.WALL, 12, 140, W, 24); // Fond de l'encoche
-    addFurniture("g_enc_bs", TILES.WALL, 12, 164, 12, W); // Retour vers la droite
-    addFurniture("g_ga_2", TILES.WALL, 24, 164, W, 176); // Partie basse
+    // ALCÔVES BAS GAUCHE
+    addFurniture("g_alc_1_g", TILES.WALL, 48, 340, W, 120); 
+    addFurniture("g_alc_1_b", TILES.WALL, 48, 460, 40, W); 
+    addFurniture("g_alc_1_d", TILES.WALL, 88, 340, W, 120); 
+    addFurniture("g_alc_mil", TILES.WALL, 88, 340, 32, W); 
+    addFurniture("g_alc_2_g", TILES.WALL, 120, 340, W, 120); 
+    addFurniture("g_alc_2_b", TILES.WALL, 120, 460, 40, W); 
+    addFurniture("g_alc_2_d", TILES.WALL, 160, 340, W, 120); 
 
-    // Les deux couloirs/alcôves tout en bas à gauche
-    addFurniture("g_alc_g_g", TILES.WALL, 24, 340, 24, W); // Retour horizontal gauche
-    addFurniture("g_alc_1_g", TILES.WALL, 48, 340, W, 120); // Mur gauche alcôve 1
-    addFurniture("g_alc_1_b", TILES.WALL, 48, 460, 40, W); // Fond alcôve 1
-    addFurniture("g_alc_1_d", TILES.WALL, 88, 340, W, 120); // Mur droit alcôve 1
-
-    addFurniture("g_alc_mil", TILES.WALL, 88, 340, 32, W); // Espace plat entre les deux alcôves
-
-    addFurniture("g_alc_2_g", TILES.WALL, 120, 340, W, 120); // Mur gauche alcôve 2
-    addFurniture("g_alc_2_b", TILES.WALL, 120, 460, 40, W); // Fond alcôve 2
-    addFurniture("g_alc_2_d", TILES.WALL, 160, 340, W, 120); // Mur droit alcôve 2
-
-    addFurniture("g_bs_dr", TILES.WALL, 160, 340, 32, W); // Petit bout plat avant la diagonale
-
-    // LE MUR EN DIAGONALE
     addDiagonalWall("g_diag", 192, 340, 248, 250, W);
 
-    // ==========================================
-    // COULOIR CENTRAL
-    // ==========================================
-    addFurniture("c_ht_1", TILES.WALL, 248, 200, 132, W); // Mur haut avant pièce centrale
-    addFurniture("c_ht_2", TILES.WALL, 600, 200, 120, W); // Mur haut après pièce centrale
-    addFurniture("c_bs", TILES.WALL, 248, 250, 632, W); // Mur bas continu du couloir
+    // COULOIR ET PIÈCE CENTRALE (CORRECTION PORTE)
+    addFurniture("c_ht_start", TILES.WALL, 248, 200, 132, W); // Avant la pièce
+    // Mur bas de la pièce centrale avec PORTE à droite
+    addFurniture("c_bas_p1", TILES.WALL, 380, 200, 180, W); // Mur de la pièce
+    // (Trou de 40px ici pour la porte)
+    addFurniture("c_ht_end", TILES.WALL, 600, 200, 296, W); // Après la pièce
 
-    // ==========================================
+    addFurniture("c_bs", TILES.WALL, 248, 250, 632, W); 
+
     // PIÈCE CENTRALE HAUTE
-    // ==========================================
-    addFurniture("c_ga", TILES.WALL, 380, 30, W, 170); // Gauche
-    addFurniture("c_ht", TILES.WALL, 380, 30, 260, W); // Haut
-    
-    // Mur droit avec son renfoncement vers l'intérieur
-    addFurniture("c_dr_1", TILES.WALL, 640, 30, W, 60); // Droite (partie haute)
-    addFurniture("c_enc_ht", TILES.WALL, 600, 90, 40, W); // Décalage vers la gauche
-    addFurniture("c_dr_2", TILES.WALL, 600, 90, W, 110); // Droite (partie basse vers couloir)
+    addFurniture("c_ga", TILES.WALL, 380, 30, W, 170); 
+    addFurniture("c_ht", TILES.WALL, 380, 30, 260, W); 
+    addFurniture("c_dr_1", TILES.WALL, 640, 30, W, 60); 
+    addFurniture("c_enc_ht", TILES.WALL, 600, 90, 40, W); 
+    addFurniture("c_dr_2", TILES.WALL, 600, 90, W, 110); 
 
-    // ==========================================
-    // PIÈCE DROITE (Au bout du couloir)
-    // ==========================================
-    addFurniture("d_ga", TILES.WALL, 720, 140, W, 60); // Gauche (au dessus du couloir)
-    addFurniture("d_ht", TILES.WALL, 720, 140, 160, W); // Haut
-    addFurniture("d_dr", TILES.WALL, 880, 140, W, 110); // Droite
+    // PIÈCE DROITE
+    addFurniture("d_ht", TILES.WALL, 720, 140, 160, W); 
+    addFurniture("d_dr", TILES.WALL, 880, 140, W, 110); 
 
-    // ==========================================
-    // INITIALISATION DE LA PARTIE
-    // ==========================================
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
-
-    // Apparition des joueurs bien répartis dans le couloir central
     const spawns = [{x: 300, y: 220}, {x: 450, y: 220}, {x: 550, y: 220}, {x: 750, y: 220}];
     let idx = 0;
     for (const id in playersState) {
         let p = playersState[id];
-        p.x = spawns[idx % spawns.length].x;
-        p.y = spawns[idx % spawns.length].y;
+        p.x = spawns[idx % spawns.length].x; p.y = spawns[idx % spawns.length].y;
         p.alive = true; p.hidden = false; p.dir = 'down'; p.moving = false; p.animTimer = 0;
         idx++;
     }
