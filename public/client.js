@@ -318,7 +318,6 @@ function initGameEngine() {
 }
 
 // --- NOUVELLE STRUCTURE DE CARTE ---
-let furnitures = []; 
 
 function generateInitialState() {
     // 1. Initialisation de la grille de murs (896x480px / 16px => 30 lignes x 56 colonnes)
@@ -576,10 +575,6 @@ function getMinimapColor(id) {
     return '#000';
 }
 
-function getTileFallbackColor(tileId) { 
-    return getMinimapColor(tileId); 
-}
-
 const minimapCanvas = document.getElementById('minimap-canvas');
 const minimapCtx = minimapCanvas.getContext('2d');
 
@@ -723,12 +718,12 @@ function drawGame() {
 }
 
 function drawMinimap() {
-    if (!mapTiles || mapTiles.length === 0) return;
+    if (!isWallGrid || isWallGrid.length === 0) return;
 
-    const rows = mapTiles.length;
-    const cols = mapTiles[0].length;
-    const miniTileSize = 14; 
-    const scale = miniTileSize / TILE_SIZE;
+    const rows = 30;
+    const cols = 56;
+    const miniTileSize = 4; // 4px par bloc pour que ça rentre bien
+    const scale = miniTileSize / 16;
 
     if (minimapCanvas.width !== cols * miniTileSize || minimapCanvas.height !== rows * miniTileSize) {
         minimapCanvas.width  = cols * miniTileSize;
@@ -737,15 +732,19 @@ function drawMinimap() {
 
     minimapCtx.imageSmoothingEnabled = false;
 
-    // 1. SOL
-    for (let ty = 0; ty < rows; ty++) {
-        for (let tx = 0; tx < cols; tx++) {
-            minimapCtx.fillStyle = getMinimapColor(mapTiles[ty][tx]);
-            minimapCtx.fillRect(tx * miniTileSize, ty * miniTileSize, miniTileSize, miniTileSize);
+    // 1. SOL ET MURS
+    for (let gy = 0; gy < rows; gy++) {
+        for (let gx = 0; gx < cols; gx++) {
+            if (isWallGrid[gy][gx]) {
+                minimapCtx.fillStyle = '#1a1a1a'; // Mur
+            } else {
+                minimapCtx.fillStyle = '#7e7e7e'; // Sol
+            }
+            minimapCtx.fillRect(gx * miniTileSize, gy * miniTileSize, miniTileSize, miniTileSize);
         }
     }
 
-    // 2. MURS ET MEUBLES
+    // 2. MEUBLES (S'il y en a)
     if (typeof furnitures !== 'undefined') {
         for (const f of furnitures) {
             minimapCtx.fillStyle = getMinimapColor(f.type);
