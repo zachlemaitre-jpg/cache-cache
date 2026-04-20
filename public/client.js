@@ -363,7 +363,7 @@ function generateInitialState() {
     addFurniture("g_enc_bs", TILES.WALL, 12, 164, 12, W); 
     addFurniture("g_ga_2", TILES.WALL, 24, 164, W, 176); 
 
-    // ALCÔVES BAS GAUCHE
+    // ALCÔVES BAS GAUCHE (CORRIGÉES)
     addFurniture("g_alc_1_g", TILES.WALL, 48, 340, W, 120); 
     addFurniture("g_alc_1_b", TILES.WALL, 48, 460, 40, W); 
     addFurniture("g_alc_1_d", TILES.WALL, 88, 340, W, 120); 
@@ -372,19 +372,18 @@ function generateInitialState() {
     addFurniture("g_alc_2_b", TILES.WALL, 120, 460, 40, W); 
     addFurniture("g_alc_2_d", TILES.WALL, 160, 340, W, 120); 
     
-    // NOUVEAUX MURS AJOUTÉS EN BAS A GAUCHE
-    addFurniture("ajout_bas_1", TILES.WALL, 174, 346, 20, W); // De x=174 à 194
-    addFurniture("ajout_bas_2", TILES.WALL, 34, 346, 15, W);  // De x=34 à 49
+    // Tes nouvelles coordonnées corrigées :
+    addFurniture("ajout_bas_1", TILES.WALL, 171, 341, 23, W); // x171 à x194
+    addFurniture("ajout_bas_2", TILES.WALL, 32, 341, 18, W);  // x32 à x50
 
     addDiagonalWall("g_diag", 192, 340, 248, 250, W);
 
-    // COULOIR ET PIÈCE CENTRALE (CORRECTION PORTE)
-    addFurniture("c_ht_start", TILES.WALL, 248, 200, 132, W); // Avant la pièce
-    addFurniture("c_bas_p1", TILES.WALL, 380, 200, 180, W); // Mur de la pièce (Trou de 40px ici)
+    // COULOIR ET PIÈCE CENTRALE
+    addFurniture("c_ht_start", TILES.WALL, 248, 200, 132, W); 
+    addFurniture("c_bas_p1", TILES.WALL, 380, 200, 180, W); 
     
-    // OUVERTURE DU MUR (Retrait entre 724 et 821)
-    addFurniture("c_ht_end_1", TILES.WALL, 600, 200, 124, W); // De 600 jusqu'à 724
-    addFurniture("c_ht_end_2", TILES.WALL, 821, 200, 75, W);  // Reprend de 821 jusqu'à la fin
+    addFurniture("c_ht_end_1", TILES.WALL, 600, 200, 124, W); 
+    addFurniture("c_ht_end_2", TILES.WALL, 821, 200, 75, W);  
 
     addFurniture("c_bs", TILES.WALL, 248, 250, 632, W); 
 
@@ -400,8 +399,8 @@ function generateInitialState() {
     addFurniture("d_dr", TILES.WALL, 820, 140, W, 110);  
     addFurniture("d_niche_ht", TILES.WALL, 820, 90, 64, W); 
     
-    // NOUVEAU MUR VERTICAL A DROITE
-    addFurniture("ajout_droit", TILES.WALL, 721, 146, W, 60); // Descend de y=146 à y=206
+    // Ton nouveau mur vertical corrigé :
+    addFurniture("ajout_droit", TILES.WALL, 725, 147, W, 66); // y147 à y213 à x725
 
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
@@ -628,6 +627,45 @@ function drawTile(tileId, worldX, worldY) {
     }
 }
 
+// ==========================================
+// OUTIL DE LIGNE DE VUE (RAYCASTING)
+// ==========================================
+function getLineOfSight(px, py, radius) {
+    let points = [];
+    const rays = 120; // 120 rayons = 1 rayon tous les 3 degrés (fluide et performant)
+    
+    for (let i = 0; i < rays; i++) {
+        let angle = (i / rays) * Math.PI * 2;
+        let dx = Math.cos(angle);
+        let dy = Math.sin(angle);
+        let cx = px;
+        let cy = py;
+        let hit = false;
+        
+        // On fait avancer le rayon de 4 pixels en 4 pixels
+        for (let step = 0; step < radius; step += 4) {
+            cx += dx * 4;
+            cy += dy * 4;
+            
+            // Vérifier si le rayon touche un mur
+            for (const f of furnitures) {
+                if (f.type === TILES.WALL) {
+                    if (cx >= f.x && cx <= f.x + f.width && cy >= f.y && cy <= f.y + f.height) {
+                        hit = true;
+                        break;
+                    }
+                }
+            }
+            // Si on touche un mur ou le bord de la carte, on arrête ce rayon
+            if (hit || cx < 0 || cx > 896 || cy < 0 || cy > 480) {
+                break;
+            }
+        }
+        points.push({x: cx, y: cy});
+    }
+    return points;
+}
+
 function drawGame() {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -638,7 +676,6 @@ function drawGame() {
     const me = playersState[socket.id];
     let camX = 0, camY = 0;
     if (me) {
-        // Centrage de la caméra sur toi
         camX = (me.x + me.size / 2) * ZOOM_FACTOR - (canvas.width / 2);
         camY = (me.y + me.size / 2) * ZOOM_FACTOR - (canvas.height / 2);
     }
@@ -664,17 +701,13 @@ function drawGame() {
     // 2. DESSIN DES ENTITÉS (Murs et Meubles)
     for (const f of furnitures) {
         if (f.type === TILES.WALL) {
-            // Pour éviter l'étirement laid, on dessine les longs murs en gris
             ctx.fillStyle = '#666666'; 
             ctx.fillRect(f.x, f.y, f.width, f.height);
             ctx.strokeStyle = '#333333';
             ctx.strokeRect(f.x, f.y, f.width, f.height);
-        } 
-        else if (images[f.type] && images[f.type].complete && images[f.type].naturalWidth > 0) {
-            // Pour les autres meubles, on dessine l'image normalement
+        } else if (images[f.type] && images[f.type].complete && images[f.type].naturalWidth > 0) {
             ctx.drawImage(images[f.type], f.x, f.y, f.width, f.height);
         } else {
-            // Fallback s'il manque une image
             ctx.fillStyle = getTileFallbackColor(f.type);
             ctx.fillRect(f.x, f.y, f.width, f.height);
             ctx.strokeStyle = "rgba(0,0,0,0.5)";
@@ -682,7 +715,7 @@ function drawGame() {
         }
     }
 
-    // 3. DESSIN DES JOUEURS ANIMÉS
+    // 3. DESSIN DES JOUEURS
     for (const id in playersState) {
         const p = playersState[id];
         if (!p.alive || p.role === 'SPECTATOR') continue;
@@ -721,10 +754,40 @@ function drawGame() {
         ctx.fillText(p.pseudo, p.x - 5, p.y - 5);
     }
 
-    ctx.restore();
+    // ==========================================
+    // 4. LE BROUILLARD DE GUERRE
+    // ==========================================
+    if (me && me.alive && me.role !== 'SPECTATOR') {
+        const px = me.x + me.size / 2;
+        const py = me.y + me.size / 2;
+        
+        // Portée de la lumière (Chasseur voit plus loin)
+        const visionRadius = (me.role === 'HUNTER') ? 250 : 150; 
+        const losPoints = getLineOfSight(px, py, visionRadius);
+
+        // Couleur de l'ombre (97% opaque pour une angoisse totale)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.97)'; 
+        ctx.beginPath();
+        
+        // On dessine un rectangle géant couvrant toute la map
+        ctx.rect(-1000, -1000, 3000, 3000);
+        
+        // On dessine le polygone de vision par-dessus
+        if (losPoints.length > 0) {
+            ctx.moveTo(losPoints[0].x, losPoints[0].y);
+            for (let i = 1; i < losPoints.length; i++) {
+                ctx.lineTo(losPoints[i].x, losPoints[i].y);
+            }
+        }
+        
+        // Astuce "evenodd" : Là où les formes se croisent, ça crée un trou transparent !
+        ctx.fill('evenodd');
+    }
+
+    ctx.restore(); // Fin de la caméra
     drawMinimap();
 
-    // Filtre noir pour le Chasseur
+    // Filtre noir absolu pour le Chasseur au début de la manche
     if (myRole === 'HUNTER' && hunterCountdown > 0) {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.95)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
