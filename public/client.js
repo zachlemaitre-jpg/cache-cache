@@ -632,7 +632,8 @@ function drawTile(tileId, worldX, worldY) {
 // ==========================================
 function getLineOfSight(px, py, radius) {
     let points = [];
-    const rays = 120; // 120 rayons = 1 rayon tous les 3 degrés (fluide et performant)
+    // 120 rayons c'est bien, mais on peut monter à 180 pour lisser encore plus les ombres
+    const rays = 180; 
     
     for (let i = 0; i < rays; i++) {
         let angle = (i / rays) * Math.PI * 2;
@@ -642,7 +643,7 @@ function getLineOfSight(px, py, radius) {
         let cy = py;
         let hit = false;
         
-        // On fait avancer le rayon de 4 pixels en 4 pixels
+        // On fait avancer le rayon
         for (let step = 0; step < radius; step += 4) {
             cx += dx * 4;
             cy += dy * 4;
@@ -656,9 +657,19 @@ function getLineOfSight(px, py, radius) {
                     }
                 }
             }
-            // Si on touche un mur ou le bord de la carte, on arrête ce rayon
+            
+            // Si on touche un mur ou le bord de la carte
             if (hit || cx < 0 || cx > 896 || cy < 0 || cy > 480) {
-                break;
+                
+                // LA CORRECTION MAGIQUE EST ICI :
+                if (hit) {
+                    // On pousse le point de lumière de 16 pixels à l'intérieur du mur
+                    // Cela permet d'éclairer la surface du mur avant que l'ombre ne commence
+                    cx += dx * 16;
+                    cy += dy * 16;
+                }
+                
+                break; // On arrête le rayon
             }
         }
         points.push({x: cx, y: cy});
