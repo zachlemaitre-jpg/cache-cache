@@ -335,14 +335,8 @@ function generateInitialState() {
     // Fonction utilitaire pour ajouter des objets au pixel près
     function addFurniture(id, type, px, py, widthPx, heightPx) {
         furnitures.push({
-            id: id,
-            type: type,
-            x: px,
-            y: py,
-            width: widthPx,
-            height: heightPx,
-            state: 'CLOSED',
-            hidingPlayerId: null
+            id: id, type: type, x: px, y: py, width: widthPx, height: heightPx,
+            state: 'CLOSED', hidingPlayerId: null
         });
     }
 
@@ -359,14 +353,12 @@ function generateInitialState() {
     // ==========================================
     // MURS DU COULOIR CENTRAL (Y entre 200 et 260)
     // ==========================================
-    // Mur Haut du couloir (avec trous pour les portes)
     addFurniture("m_couloir_ht_1", TILES.WALL, 0, 200, 220, W);   // Chambre Gauche
     addFurniture("m_couloir_ht_2", TILES.WALL, 280, 200, 30, W);  // Dressing gauche
     addFurniture("m_couloir_ht_3", TILES.WALL, 350, 200, 70, W);  // Dressing droite
     addFurniture("m_couloir_ht_4", TILES.WALL, 460, 200, 220, W); // Chambre Bureau
     addFurniture("m_couloir_ht_5", TILES.WALL, 720, 200, 176, W); // Salle de Bain
 
-    // Mur Bas du couloir
     addFurniture("m_couloir_bs_1", TILES.WALL, 0, 260, 220, W);   // Chambre Jaune
     addFurniture("m_couloir_bs_2", TILES.WALL, 280, 260, 80, W);  // Entre Ch. Jaune et Escaliers
     addFurniture("m_couloir_bs_3", TILES.WALL, 410, 260, 70, W);  // Entrée Escaliers
@@ -388,7 +380,7 @@ function generateInitialState() {
     addFurniture("sep_h_wc", TILES.WALL, 660, 380, 92, W); // Bas du bloc WC
 
     // ==========================================
-    // MEUBLES ET RANGEMENTS (Blocs rouges, verts, bleus...)
+    // MEUBLES ET RANGEMENTS
     // ==========================================
     // --- Chambre Gauche ---
     addFurniture("lit_v_1", TILES.BED_TOP, 80, 40, 100, 100); 
@@ -396,7 +388,7 @@ function generateInitialState() {
     addFurniture("arm_r_2", TILES.SHELF, 60, 350, 40, 100); 
     addFurniture("arm_r_3", TILES.SHELF, 140, 350, 40, 100);
 
-    // --- Dressing (Aminci à 12px pour laisser passer le joueur) ---
+    // --- Dressing ---
     addFurniture("dress_1", TILES.SHELF, 292, 20, 12, 160); 
     addFurniture("dress_2", TILES.SHELF, 348, 20, 12, 160);
 
@@ -426,22 +418,14 @@ function generateInitialState() {
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
 
-    // Points d'apparition dans le couloir (x=400, y=230 environ)
-    const spawns = [
-        {x: 400, y: 230}, {x: 500, y: 230}, 
-        {x: 600, y: 230}, {x: 300, y: 230}
-    ];
+    const spawns = [{x: 400, y: 230}, {x: 500, y: 230}, {x: 600, y: 230}, {x: 300, y: 230}];
     let idx = 0;
     
     for (const id in playersState) {
         let p = playersState[id];
         p.x = spawns[idx % spawns.length].x; 
         p.y = spawns[idx % spawns.length].y;
-        p.alive = true;
-        p.hidden = false;
-        p.dir = 'down';
-        p.moving = false;
-        p.animTimer = 0;
+        p.alive = true; p.hidden = false; p.dir = 'down'; p.moving = false; p.animTimer = 0;
         idx++;
     }
 }
@@ -620,20 +604,19 @@ const ZOOM_FACTOR = 3; // On multiplie la taille par 3 pour l'effet Pixel Art
 
 // Renvoie la couleur d'une tuile pour la minimap.
 // La furniture est toujours montrée fermée (pas de changement d'état visible).
-function getMinimapColor(tileId) {
-    if (tileId === TILES.FLOOR) return '#7e7e7e'; // NOUVEAU SOL : L'ancien gris des murs
-    if (tileId === TILES.WALL) return '#222222';  // NOUVEAUX MURS : Gris très foncé oppressant
-    if (tileId === TILES.STAIRS_UP || tileId === TILES.STAIRS_DOWN) return '#b9d9f5'; // Bleu clair
-    if (tileId === TILES.BED_TOP || tileId === TILES.BED_BOTTOM) return '#71b96a'; // Vert
-    if (tileId === TILES.DESK) return '#3d4b96'; // Bleu foncé
-    if (tileId === TILES.BATHTUB) return '#e1cc55'; // Jaune
-    if (tileId === TILES.TOILET) return '#533215'; // Marron
-    if (tileId >= TILES.WARDROBE_CLOSED_L && tileId <= TILES.SHELF) return '#ec545b'; // Rouge
-    return '#000000';
+function getMinimapColor(id) {
+    if (id === TILES.FLOOR) return '#7e7e7e'; // Sol gris moyen
+    if (id === TILES.WALL) return '#1a1a1a';  // Murs gris très foncé
+    if (id >= 20 && id <= 26) return '#ec545b'; // Rouge (Meubles)
+    if (id === TILES.DESK) return '#3d4b96'; // Bleu (Bureau)
+    if (id === TILES.BATHTUB) return '#e1cc55'; // Jaune (Bain)
+    if (id === TILES.TOILET) return '#533215'; // Marron (WC)
+    if (id === TILES.STAIRS_UP || id === TILES.STAIRS_DOWN) return '#b9d9f5'; // Bleu clair (Escaliers)
+    return '#000';
 }
 
-function getTileFallbackColor(tileId) {
-    return getMinimapColor(tileId); // On utilise exactement les mêmes couleurs pour le jeu
+function getTileFallbackColor(tileId) { 
+    return getMinimapColor(tileId); 
 }
 
 const minimapCanvas = document.getElementById('minimap-canvas');
