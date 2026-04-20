@@ -390,9 +390,10 @@ function generateInitialState() {
     addFurniture("c_enc_ht", TILES.WALL, 600, 90, 40, W); 
     addFurniture("c_dr_2", TILES.WALL, 600, 90, W, 110); 
 
-    // PIÈCE DROITE
-    addFurniture("d_ht", TILES.WALL, 720, 140, 160, W); 
-    addFurniture("d_dr", TILES.WALL, 880, 140, W, 110); 
+    // PIÈCE DROITE (avec renfoncement visible en haut à droite)
+    addFurniture("d_ht", TILES.WALL, 720, 140, 100, W);  // Mur du haut, raccourci jusqu'à x=820
+    addFurniture("d_dr", TILES.WALL, 820, 140, W, 110);  // Mur vertical décalé vers l'intérieur (renfoncement = x=832 à x=884)
+    addFurniture("d_niche_ht", TILES.WALL, 820, 90, 64, W); // Plafond du renfoncement à y=90
 
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
