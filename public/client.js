@@ -65,8 +65,8 @@ let playersState = {};
 let timeRemaining = 0;
 let hunterCountdown = 0; // Décompte de 10s avant que le chasseur puisse jouer
 let clientsInputs = {};
-let wallSegments = [];     // NOUVEAU : Les murs qui bloquent la vue
-let currentVisiblePoly = null; // NOUVEAU : La forme de ce que le joueur voit
+let isWallGrid = []; // NOUVEAU : La grille de collision et d'ombre
+let furnitures = []; // Liste des entités (vide pour l'instant)
 
 // --- Gestion des Touches ---
 const keys = { up: false, down: false, left: false, right: false, action1: false, action2: false };
@@ -305,7 +305,7 @@ function updateHUD() {
 function initGameEngine() {
     isPlaying = true;
     
-    if (isHost) generateInitialState();
+    generateInitialState();
 
     // Envoi des inputs au serveur (30 fps)
     setInterval(() => {
@@ -321,87 +321,64 @@ function initGameEngine() {
 let furnitures = []; 
 
 function generateInitialState() {
-    mapTiles = [];
-    for(let y = 0; y < 15; y++) {
-        let row = [];
-        for(let x = 0; x < 28; x++) { row.push(TILES.FLOOR); }
-        mapTiles.push(row);
+    // 1. Initialisation de la grille de murs (896x480px / 16px => 30 lignes x 56 colonnes)
+    isWallGrid = [];
+    for (let y = 0; y < 30; y++) {
+        isWallGrid[y] = new Array(56).fill(false);
     }
+    furnitures = []; 
 
-    furnitures = [];
-
-    function addFurniture(id, type, px, py, widthPx, heightPx) {
-        furnitures.push({
-            id: id, type: type, x: px, y: py, width: widthPx, height: heightPx,
-            state: 'CLOSED', hidingPlayerId: null
-        });
+    // Outils de traçage sur grille
+    function addWallBlock(gx, gy, gWidth, gHeight) {
+        for (let y = gy; y < gy + gHeight; y++) {
+            for (let x = gx; x < gx + gWidth; x++) {
+                if (y >= 0 && y < 30 && x >= 0 && x < 56) isWallGrid[y][x] = true;
+            }
+        }
     }
-
-    function addDiagonalWall(idPrefix, startX, startY, endX, endY, thickness) {
-        const steps = 30;
+    function addDiagonalWall(idPrefix, startX, startY, endX, endY) {
+        const steps = 60;
         const dx = (endX - startX) / steps;
         const dy = (endY - startY) / steps;
         for (let i = 0; i <= steps; i++) {
-            addFurniture(idPrefix + "_" + i, TILES.WALL, startX + (dx * i), startY + (dy * i), thickness, thickness);
+            const gx = Math.floor((startX + (dx * i)) / 16);
+            const gy = Math.floor((startY + (dy * i)) / 16);
+            if (gy >= 0 && gy < 30 && gx >= 0 && gx < 56) isWallGrid[gy][gx] = true;
         }
     }
 
-    const W = 12; 
-
     // MURS EXTÉRIEURS
-    addFurniture("m_sec_ht", TILES.WALL, 0, 0, 896, W);
-    addFurniture("m_sec_bs", TILES.WALL, 0, 480-W, 896, W);
-    addFurniture("m_sec_ga", TILES.WALL, 0, 0, W, 480);
-    addFurniture("m_sec_dr", TILES.WALL, 896-W, 0, W, 480);
+    addWallBlock(0, 0, 56, 1);    addWallBlock(0, 29, 56, 1);
+    addWallBlock(0, 0, 1, 30);    addWallBlock(55, 0, 1, 30);
 
     // PIÈCE GAUCHE
-    addFurniture("g_ht", TILES.WALL, 24, 60, 236, W); 
-    addFurniture("g_dr", TILES.WALL, 248, 60, W, 140); 
-    addFurniture("g_ga_1", TILES.WALL, 24, 60, W, 80); 
-    addFurniture("g_enc_ht", TILES.WALL, 12, 140, 12, W); 
-    addFurniture("g_enc_ga", TILES.WALL, 12, 140, W, 24); 
-    addFurniture("g_enc_bs", TILES.WALL, 12, 164, 12, W); 
-    addFurniture("g_ga_2", TILES.WALL, 24, 164, W, 176); 
+    addWallBlock(1, 4, 15, 1);    addWallBlock(15, 4, 1, 9);
+    addWallBlock(1, 4, 1, 5);     addWallBlock(0, 9, 1, 1);
+    addWallBlock(1, 9, 1, 11);
 
-    // ALCÔVES BAS GAUCHE (CORRIGÉES)
-    addFurniture("g_alc_1_g", TILES.WALL, 48, 340, W, 120); 
-    addFurniture("g_alc_1_b", TILES.WALL, 48, 460, 40, W); 
-    addFurniture("g_alc_1_d", TILES.WALL, 88, 340, W, 120); 
-    addFurniture("g_alc_mil", TILES.WALL, 88, 340, 32, W); 
-    addFurniture("g_alc_2_g", TILES.WALL, 120, 340, W, 120); 
-    addFurniture("g_alc_2_b", TILES.WALL, 120, 460, 40, W); 
-    addFurniture("g_alc_2_d", TILES.WALL, 160, 340, W, 120); 
-    
-    // Tes nouvelles coordonnées corrigées :
-    addFurniture("ajout_bas_1", TILES.WALL, 171, 341, 23, W); // x171 à x194
-    addFurniture("ajout_bas_2", TILES.WALL, 32, 341, 18, W);  // x32 à x50
+    // ALCÔVES BAS GAUCHE
+    addWallBlock(1, 21, 2, 1);    addWallBlock(3, 21, 1, 8);
+    addWallBlock(3, 28, 3, 1);    addWallBlock(5, 21, 1, 8);
+    addWallBlock(6, 21, 2, 1);    addWallBlock(7, 21, 1, 8);
+    addWallBlock(7, 28, 3, 1);    addWallBlock(10, 21, 1, 8);
+    addWallBlock(10, 21, 2, 1);
 
-    addDiagonalWall("g_diag", 192, 340, 248, 250, W);
+    // DIAGONALE (Mêmes pixels de départ, convertis par l'outil)
+    addDiagonalWall("diag_g", 192, 336, 240, 256);
 
     // COULOIR ET PIÈCE CENTRALE
-    addFurniture("c_ht_start", TILES.WALL, 248, 200, 132, W); 
-    addFurniture("c_bas_p1", TILES.WALL, 380, 200, 180, W); 
-    
-    addFurniture("c_ht_end_1", TILES.WALL, 600, 200, 124, W); 
-    addFurniture("c_ht_end_2", TILES.WALL, 821, 200, 75, W);  
-
-    addFurniture("c_bs", TILES.WALL, 248, 250, 632, W); 
+    addWallBlock(16, 12, 8, 1);   addWallBlock(24, 12, 11, 1);
+    addWallBlock(38, 12, 17, 1);  addWallBlock(16, 15, 39, 1);
 
     // PIÈCE CENTRALE HAUTE
-    addFurniture("c_ga", TILES.WALL, 380, 30, W, 170); 
-    addFurniture("c_ht", TILES.WALL, 380, 30, 260, W); 
-    addFurniture("c_dr_1", TILES.WALL, 640, 30, W, 60); 
-    addFurniture("c_enc_ht", TILES.WALL, 600, 90, 40, W); 
-    addFurniture("c_dr_2", TILES.WALL, 600, 90, W, 110); 
+    addWallBlock(24, 2, 1, 11);   addWallBlock(24, 2, 16, 1);
+    addWallBlock(40, 2, 1, 4);    addWallBlock(38, 6, 3, 1);
+    addWallBlock(38, 6, 1, 7);
 
     // PIÈCE DROITE
-    addFurniture("d_ht", TILES.WALL, 720, 140, 100, W);  
-    addFurniture("d_dr", TILES.WALL, 820, 140, W, 110);  
-    addFurniture("d_niche_ht", TILES.WALL, 820, 90, 64, W); 
-    
-    // Ton nouveau mur vertical corrigé :
-    addFurniture("ajout_droit", TILES.WALL, 725, 147, W, 66); // y147 à y213 à x725
+    addWallBlock(45, 9, 10, 1);   addWallBlock(54, 9, 1, 7);
 
+    // JOUEURS
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
     const spawns = [{x: 300, y: 220}, {x: 450, y: 220}, {x: 550, y: 220}, {x: 750, y: 220}];
@@ -634,32 +611,31 @@ function hasLineOfSight(x0, y0, x1, y1) {
     const dx = x1 - x0;
     const dy = y1 - y0;
     const distance = Math.hypot(dx, dy);
-    
-    // On vérifie tous les 8 pixels le long de la ligne
     const steps = Math.max(1, distance / 8); 
     
     for (let i = 0; i <= steps; i++) {
         const checkX = x0 + (dx * (i / steps));
         const checkY = y0 + (dy * (i / steps));
         
-        // Vérifie si ce point percute un mur
-        for (const f of furnitures) {
-            if (f.type === TILES.WALL) {
-                if (checkX >= f.x && checkX <= f.x + f.width && checkY >= f.y && checkY <= f.y + f.height) {
-                    return false; // Ligne bloquée par un mur !
-                }
+        // On calcule la position dans la grille de 16px
+        const gx = Math.floor(checkX / 16);
+        const gy = Math.floor(checkY / 16);
+
+        // Vérification de collision sur la grille
+        if (gy >= 0 && gy < 30 && gx >= 0 && gx < 56) {
+            if (isWallGrid[gy][gx]) {
+                return false; // Ligne bloquée par la grille
             }
         }
     }
-    return true; // Dégagé
+    return true; 
 }
 
 function drawGame() {
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = false;
 
-    if (!mapTiles || mapTiles.length === 0) return;
+    if (!isWallGrid || isWallGrid.length === 0) return;
 
     const me = playersState[socket.id];
     let camX = 0, camY = 0;
@@ -672,131 +648,69 @@ function drawGame() {
     ctx.translate(-camX, -camY);
     ctx.scale(ZOOM_FACTOR, ZOOM_FACTOR);
 
-    // 1. DESSIN DU SOL
-    for (let ty = 0; ty < mapTiles.length; ty++) {
-        for (let tx = 0; tx < mapTiles[0].length; tx++) {
-            const worldX = tx * TILE_SIZE;
-            const worldY = ty * TILE_SIZE;
-            if (images[TILES.FLOOR] && images[TILES.FLOOR].complete) {
-                ctx.drawImage(images[TILES.FLOOR], worldX, worldY, TILE_SIZE, TILE_SIZE);
+    // 1 & 2. GRILLE (Sol et Murs)
+    for (let gy = 0; gy < 30; gy++) {
+        for (let gx = 0; gx < 56; gx++) {
+            const worldX = gx * 16;
+            const worldY = gy * 16;
+            
+            if (isWallGrid[gy][gx]) {
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(worldX, worldY, 16, 16);
             } else {
-                ctx.fillStyle = getTileFallbackColor(TILES.FLOOR);
-                ctx.fillRect(worldX, worldY, TILE_SIZE, TILE_SIZE);
+                if (images[TILES.FLOOR] && images[TILES.FLOOR].complete) {
+                    ctx.drawImage(images[TILES.FLOOR], worldX, worldY, 16, 16);
+                } else {
+                    ctx.fillStyle = '#7e7e7e';
+                    ctx.fillRect(worldX, worldY, 16, 16);
+                }
             }
         }
     }
 
-    // 2. DESSIN DES ENTITÉS (Murs et Meubles)
-    for (const f of furnitures) {
-        if (f.type === TILES.WALL) {
-            ctx.fillStyle = '#666666'; 
-            ctx.fillRect(f.x, f.y, f.width, f.height);
-            ctx.strokeStyle = '#333333';
-            ctx.strokeRect(f.x, f.y, f.width, f.height);
-        } else if (images[f.type] && images[f.type].complete && images[f.type].naturalWidth > 0) {
-            ctx.drawImage(images[f.type], f.x, f.y, f.width, f.height);
-        } else {
-            ctx.fillStyle = getTileFallbackColor(f.type);
-            ctx.fillRect(f.x, f.y, f.width, f.height);
-            ctx.strokeStyle = "rgba(0,0,0,0.5)";
-            ctx.strokeRect(f.x, f.y, f.width, f.height);
-        }
-    }
-
-    // 3. DESSIN DES JOUEURS
+    // 3. JOUEURS
     for (const id in playersState) {
         const p = playersState[id];
-        if (!p.alive || p.role === 'SPECTATOR') continue;
-        if (p.role === 'HIDER' && p.hidden && id !== socket.id) continue;
-
-        const direction = p.dir || 'down';
-        let spriteKey = '';
-
-        if (p.role === 'HUNTER') {
-            if (p.moving) {
-                const step = (Math.floor(p.animTimer / 200) % 2) + 1;
-                spriteKey = `hunter_walk${step}_${direction}`;
-            } else {
-                spriteKey = `hunter_idle_${direction}`;
-            }
-        } else {
-            spriteKey = `hider_${direction}`;
-        }
-        
-        const imgFallback = (p.role === 'HUNTER') ? 'hunter_idle_down' : 'hider_down';
-        const imgToDraw = images[spriteKey] || images[imgFallback];
+        if (!p.alive || (p.role === 'HIDER' && p.hidden && id !== socket.id)) continue;
 
         const spriteSize = 32;
         const drawX = p.x - (spriteSize - p.size) / 2;
         const drawY = p.y - (spriteSize - p.size) / 2;
+        const imgKey = p.role === 'HUNTER' ? (p.moving ? `hunter_walk${(Math.floor(p.animTimer / 200) % 2)+1}_${p.dir}` : `hunter_idle_${p.dir}`) : `hider_${p.dir}`;
+        const img = images[imgKey] || images.hider_down;
 
-        if (imgToDraw && imgToDraw.complete && imgToDraw.naturalWidth > 0) {
-            ctx.drawImage(imgToDraw, drawX, drawY, spriteSize, spriteSize);
-        } else {
-            ctx.fillStyle = (p.role === 'HUNTER') ? '#e63946' : '#2196f3';
-            ctx.fillRect(p.x, p.y, p.size, p.size);
-        }
-
-        ctx.fillStyle = 'white';
-        ctx.font = '5px "Press Start 2P"';
-        ctx.fillText(p.pseudo, p.x - 5, p.y - 5);
+        if (img && img.complete) ctx.drawImage(img, drawX, drawY, spriteSize, spriteSize);
+        else { ctx.fillStyle = (p.role === 'HUNTER') ? '#e63946' : '#2196f3'; ctx.fillRect(p.x, p.y, p.size, p.size); }
     }
 
-    // ==========================================
-    // 4. LE BROUILLARD DE GUERRE (STYLE JAVA GRID)
-    // ==========================================
+    // 4. BROUILLARD
     if (me && me.alive && me.role !== 'SPECTATOR') {
         const px = me.x + me.size / 2;
         const py = me.y + me.size / 2;
-        
-        // Les mêmes variables que dans ton GameMap.java
         const farRadius = (me.role === 'HUNTER') ? 250 : 150;
-        const nearRadius = farRadius * 0.5; // L'équivalent de ton "baseNear"
+        const nearRadius = farRadius * 0.5; 
         
-        // Résolution du brouillard (16px donne un beau style rétro pixel-art)
-        const fogRes = 16; 
-        
-        ctx.save();
-        
-        // On scanne la map par blocs, comme tes boucles 'ty' et 'tx' en Java
-        for (let y = 0; y < 480; y += fogRes) {
-            for (let x = 0; x < 896; x += fogRes) {
-                const cx = x + fogRes / 2;
-                const cy = y + fogRes / 2;
-                
+        for (let y = 0; y < 480; y += 16) {
+            for (let x = 0; x < 896; x += 16) {
+                const cx = x + 8;
+                const cy = y + 8;
                 const dist = Math.hypot(cx - px, cy - py);
-                let alpha = 1.0; // Noir total par défaut
+                let alpha = 1.0; 
                 
-                // Si la case est à portée de vue
-                if (dist < farRadius) {
-                    // On vérifie si un mur bloque la vue
-                    if (hasLineOfSight(px, py, cx, cy)) {
-                        
-                        // Calcul du dégradé (Exactement ta logique "factor" en Java)
-                        if (dist <= nearRadius) {
-                            alpha = 0.0; // Pleine lumière
-                        } else {
-                            alpha = (dist - nearRadius) / (farRadius - nearRadius);
-                        }
-                    }
+                if (dist < farRadius && hasLineOfSight(px, py, cx, cy)) {
+                    alpha = (dist <= nearRadius) ? 0.0 : (dist - nearRadius) / (farRadius - nearRadius);
                 }
                 
-                // On dessine l'ombre
                 if (alpha > 0) {
-                    // On limite l'alpha max à 0.98 pour garder la même angoisse que l'ancienne version
-                    const finalAlpha = Math.min(alpha, 0.98);
-                    ctx.fillStyle = `rgba(0, 0, 0, ${finalAlpha})`;
-                    ctx.fillRect(x, y, fogRes, fogRes);
+                    ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(alpha, 0.98)})`;
+                    ctx.fillRect(x, y, 16, 16);
                 }
             }
         }
-        ctx.restore();
     }
-
-    ctx.restore(); // Fin de la caméra
+    ctx.restore(); 
     drawMinimap();
 
-    // Filtre noir absolu pour le Chasseur au début de la manche
     if (myRole === 'HUNTER' && hunterCountdown > 0) {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.95)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -860,37 +774,28 @@ function drawMinimap() {
 // ==========================================
 
 function collides(x, y, size) {
-    // 1. La "Hitbox" (Boîte de collision) du joueur
-    const pLeft = x;
-    const pRight = x + size;
-    const pTop = y;
-    const pBottom = y + size;
-
-    // 2. On vérifie si on sort de la carte (28 cases x 15 cases)
-    if (pLeft < 0 || pRight > 28 * TILE_SIZE || pTop < 0 || pBottom > 15 * TILE_SIZE) {
-        return true;
+    if (x < 0 || x + size > 896 || y < 0 || y + size > 480) return true;
+    
+    const points = [[x, y], [x + size, y], [x, y + size], [x + size, y + size]];
+    for (const p of points) {
+        const gx = Math.floor(p[0] / 16);
+        const gy = Math.floor(p[1] / 16);
+        if (gy >= 0 && gy < 30 && gx >= 0 && gx < 56) {
+            if (isWallGrid[gy][gx]) return true;
+        }
     }
-
-    // 3. On vérifie chaque meuble de la liste
+    
+    // On garde la vérification pour les futurs meubles
     for (const f of furnitures) {
-        // Les meubles ouverts ou les portes sont traversables
         if (f.type === TILES.ENTRY_DOOR) continue;
         if (f.type === TILES.WARDROBE_OPEN_TL || f.type === TILES.WARDROBE_OPEN_TR) continue;
         if (f.type === TILES.BED_OPEN_TOP || f.type === TILES.BED_OPEN_BOTTOM) continue;
 
-        // La Hitbox du meuble
-        const fLeft = f.x;
-        const fRight = f.x + f.width;
-        const fTop = f.y;
-        const fBottom = f.y + f.height;
-
-        // Formule magique AABB : Y a-t-il chevauchement ?
-        if (pRight > fLeft && pLeft < fRight && pBottom > fTop && pTop < fBottom) {
-            return true; // BOUM ! On touche un meuble ou un mur.
+        if (x + size > f.x && x < f.x + f.width && y + size > f.y && y < f.y + f.height) {
+            return true;
         }
     }
-
-    return false; // Voie libre !
+    return false;
 }
 
 // ==========================================
