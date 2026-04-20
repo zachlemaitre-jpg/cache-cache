@@ -966,3 +966,17 @@ socket.on('timerUpdate', (timeLeft) => {
     document.getElementById('time-left').innerText = "Temps : " + Math.floor(timeRemaining / 1000);
 });
 
+// OUTIL DE DÉBUG : Affiche la position de la souris pour aider à placer les meubles
+canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    // On calcule la position en tenant compte du ZOOM et de la CAMÉRA
+    const me = playersState[socket.id];
+    let camX = me ? (me.x + me.size / 2) * ZOOM_FACTOR - (canvas.width / 2) : 0;
+    let camY = me ? (me.y + me.size / 2) * ZOOM_FACTOR - (canvas.height / 2) : 0;
+
+    const mouseX = Math.round((e.clientX - rect.left + camX) / ZOOM_FACTOR);
+    const mouseY = Math.round((e.clientY - rect.top + camY) / ZOOM_FACTOR);
+
+    // On affiche l'info dans le titre de la page ou dans la console
+    document.title = `X: ${mouseX} | Y: ${mouseY}`;
+});
