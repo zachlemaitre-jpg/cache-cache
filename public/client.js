@@ -630,10 +630,12 @@ function drawTile(tileId, worldX, worldY) {
 // ==========================================
 // OUTIL DE LIGNE DE VUE (RAYCASTING)
 // ==========================================
+// ==========================================
+// OUTIL DE LIGNE DE VUE (RAYCASTING)
+// ==========================================
 function getLineOfSight(px, py, radius) {
     let points = [];
-    // 120 rayons c'est bien, mais on peut monter à 180 pour lisser encore plus les ombres
-    const rays = 180; 
+    const rays = 360; // 1 rayon par degré pour un lissage parfait
     
     for (let i = 0; i < rays; i++) {
         let angle = (i / rays) * Math.PI * 2;
@@ -643,10 +645,10 @@ function getLineOfSight(px, py, radius) {
         let cy = py;
         let hit = false;
         
-        // On fait avancer le rayon
-        for (let step = 0; step < radius; step += 4) {
-            cx += dx * 4;
-            cy += dy * 4;
+        // On avance de 2px en 2px (meilleure précision)
+        for (let step = 0; step < radius; step += 2) {
+            cx += dx * 2;
+            cy += cy + dy * 2; // Avancée précise
             
             // Vérifier si le rayon touche un mur
             for (const f of furnitures) {
@@ -658,18 +660,14 @@ function getLineOfSight(px, py, radius) {
                 }
             }
             
-            // Si on touche un mur ou le bord de la carte
+            // Si on touche un mur ou le bord
             if (hit || cx < 0 || cx > 896 || cy < 0 || cy > 480) {
-                
-                // LA CORRECTION MAGIQUE EST ICI :
                 if (hit) {
-                    // On pousse le point de lumière de 16 pixels à l'intérieur du mur
-                    // Cela permet d'éclairer la surface du mur avant que l'ombre ne commence
-                    cx += dx * 16;
-                    cy += dy * 16;
+                    // On pousse de seulement 4 petits pixels pour voir la bordure du mur
+                    cx += dx * 4;
+                    cy += dy * 4;
                 }
-                
-                break; // On arrête le rayon
+                break; 
             }
         }
         points.push({x: cx, y: cy});
@@ -771,19 +769,20 @@ function drawGame() {
     if (me && me.alive && me.role !== 'SPECTATOR') {
         const px = me.x + me.size / 2;
         const py = me.y + me.size / 2;
-        
-        // Portée de la lumière (Chasseur voit plus loin)
         const visionRadius = (me.role === 'HUNTER') ? 250 : 150; 
         const losPoints = getLineOfSight(px, py, visionRadius);
 
-        // Couleur de l'ombre (97% opaque pour une angoisse totale)
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.97)'; 
-        ctx.beginPath();
+        ctx.save(); // On sauvegarde l'état du pinceau
         
-        // On dessine un rectangle géant couvrant toute la map
+        // LA MAGIE EST ICI : On floute la coupure de l'ombre pour cacher les pixels moches !
+        ctx.filter = 'blur(10px)'; 
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.98)'; 
+        
+        ctx.beginPath();
+        // Le grand rectangle noir
         ctx.rect(-1000, -1000, 3000, 3000);
         
-        // On dessine le polygone de vision par-dessus
+        // On dessine la ligne de lumière
         if (losPoints.length > 0) {
             ctx.moveTo(losPoints[0].x, losPoints[0].y);
             for (let i = 1; i < losPoints.length; i++) {
@@ -791,8 +790,9 @@ function drawGame() {
             }
         }
         
-        // Astuce "evenodd" : Là où les formes se croisent, ça crée un trou transparent !
+        // On découpe le trou
         ctx.fill('evenodd');
+        ctx.restore(); // On enlève le flou pour ne pas flouter la minimap !
     }
 
     ctx.restore(); // Fin de la caméra
