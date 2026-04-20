@@ -628,51 +628,30 @@ function drawTile(tileId, worldX, worldY) {
 }
 
 // ==========================================
-// OUTIL DE LIGNE DE VUE (RAYCASTING)
+// OUTIL DE LIGNE DE VUE (INSPIRÉ DU JAVA)
 // ==========================================
-// ==========================================
-// OUTIL DE LIGNE DE VUE (RAYCASTING)
-// ==========================================
-function getLineOfSight(px, py, radius) {
-    let points = [];
-    const rays = 360; // 1 rayon par degré pour un lissage parfait
+function hasLineOfSight(x0, y0, x1, y1) {
+    const dx = x1 - x0;
+    const dy = y1 - y0;
+    const distance = Math.hypot(dx, dy);
     
-    for (let i = 0; i < rays; i++) {
-        let angle = (i / rays) * Math.PI * 2;
-        let dx = Math.cos(angle);
-        let dy = Math.sin(angle);
-        let cx = px;
-        let cy = py;
-        let hit = false;
+    // On vérifie tous les 8 pixels le long de la ligne
+    const steps = Math.max(1, distance / 8); 
+    
+    for (let i = 0; i <= steps; i++) {
+        const checkX = x0 + (dx * (i / steps));
+        const checkY = y0 + (dy * (i / steps));
         
-        // On avance de 2px en 2px (meilleure précision)
-        for (let step = 0; step < radius; step += 2) {
-            cx += dx * 2;
-            cy += cy + dy * 2; // Avancée précise
-            
-            // Vérifier si le rayon touche un mur
-            for (const f of furnitures) {
-                if (f.type === TILES.WALL) {
-                    if (cx >= f.x && cx <= f.x + f.width && cy >= f.y && cy <= f.y + f.height) {
-                        hit = true;
-                        break;
-                    }
+        // Vérifie si ce point percute un mur
+        for (const f of furnitures) {
+            if (f.type === TILES.WALL) {
+                if (checkX >= f.x && checkX <= f.x + f.width && checkY >= f.y && checkY <= f.y + f.height) {
+                    return false; // Ligne bloquée par un mur !
                 }
-            }
-            
-            // Si on touche un mur ou le bord
-            if (hit || cx < 0 || cx > 896 || cy < 0 || cy > 480) {
-                if (hit) {
-                    // On pousse de seulement 4 petits pixels pour voir la bordure du mur
-                    cx += dx * 4;
-                    cy += dy * 4;
-                }
-                break; 
             }
         }
-        points.push({x: cx, y: cy});
     }
-    return points;
+    return true; // Dégagé
 }
 
 function drawGame() {
@@ -764,35 +743,54 @@ function drawGame() {
     }
 
     // ==========================================
-    // 4. LE BROUILLARD DE GUERRE
+    // 4. LE BROUILLARD DE GUERRE (STYLE JAVA GRID)
     // ==========================================
     if (me && me.alive && me.role !== 'SPECTATOR') {
         const px = me.x + me.size / 2;
         const py = me.y + me.size / 2;
-        const visionRadius = (me.role === 'HUNTER') ? 250 : 150; 
-        const losPoints = getLineOfSight(px, py, visionRadius);
-
-        ctx.save(); // On sauvegarde l'état du pinceau
         
-        // LA MAGIE EST ICI : On floute la coupure de l'ombre pour cacher les pixels moches !
-        ctx.filter = 'blur(10px)'; 
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.98)'; 
+        // Les mêmes variables que dans ton GameMap.java
+        const farRadius = (me.role === 'HUNTER') ? 250 : 150;
+        const nearRadius = farRadius * 0.5; // L'équivalent de ton "baseNear"
         
-        ctx.beginPath();
-        // Le grand rectangle noir
-        ctx.rect(-1000, -1000, 3000, 3000);
+        // Résolution du brouillard (16px donne un beau style rétro pixel-art)
+        const fogRes = 16; 
         
-        // On dessine la ligne de lumière
-        if (losPoints.length > 0) {
-            ctx.moveTo(losPoints[0].x, losPoints[0].y);
-            for (let i = 1; i < losPoints.length; i++) {
-                ctx.lineTo(losPoints[i].x, losPoints[i].y);
+        ctx.save();
+        
+        // On scanne la map par blocs, comme tes boucles 'ty' et 'tx' en Java
+        for (let y = 0; y < 480; y += fogRes) {
+            for (let x = 0; x < 896; x += fogRes) {
+                const cx = x + fogRes / 2;
+                const cy = y + fogRes / 2;
+                
+                const dist = Math.hypot(cx - px, cy - py);
+                let alpha = 1.0; // Noir total par défaut
+                
+                // Si la case est à portée de vue
+                if (dist < farRadius) {
+                    // On vérifie si un mur bloque la vue
+                    if (hasLineOfSight(px, py, cx, cy)) {
+                        
+                        // Calcul du dégradé (Exactement ta logique "factor" en Java)
+                        if (dist <= nearRadius) {
+                            alpha = 0.0; // Pleine lumière
+                        } else {
+                            alpha = (dist - nearRadius) / (farRadius - nearRadius);
+                        }
+                    }
+                }
+                
+                // On dessine l'ombre
+                if (alpha > 0) {
+                    // On limite l'alpha max à 0.98 pour garder la même angoisse que l'ancienne version
+                    const finalAlpha = Math.min(alpha, 0.98);
+                    ctx.fillStyle = `rgba(0, 0, 0, ${finalAlpha})`;
+                    ctx.fillRect(x, y, fogRes, fogRes);
+                }
             }
         }
-        
-        // On découpe le trou
-        ctx.fill('evenodd');
-        ctx.restore(); // On enlève le flou pour ne pas flouter la minimap !
+        ctx.restore();
     }
 
     ctx.restore(); // Fin de la caméra
