@@ -319,20 +319,16 @@ function initGameEngine() {
 let furnitures = []; 
 
 function generateInitialState() {
-    // 1. Initialisation du sol (Fond gris moyen)
+    // 1. Sol
     mapTiles = [];
     for(let y = 0; y < 15; y++) {
         let row = [];
-        for(let x = 0; x < 28; x++) { 
-            row.push(TILES.FLOOR); 
-        }
+        for(let x = 0; x < 28; x++) { row.push(TILES.FLOOR); }
         mapTiles.push(row);
     }
 
-    // 2. Initialisation de la liste des entités
     furnitures = [];
 
-    // Fonction utilitaire pour ajouter des objets au pixel près
     function addFurniture(id, type, px, py, widthPx, heightPx) {
         furnitures.push({
             id: id, type: type, x: px, y: py, width: widthPx, height: heightPx,
@@ -340,77 +336,104 @@ function generateInitialState() {
         });
     }
 
-    const W = 12; // Épaisseur des murs (fin et réaliste)
+    const W = 12;
 
     // ==========================================
-    // MURS EXTÉRIEURS (Gris très foncé)
+    // MURS EXTÉRIEURS
     // ==========================================
-    addFurniture("m_ext_ht", TILES.WALL, 0, 0, 896, W);
-    addFurniture("m_ext_bs", TILES.WALL, 0, 480 - W, 896, W);
-    addFurniture("m_ext_ga", TILES.WALL, 0, 0, W, 480);
-    addFurniture("m_ext_dr", TILES.WALL, 896 - W, 0, W, 480);
+    addFurniture("m_ext_ht", TILES.WALL, 0,   0,   896, W);
+    addFurniture("m_ext_bs", TILES.WALL, 0,   468, 896, W);
+    addFurniture("m_ext_ga", TILES.WALL, 0,   0,   W,   480);
+    addFurniture("m_ext_dr", TILES.WALL, 884, 0,   W,   480);
+    // Encoche haut-droite (zone extérieure dans le coin supérieur droit)
+    addFurniture("m_notch",  TILES.WALL, 700, 0,   184, 100);
 
     // ==========================================
-    // MURS DU COULOIR CENTRAL (Y entre 200 et 260)
+    // SÉPARATIONS VERTICALES — HAUT
     // ==========================================
-    addFurniture("m_couloir_ht_1", TILES.WALL, 0, 200, 220, W);   // Chambre Gauche
-    addFurniture("m_couloir_ht_2", TILES.WALL, 280, 200, 30, W);  // Dressing gauche
-    addFurniture("m_couloir_ht_3", TILES.WALL, 350, 200, 70, W);  // Dressing droite
-    addFurniture("m_couloir_ht_4", TILES.WALL, 460, 200, 220, W); // Chambre Bureau
-    addFurniture("m_couloir_ht_5", TILES.WALL, 720, 200, 176, W); // Salle de Bain
-
-    addFurniture("m_couloir_bs_1", TILES.WALL, 0, 260, 220, W);   // Chambre Jaune
-    addFurniture("m_couloir_bs_2", TILES.WALL, 280, 260, 80, W);  // Entre Ch. Jaune et Escaliers
-    addFurniture("m_couloir_bs_3", TILES.WALL, 410, 260, 70, W);  // Entrée Escaliers
-    addFurniture("m_couloir_bs_4", TILES.WALL, 480, 260, 180, W); // Mur Escaliers
-    addFurniture("m_couloir_bs_5", TILES.WALL, 700, 260, 196, W); // Entrée WC
+    addFurniture("sep_v_1", TILES.WALL, 244, 0,   W, 232); // Gauche dressing
+    addFurniture("sep_v_2", TILES.WALL, 316, 0,   W, 232); // Droite dressing
+    addFurniture("sep_v_3", TILES.WALL, 530, 0,   W, 232); // Droite chambre centre haut
 
     // ==========================================
-    // MURS DE SÉPARATION DES PIÈCES
+    // SÉPARATIONS VERTICALES — BAS
     // ==========================================
-    addFurniture("sep_v_1", TILES.WALL, 280, 0, W, 200);   // Gauche Dressing
-    addFurniture("sep_v_2", TILES.WALL, 360, 0, W, 200);   // Droite Dressing
-    addFurniture("sep_v_3", TILES.WALL, 600, 0, W, 200);   // Droite Chambre Bureau
-    
-    addFurniture("sep_v_4", TILES.WALL, 280, 260, W, 220); // Droite Chambre Jaune
-    addFurniture("sep_v_5", TILES.WALL, 460, 260, W, 220); // Gauche Escaliers
-    addFurniture("sep_v_6", TILES.WALL, 600, 260, W, 220); // Droite Escaliers
-    addFurniture("sep_v_7", TILES.WALL, 660, 260, W, 120); // Gauche WC
-    addFurniture("sep_v_8", TILES.WALL, 740, 260, W, 120); // Droite WC
-    addFurniture("sep_h_wc", TILES.WALL, 660, 380, 92, W); // Bas du bloc WC
+    addFurniture("sep_v_4",  TILES.WALL, 244, 272, W, 196); // Droite chambre gauche bas
+    addFurniture("sep_v_5",  TILES.WALL, 530, 272, W, 196); // Droite chambre centre bas
+    addFurniture("sep_v_6",  TILES.WALL, 660, 272, W, 118); // Gauche WC petite
+    addFurniture("sep_v_7",  TILES.WALL, 728, 272, W, 196); // Séparation WC petite / grande
+    addFurniture("sep_h_wc", TILES.WALL, 660, 390, 80,  W); // Fond WC petite
 
     // ==========================================
-    // MEUBLES ET RANGEMENTS
+    // MUR COULOIR HAUT (y=232)
+    // Portes : ch.gauche x=80-160 | dressing x=264-300 | ch.centre x=390-460 | ch.droite x=590-650
     // ==========================================
-    // --- Chambre Gauche ---
-    addFurniture("lit_v_1", TILES.BED_TOP, 80, 40, 100, 100); 
-    addFurniture("arm_r_1", TILES.SHELF, 20, 40, 20, 60); 
-    addFurniture("arm_r_2", TILES.SHELF, 60, 350, 40, 100); 
-    addFurniture("arm_r_3", TILES.SHELF, 140, 350, 40, 100);
+    addFurniture("m_ch_1", TILES.WALL, 12,  232, 68,  W);
+    addFurniture("m_ch_2", TILES.WALL, 160, 232, 84,  W);
+    addFurniture("m_ch_3", TILES.WALL, 256, 232, 8,   W);
+    addFurniture("m_ch_4", TILES.WALL, 300, 232, 28,  W);
+    addFurniture("m_ch_5", TILES.WALL, 328, 232, 62,  W);
+    addFurniture("m_ch_6", TILES.WALL, 460, 232, 70,  W);
+    addFurniture("m_ch_7", TILES.WALL, 542, 232, 48,  W);
+    addFurniture("m_ch_8", TILES.WALL, 650, 232, 234, W);
+
+    // ==========================================
+    // MUR COULOIR BAS (y=272)
+    // Portes : ch.gauche x=80-160 | ch.centre x=340-410 | ch.droite x=570-640
+    //          WC petite x=672-716 | WC grande x=750-810
+    // ==========================================
+    addFurniture("m_cb_1", TILES.WALL, 12,  272, 68,  W);
+    addFurniture("m_cb_2", TILES.WALL, 160, 272, 84,  W);
+    addFurniture("m_cb_3", TILES.WALL, 256, 272, 84,  W);
+    addFurniture("m_cb_4", TILES.WALL, 410, 272, 120, W);
+    addFurniture("m_cb_5", TILES.WALL, 542, 272, 28,  W);
+    addFurniture("m_cb_6", TILES.WALL, 640, 272, 20,  W);
+    addFurniture("m_cb_7", TILES.WALL, 716, 272, 12,  W);
+    addFurniture("m_cb_8", TILES.WALL, 740, 272, 10,  W);
+    addFurniture("m_cb_9", TILES.WALL, 810, 272, 74,  W);
+
+    // ==========================================
+    // MEUBLES
+    // ==========================================
+    // --- Chambre gauche haut ---
+    addFurniture("lit_1",    TILES.BED_TOP, 60,  14,  90,  50);
+    addFurniture("shelf_1",  TILES.SHELF,   14,  14,  20,  80);
+    addFurniture("shelf_2",  TILES.SHELF,   60,  170, 60,  50);
 
     // --- Dressing ---
-    addFurniture("dress_1", TILES.SHELF, 292, 20, 12, 160); 
-    addFurniture("dress_2", TILES.SHELF, 348, 20, 12, 160);
+    addFurniture("dress_l",  TILES.SHELF,   256, 14,  12,  200);
+    addFurniture("dress_r",  TILES.SHELF,   320, 14,  8,   200);
 
-    // --- Chambre Bureau ---
-    addFurniture("lit_v_2", TILES.BED_TOP, 380, 20, 90, 50); 
-    addFurniture("arm_r_4", TILES.SHELF, 372, 90, 20, 40);
-    addFurniture("arm_r_5", TILES.SHELF, 372, 140, 20, 50);
-    addFurniture("bureau_b", TILES.DESK, 410, 140, 70, 50); 
+    // --- Chambre centre haut ---
+    addFurniture("lit_2",    TILES.BED_TOP, 360, 14,  90,  50);
+    addFurniture("shelf_3",  TILES.SHELF,   328, 80,  16,  60);
+    addFurniture("bureau",   TILES.DESK,    410, 140, 70,  50);
 
-    // --- Salle de Bain ---
-    addFurniture("bain_j", TILES.BATHTUB, 720, 20, 150, 60); 
-    addFurniture("arm_r_6", TILES.SHELF, 720, 90, 30, 80);
-    addFurniture("arm_r_7", TILES.SHELF, 840, 90, 30, 80);
+    // --- Chambre droite haut (grande, avec encoche en haut-droite) ---
+    addFurniture("bain",     TILES.BATHTUB, 560, 14,  120, 60);
+    addFurniture("shelf_4",  TILES.SHELF,   560, 170, 50,  50);
+    addFurniture("shelf_5",  TILES.SHELF,   840, 110, 30,  80);
 
-    // --- Chambre Jaune (Bas gauche) ---
-    addFurniture("arm_r_8", TILES.SHELF, 292, 280, 60, 130);
-    addFurniture("douche_j", TILES.BATHTUB, 370, 380, 80, 80); 
+    // --- Chambre gauche bas ---
+    addFurniture("lit_3",    TILES.BED_TOP, 60,  310, 90,  50);
+    addFurniture("shelf_6",  TILES.SHELF,   14,  340, 20,  100);
+    addFurniture("shelf_7",  TILES.SHELF,   100, 430, 60,  30);
 
-    // --- Escaliers et WC ---
-    addFurniture("esc_1", TILES.STAIRS_UP, 472, 260, 88, 100);
-    addFurniture("esc_2", TILES.STAIRS_DOWN, 612, 260, 88, 210);
-    addFurniture("toilette_m", TILES.TOILET, 690, 310, 32, 40);
+    // --- Chambre centre bas ---
+    addFurniture("shelf_8",  TILES.SHELF,   256, 280, 60,  120);
+    addFurniture("douche",   TILES.BATHTUB, 380, 380, 80,  80);
+    addFurniture("esc_1",    TILES.STAIRS_UP,   400, 284, 88, 100);
+
+    // --- Chambre droite bas ---
+    addFurniture("esc_2",    TILES.STAIRS_DOWN, 550, 290, 88, 120);
+    addFurniture("shelf_9",  TILES.SHELF,   634, 280, 18,  100);
+
+    // --- WC petite (x=660-728, y=272-390) ---
+    addFurniture("toilet_1", TILES.TOILET,  674, 320, 32,  40);
+
+    // --- WC grande (x=728-884, y=272-468) ---
+    addFurniture("toilet_2", TILES.TOILET,  742, 290, 32,  40);
+    addFurniture("shelf_10", TILES.SHELF,   742, 360, 30,  70);
 
     // ==========================================
     // INITIALISATION DES VARIABLES DE JEU
@@ -418,12 +441,11 @@ function generateInitialState() {
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
 
-    const spawns = [{x: 400, y: 230}, {x: 500, y: 230}, {x: 600, y: 230}, {x: 300, y: 230}];
+    const spawns = [{x: 120, y: 252}, {x: 350, y: 252}, {x: 600, y: 252}, {x: 780, y: 252}];
     let idx = 0;
-    
     for (const id in playersState) {
         let p = playersState[id];
-        p.x = spawns[idx % spawns.length].x; 
+        p.x = spawns[idx % spawns.length].x;
         p.y = spawns[idx % spawns.length].y;
         p.alive = true; p.hidden = false; p.dir = 'down'; p.moving = false; p.animTimer = 0;
         idx++;
