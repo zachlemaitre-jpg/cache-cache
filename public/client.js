@@ -380,7 +380,7 @@ function generateInitialState() {
     // JOUEURS
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
-    const spawns = [{x: 300, y: 220}, {x: 450, y: 220}, {x: 550, y: 220}, {x: 750, y: 220}];
+    const spawns = [{x: 300, y: 210}, {x: 450, y: 210}, {x: 550, y: 210}, {x: 750, y: 210}];
     let idx = 0;
     for (const id in playersState) {
         let p = playersState[id];
