@@ -396,11 +396,11 @@ function generateInitialState() {
 
     // MOBILIER
     // Bureau chambre
-    furnitures.push({ x: 464, y: 163, width: 68, height: 34, type: TILES.DESK });
+    furnitures.push({ x: 448, y: 163, width: 68, height: 34, rotation: 180, type: TILES.DESK });
     // Lit horizontal (image native 36x72 pivotée → occupe 72x36)
-    furnitures.push({ x: 404, y: 52, width: 72, height: 36, rotation: 90, type: TILES.BED });
+    furnitures.push({ x: 404, y: 52, width: 72, height: 36, rotation: 270, type: TILES.BED });
     // Étagère verticale (image native 52x26 pivotée → occupe 26x52)
-    furnitures.push({ x: 403, y: 114, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
+    furnitures.push({ x: 403, y: 131, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
 
     // JOUEURS
     timeRemaining = gameSettings.roundDuration;
