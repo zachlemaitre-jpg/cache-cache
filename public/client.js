@@ -660,6 +660,25 @@ function drawGame() {
         }
     }
 
+    // 1bis. DESSIN DE L'ESCALIER (purement visuel)
+    {
+        const sx1 = 35, sx2 = 36;       // colonnes (inclus)
+        const sy1 = 15, sy2 = 20;       // lignes (inclus)
+        const stepCount = sy2 - sy1 + 1;
+
+        for (let gy = sy1; gy <= sy2; gy++) {
+            // 0 en haut → 1 en bas : la marche s'assombrit à mesure qu'on descend
+            const t = (gy - sy1) / (stepCount - 1);
+            ctx.fillStyle = `hsl(28, 38%, ${58 - t * 28}%)`;  // marron clair → foncé
+            for (let gx = sx1; gx <= sx2; gx++) {
+                ctx.fillRect(gx * 16, gy * 16, 16, 16);
+            }
+            // Liseré sombre en bas de chaque marche pour souligner le bord
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.fillRect(sx1 * 16, gy * 16 + 14, (sx2 - sx1 + 1) * 16, 2);
+        }
+    }
+
     // 2. DESSIN DES MURS (Sur la grille 16x16)
     ctx.fillStyle = '#1a1a1a'; // Couleur des murs
     for (let gy = 0; gy < 30; gy++) {
