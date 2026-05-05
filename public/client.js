@@ -415,7 +415,7 @@ function generateInitialState() {
     furnitures.push({ x: 435, y: 135, width: 26, height: 26, type: TILES.CHAIR_DESK });
     // Tables de chevet
     furnitures.push({ x: 90, y: 84, width: 24, height: 24, type: TILES.NIGHTSTAND });
-    furnitures.push({ x: 184, y: 84, width: 24, height: 24, type: TILES.NIGHTSTAND });
+    furnitures.push({ x: 181, y: 84, width: 24, height: 24, type: TILES.NIGHTSTAND });
     // Lit double
     furnitures.push({ x: 114, y: 85, width: 64, height: 64, rotation: 0, type: TILES.BED_DOUBLE });
     // Plante chambre
