@@ -5,6 +5,7 @@ const TILES = {
     FLOOR: 0, WALL: 1, ENTRY_DOOR: 99,
     // Anciens IDs (laissés pour compat, peuvent être supprimés plus tard)
     BED_TOP: 10, BED_BOTTOM: 11, BED_OPEN_TOP: 12, BED_OPEN_BOTTOM: 13,
+    BED_DOUBLE: 72, BED_DOUBLE_OPEN: 73, 
     WARDROBE_CLOSED_L: 20, WARDROBE_CLOSED_R: 21,
     WARDROBE_OPEN_TL: 22, WARDROBE_OPEN_TR: 23, WARDROBE_OPEN_BL: 24, WARDROBE_OPEN_BR: 25,
     SHELF: 26,
@@ -46,17 +47,19 @@ const imagePaths = {
     hunter_walk2_right: 'assets/hunter_walk2_right.png',
     
     // === DÉCORS ET MEUBLES ===
-    [TILES.FLOOR]: 'assets/sol.png',
-    [TILES.WALL]:  'assets/mur.png',
+    [TILES.FLOOR]:           'assets/sol.png',
+    [TILES.WALL]:            'assets/mur.png',
 
-    [TILES.BED]:           'assets/bed.png',
-    [TILES.BED_OPEN]:      'assets/bed_f.png',
-    [TILES.WARDROBE]:      'assets/armoire.png',
-    [TILES.WARDROBE_OPEN]: 'assets/armoire_f.png',  
-    [TILES.CHAIR]:         'assets/chaise.png',
-    [TILES.DESK]:          'assets/bureau.png',
-    [TILES.SHELF]:         'assets/etagere.png',
-    [TILES.DESK_MAC]:      'assets/bureau_mac.png',
+    [TILES.BED]:             'assets/bed.png',
+    [TILES.BED_OPEN]:        'assets/bed_f.png',
+    [TILES.BED_DOUBLE]:      'assets/lit_double.png',
+    [TILES.BED_DOUBLE_OPEN]: 'assets/lit_double.png',
+    [TILES.WARDROBE]:        'assets/armoire.png',
+    [TILES.WARDROBE_OPEN]:   'assets/armoire_f.png',
+    [TILES.CHAIR]:           'assets/chaise.png',
+    [TILES.DESK]:            'assets/bureau.png',
+    [TILES.SHELF]:           'assets/etagere.png',
+    [TILES.DESK_MAC]:        'assets/bureau_mac.png',
 };
 
 // ==========================================
@@ -397,6 +400,9 @@ function generateInitialState() {
     addWallBlock(45, 10, 1, 2);
 
     // MOBILIER
+    //Lit double
+    furnitures.push({ x: 114, y: 85, width: 64, height: 64, rotation: 0, type: TILES.BED_DOUBLE });
+
     // Bureau chambre
     furnitures.push({ x: 456, y: 165, width: 51, height: 25, rotation: 180, type: TILES.DESK_MAC });
     // Lit horizontal (image native 36x72 pivotée → occupe 72x36)
@@ -867,7 +873,7 @@ function collides(x, y, size) {
 
 function isHidingSpot(type) {
     return [
-        TILES.BED, TILES.BED_OPEN,
+        TILES.BED, TILES.BED_OPEN, TILES.BED_DOUBLE, TILES.BED_DOUBLE_OPEN,
         TILES.WARDROBE, TILES.WARDROBE_OPEN
     ].includes(type);
 }
@@ -898,10 +904,12 @@ function toggleFurniture(f, isHunter) {
         // Le chasseur OUVRE
         if (f.type === TILES.WARDROBE) { f.type = TILES.WARDROBE_OPEN; return true; }
         if (f.type === TILES.BED)      { f.type = TILES.BED_OPEN;      return true; }
+        if (f.type === TILES.BED_DOUBLE) { f.type = TILES.BED_DOUBLE_OPEN; return true; }
     } else {
         // Le traqué FERME derrière lui
         if (f.type === TILES.WARDROBE_OPEN) { f.type = TILES.WARDROBE; return true; }
         if (f.type === TILES.BED_OPEN)      { f.type = TILES.BED;      return true; }
+        if (f.type === TILES.BED_DOUBLE_OPEN) { f.type = TILES.BED_DOUBLE; return true; }
     }
     return false;
 }
