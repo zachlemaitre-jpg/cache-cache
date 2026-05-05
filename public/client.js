@@ -3,14 +3,21 @@ const socket = io();
 // 1. D'ABORD LES TUILES
 const TILES = {
     FLOOR: 0, WALL: 1, ENTRY_DOOR: 99,
+    // Anciens IDs (laissés pour compat, peuvent être supprimés plus tard)
     BED_TOP: 10, BED_BOTTOM: 11, BED_OPEN_TOP: 12, BED_OPEN_BOTTOM: 13,
     WARDROBE_CLOSED_L: 20, WARDROBE_CLOSED_R: 21,
     WARDROBE_OPEN_TL: 22, WARDROBE_OPEN_TR: 23, WARDROBE_OPEN_BL: 24, WARDROBE_OPEN_BR: 25,
-    SHELF: 26,     // Étagère/Armoire générique (Blocs rouges)
-    DESK: 30,      // Bureau (Bloc bleu)
-    BATHTUB: 40,   // Baignoire (Bloc jaune)
-    TOILET: 50,    // Toilettes (Bloc marron)
-    STAIRS_UP: 90, STAIRS_DOWN: 91 // Escaliers (Blocs bleu clair)
+    SHELF: 26,
+    DESK: 30,
+    BATHTUB: 40,
+    TOILET: 50,
+    STAIRS_UP: 90, STAIRS_DOWN: 91,
+    // === NOUVEAUX MEUBLES ENTIERS ===
+    BED:           70,   // 36x72 fermé
+    BED_OPEN:      71,   // 36x72 ouvert (cachette)
+    WARDROBE:      80,   // 48x48 fermée
+    WARDROBE_OPEN: 81,   // 48x48 ouverte (cachette)
+    CHAIR:         60    // 32x32 décoratif
 };
 
 // 2. ENSUITE LE DICTIONNAIRE D'IMAGES (Un seul !)
@@ -39,9 +46,15 @@ const imagePaths = {
     
     // === DÉCORS ET MEUBLES ===
     [TILES.FLOOR]: 'assets/sol.png',
-    [TILES.WALL]: 'assets/mur.png',
-    [TILES.WARDROBE_CLOSED_L]: 'assets/AF-L.png',
-    [TILES.WARDROBE_CLOSED_R]: 'assets/AF-R.png'
+    [TILES.WALL]:  'assets/mur.png',
+
+    [TILES.BED]:           'assets/bed.png',
+    [TILES.BED_OPEN]:      'assets/bed_f.png',
+    [TILES.WARDROBE]:      'assets/armoire.png',
+    [TILES.WARDROBE_OPEN]: 'assets/armoire_f.png',  
+    [TILES.CHAIR]:         'assets/chaise.png',
+    [TILES.DESK]:          'assets/bureau.png',
+    [TILES.SHELF]:         'assets/etagere.png'
 };
 
 // ==========================================
@@ -364,6 +377,7 @@ function generateInitialState() {
 
     // DIAGONALE (Mêmes pixels de départ, convertis par l'outil)
     addDiagonalWall("diag_g", 192, 336, 240, 256);
+    addWallBlock(16, 16, 1, 1);
 
     // COULOIR ET PIÈCE CENTRALE
     addWallBlock(16, 12, 8, 1);   addWallBlock(24, 12, 11, 1);
