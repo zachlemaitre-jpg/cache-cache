@@ -412,14 +412,14 @@ function generateInitialState() {
 
     // MOBILIER
     // Chaise de bureau
-    furnitures.push({ x: 440, y: 135, width: 26, height: 26, type: TILES.CHAIR_DESK });
+    furnitures.push({ x: 435, y: 135, width: 26, height: 26, type: TILES.CHAIR_DESK });
     // Tables de chevet
     furnitures.push({ x: 90, y: 84, width: 24, height: 24, type: TILES.NIGHTSTAND });
     furnitures.push({ x: 184, y: 84, width: 24, height: 24, type: TILES.NIGHTSTAND });
     // Lit double
     furnitures.push({ x: 114, y: 85, width: 64, height: 64, rotation: 0, type: TILES.BED_DOUBLE });
     // Plante chambre
-    furnitures.push({ x: 406, y: 106, width: 27, height: 27, type: TILES.PLANT });
+    furnitures.push({ x: 403, y: 104, width: 27, height: 27, type: TILES.PLANT });
     // Bureau chambre
     furnitures.push({ x: 456, y: 165, width: 51, height: 25, rotation: 180, type: TILES.DESK_MAC });
     // Lit horizontal (image native 36x72 pivotée → occupe 72x36)
