@@ -367,7 +367,7 @@ function generateInitialState() {
 
     // COULOIR ET PIÈCE CENTRALE
     addWallBlock(16, 12, 8, 1);   addWallBlock(24, 12, 11, 1);
-    addWallBlock(38, 12, 17, 1);  addWallBlock(16, 15, 39, 1);
+    addWallBlock(38, 12, 8, 1);  addWallBlock(16, 15, 39, 1);
 
     // PIÈCE CENTRALE HAUTE
     addWallBlock(24, 2, 1, 11);   addWallBlock(24, 2, 16, 1);
@@ -380,7 +380,7 @@ function generateInitialState() {
     // JOUEURS
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
-    const spawns = [{x: 300, y: 210}, {x: 450, y: 210}, {x: 550, y: 210}, {x: 750, y: 210}];
+    const spawns = [{x: 482, y: 120}, {x: 450, y: 210}, {x: 550, y: 210}, {x: 750, y: 210}];
     let idx = 0;
     for (const id in playersState) {
         let p = playersState[id];
