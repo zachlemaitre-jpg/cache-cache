@@ -646,24 +646,14 @@ function drawGame() {
     ctx.translate(-camX, -camY);
     ctx.scale(ZOOM_FACTOR, ZOOM_FACTOR);
 
-    // 1. DESSIN DU SOL (En 32x32 pour garder la belle texture)
-    for (let ty = 0; ty < 15; ty++) {
-        for (let tx = 0; tx < 28; tx++) {
-            const worldX = tx * 32;
-            const worldY = ty * 32;
-            if (images[TILES.FLOOR] && images[TILES.FLOOR].complete) {
-                ctx.drawImage(images[TILES.FLOOR], worldX, worldY, 32, 32);
-            } else {
-                ctx.fillStyle = '#4a4a3a';
-                ctx.fillRect(worldX, worldY, 32, 32);
-            }
-        }
-    }
+    // 1. DESSIN DU SOL (beige clair uniforme)
+    ctx.fillStyle = 'hsl(28, 38%, 58%)';
+    ctx.fillRect(0, 0, 896, 480);
 
     // 1bis. DESSIN DE L'ESCALIER (purement visuel)
     {
         const sx1 = 35, sx2 = 36;       // colonnes (inclus)
-        const sy1 = 15, sy2 = 20;       // lignes (inclus)
+        const sy1 = 15, sy2 = 21;       // lignes (inclus)
         const stepCount = sy2 - sy1 + 1;
 
         for (let gy = sy1; gy <= sy2; gy++) {
