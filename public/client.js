@@ -367,7 +367,9 @@ function generateInitialState() {
 
     // COULOIR ET PIÈCE CENTRALE
     addWallBlock(16, 12, 8, 1);   addWallBlock(24, 12, 11, 1);
-    addWallBlock(38, 12, 8, 1);  addWallBlock(16, 15, 39, 1);
+    addWallBlock(38, 12, 8, 1);  addWallBlock(16, 15, 19, 1); addWallBlock(37, 15, 18, 1);
+    addWallBlock(34, 16, 1, 5); 
+    addWallBlock(37, 16, 1, 6);
 
     // PIÈCE CENTRALE HAUTE
     addWallBlock(24, 2, 1, 11);   addWallBlock(24, 2, 16, 1);
