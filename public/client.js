@@ -376,6 +376,7 @@ function generateInitialState() {
 
     // PIÈCE DROITE
     addWallBlock(45, 9, 10, 1);   addWallBlock(54, 9, 1, 7);
+    addWallBlock(45, 10, 1, 2);
 
     // JOUEURS
     timeRemaining = gameSettings.roundDuration;
