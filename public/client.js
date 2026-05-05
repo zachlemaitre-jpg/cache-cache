@@ -396,7 +396,7 @@ function generateInitialState() {
 
     // MOBILIER
     // Bureau chambre
-    furnitures.push({ x: 448, y: 163, width: 34, height: 68, rotation: 180, type: TILES.DESK });
+    furnitures.push({ x: 455, y: 156, width: 68, height: 34, rotation: 180, type: TILES.DESK });
     // Lit horizontal (image native 36x72 pivotée → occupe 72x36)
     furnitures.push({ x: 404, y: 52, width: 72, height: 36, rotation: 270, type: TILES.BED });
     // Étagère verticale (image native 52x26 pivotée → occupe 26x52)
