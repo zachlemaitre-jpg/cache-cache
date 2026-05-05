@@ -14,12 +14,19 @@ const TILES = {
     TOILET: 50,
     STAIRS_UP: 90, STAIRS_DOWN: 91,
     // === NOUVEAUX MEUBLES ENTIERS ===
-    BED:           70,   // 36x72 fermé
-    BED_OPEN:      71,   // 36x72 ouvert (cachette)
-    WARDROBE:      80,   // 48x48 fermée
-    WARDROBE_OPEN: 81,   // 48x48 ouverte (cachette)
-    CHAIR:         60,   // 32x32 décoratif
-    DESK_MAC:      31,   // 51x25, version Mac (chambre)
+    PLANT:           61,   // 25x24 plante décorative
+    BED:             70,   // 36x58 fermé
+    BED_OPEN:        71,   // 19x59 ouvert (cachette)
+    BED_DOUBLE:      72,   // 67x58 fermé
+    BED_DOUBLE_OPEN: 73,   // 19x59 ouvert (cachette)
+    WARDROBE:        80,   // 48x48 fermée
+    WARDROBE_OPEN:   81,   // 48x48 ouverte (cachette)
+    CHAIR:           60,   // 32x32 décoratif
+    DESK_MAC:        31,   // 51x25 version Mac
+    PLANT:           61,   // 25x24 décoratif
+    NIGHTSTAND:      62,   // 23x23 table de chevet 
+    CHAIR_DESK:      63,   // 30x28 chaise de bureau
+
 };
 
 // 2. ENSUITE LE DICTIONNAIRE D'IMAGES (Un seul !)
@@ -53,13 +60,17 @@ const imagePaths = {
     [TILES.BED]:             'assets/bed.png',
     [TILES.BED_OPEN]:        'assets/bed_f.png',
     [TILES.BED_DOUBLE]:      'assets/lit_double.png',
-    [TILES.BED_DOUBLE_OPEN]: 'assets/lit_double.png',
+    [TILES.BED_DOUBLE_OPEN]: 'assets/lit_double_f.png',
     [TILES.WARDROBE]:        'assets/armoire.png',
     [TILES.WARDROBE_OPEN]:   'assets/armoire_f.png',
     [TILES.CHAIR]:           'assets/chaise.png',
     [TILES.DESK]:            'assets/bureau.png',
     [TILES.SHELF]:           'assets/etagere.png',
     [TILES.DESK_MAC]:        'assets/bureau_mac.png',
+    [TILES.PLANT]:           'assets/plant.png',
+    [TILES.NIGHTSTAND]:      'assets/chevet.png',
+    [TILES.CHAIR_DESK]:      'assets/desk_chair.png',
+
 };
 
 // ==========================================
@@ -84,7 +95,7 @@ let timeRemaining = 0;
 let hunterCountdown = 0; // Décompte de 10s avant que le chasseur puisse jouer
 let clientsInputs = {};
 let isWallGrid = []; // NOUVEAU : La grille de collision et d'ombre
-let furnitures = []; // Liste des entités (vide pour l'instant)
+let furnitures = []; // Liste des entités (vide pour l'instant) 
 
 // --- Gestion des Touches ---
 const keys = { up: false, down: false, left: false, right: false, action1: false, action2: false };
@@ -400,9 +411,15 @@ function generateInitialState() {
     addWallBlock(45, 10, 1, 2);
 
     // MOBILIER
-    //Lit double
+    // Chaise de bureau
+    furnitures.push({ x: 440, y: 135, width: 16, height: 16, type: TILES.CHAIR_DESK });
+    // Tables de chevet
+    furnitures.push({ x: 92, y: 84, width: 24, height: 24, type: TILES.NIGHTSTAND });
+    furnitures.push({ x: 184, y: 84, width: 24, height: 24, type: TILES.NIGHTSTAND });
+    // Lit double
     furnitures.push({ x: 114, y: 85, width: 64, height: 64, rotation: 0, type: TILES.BED_DOUBLE });
-
+    // Plante chambre
+    furnitures.push({ x: 406, y: 106, width: 32, height: 32, type: TILES.PLANT });
     // Bureau chambre
     furnitures.push({ x: 456, y: 165, width: 51, height: 25, rotation: 180, type: TILES.DESK_MAC });
     // Lit horizontal (image native 36x72 pivotée → occupe 72x36)
@@ -413,7 +430,7 @@ function generateInitialState() {
     // JOUEURS
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
-    const spawns = [{x: 482, y: 120}, {x: 450, y: 210}, {x: 550, y: 210}, {x: 750, y: 210}];
+    const spawns = [{x: 470, y: 135}, {x: 450, y: 210}, {x: 550, y: 210}, {x: 750, y: 210}];
     let idx = 0;
     for (const id in playersState) {
         let p = playersState[id];
