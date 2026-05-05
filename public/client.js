@@ -703,7 +703,7 @@ function drawGame() {
                 
                 if (alpha > 0) {
                     ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(alpha, 0.98)})`;
-                    ctx.fillRect(x, y, 17, 17);
+                    ctx.fillRect(x, y, 16, 16);
                 }
             }
         }
