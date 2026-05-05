@@ -394,6 +394,14 @@ function generateInitialState() {
     addWallBlock(45, 9, 10, 1);   addWallBlock(54, 9, 1, 7);
     addWallBlock(45, 10, 1, 2);
 
+    // MOBILIER
+    // Bureau chambre
+    furnitures.push({ x: 464, y: 163, width: 68, height: 34, type: TILES.DESK });
+    // Lit horizontal (image native 36x72 pivotée → occupe 72x36)
+    furnitures.push({ x: 404, y: 52, width: 72, height: 36, rotation: 90, type: TILES.BED });
+    // Étagère verticale (image native 52x26 pivotée → occupe 26x52)
+    furnitures.push({ x: 403, y: 114, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
+
     // JOUEURS
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
@@ -693,6 +701,28 @@ function drawGame() {
             }
         }
     }
+    
+    // 2bis. DESSIN DES MEUBLES (avec rotation optionnelle)
+    for (const f of furnitures) {
+        const img = images[f.type];
+        if (img && img.complete && img.naturalWidth > 0) {
+            if (f.rotation) {
+                const cx = f.x + f.width / 2;
+                const cy = f.y + f.height / 2;
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(f.rotation * Math.PI / 180);
+                // L'image est dessinée à sa taille NATIVE (height/width inversés après rotation 90°)
+                ctx.drawImage(img, -f.height / 2, -f.width / 2, f.height, f.width);
+                ctx.restore();
+            } else {
+                ctx.drawImage(img, f.x, f.y, f.width, f.height);
+            }
+        } else {
+            ctx.fillStyle = getTileFallbackColor(f.type);
+            ctx.fillRect(f.x, f.y, f.width, f.height);
+        }
+    }
 
     // 3. JOUEURS
     for (const id in playersState) {
@@ -834,10 +864,8 @@ function collides(x, y, size) {
 
 function isHidingSpot(type) {
     return [
-        TILES.BED_TOP, TILES.BED_BOTTOM, TILES.BED_OPEN_TOP, TILES.BED_OPEN_BOTTOM,
-        TILES.WARDROBE_CLOSED_L, TILES.WARDROBE_CLOSED_R,
-        TILES.WARDROBE_OPEN_TL, TILES.WARDROBE_OPEN_TR,
-        TILES.SHELF
+        TILES.BED, TILES.BED_OPEN,
+        TILES.WARDROBE, TILES.WARDROBE_OPEN
     ].includes(type);
 }
 
@@ -865,22 +893,12 @@ function findInteractiveFurniture(cx, cy) {
 function toggleFurniture(f, isHunter) {
     if (isHunter) {
         // Le chasseur OUVRE
-        if (f.type === TILES.WARDROBE_CLOSED_L || f.type === TILES.WARDROBE_CLOSED_R) {
-            f.type = TILES.WARDROBE_OPEN_TL; 
-            return true;
-        } else if (f.type === TILES.BED_TOP || f.type === TILES.BED_BOTTOM) {
-            f.type = TILES.BED_OPEN_TOP;
-            return true;
-        }
+        if (f.type === TILES.WARDROBE) { f.type = TILES.WARDROBE_OPEN; return true; }
+        if (f.type === TILES.BED)      { f.type = TILES.BED_OPEN;      return true; }
     } else {
         // Le traqué FERME derrière lui
-        if (f.type === TILES.WARDROBE_OPEN_TL || f.type === TILES.WARDROBE_OPEN_TR) {
-            f.type = TILES.WARDROBE_CLOSED_L;
-            return true;
-        } else if (f.type === TILES.BED_OPEN_TOP || f.type === TILES.BED_OPEN_BOTTOM) {
-            f.type = TILES.BED_TOP;
-            return true;
-        }
+        if (f.type === TILES.WARDROBE_OPEN) { f.type = TILES.WARDROBE; return true; }
+        if (f.type === TILES.BED_OPEN)      { f.type = TILES.BED;      return true; }
     }
     return false;
 }
