@@ -396,7 +396,7 @@ function generateInitialState() {
 
     // MOBILIER
     // Bureau chambre
-    furnitures.push({ x: 448, y: 163, width: 68, height: 34, rotation: 180, type: TILES.DESK });
+    furnitures.push({ x: 448, y: 163, width: 34, height: 68, rotation: 180, type: TILES.DESK });
     // Lit horizontal (image native 36x72 pivotée → occupe 72x36)
     furnitures.push({ x: 404, y: 52, width: 72, height: 36, rotation: 270, type: TILES.BED });
     // Étagère verticale (image native 52x26 pivotée → occupe 26x52)
@@ -702,18 +702,19 @@ function drawGame() {
         }
     }
     
-    // 2bis. DESSIN DES MEUBLES (avec rotation optionnelle)
+    // 2bis. DESSIN DES MEUBLES (rotation gérée proprement pour 0/90/180/270°)
     for (const f of furnitures) {
         const img = images[f.type];
         if (img && img.complete && img.naturalWidth > 0) {
             if (f.rotation) {
                 const cx = f.x + f.width / 2;
                 const cy = f.y + f.height / 2;
+                const nw = img.naturalWidth;   // taille NATIVE de l'image
+                const nh = img.naturalHeight;
                 ctx.save();
                 ctx.translate(cx, cy);
                 ctx.rotate(f.rotation * Math.PI / 180);
-                // L'image est dessinée à sa taille NATIVE (height/width inversés après rotation 90°)
-                ctx.drawImage(img, -f.height / 2, -f.width / 2, f.height, f.width);
+                ctx.drawImage(img, -nw / 2, -nh / 2, nw, nh);
                 ctx.restore();
             } else {
                 ctx.drawImage(img, f.x, f.y, f.width, f.height);
