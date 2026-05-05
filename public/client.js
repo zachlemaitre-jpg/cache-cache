@@ -643,22 +643,27 @@ function drawGame() {
     ctx.translate(-camX, -camY);
     ctx.scale(ZOOM_FACTOR, ZOOM_FACTOR);
 
-    // 1 & 2. GRILLE (Sol et Murs)
+    // 1. DESSIN DU SOL (En 32x32 pour garder la belle texture)
+    for (let ty = 0; ty < 15; ty++) {
+        for (let tx = 0; tx < 28; tx++) {
+            const worldX = tx * 32;
+            const worldY = ty * 32;
+            if (images[TILES.FLOOR] && images[TILES.FLOOR].complete) {
+                ctx.drawImage(images[TILES.FLOOR], worldX, worldY, 32, 32);
+            } else {
+                ctx.fillStyle = '#4a4a3a';
+                ctx.fillRect(worldX, worldY, 32, 32);
+            }
+        }
+    }
+
+    // 2. DESSIN DES MURS (Sur la grille 16x16)
+    ctx.fillStyle = '#1a1a1a'; // Couleur des murs
     for (let gy = 0; gy < 30; gy++) {
         for (let gx = 0; gx < 56; gx++) {
-            const worldX = gx * 16;
-            const worldY = gy * 16;
-            
             if (isWallGrid[gy][gx]) {
-                ctx.fillStyle = '#1a1a1a';
-                ctx.fillRect(worldX, worldY, 16, 16);
-            } else {
-                if (images[TILES.FLOOR] && images[TILES.FLOOR].complete) {
-                    ctx.drawImage(images[TILES.FLOOR], worldX, worldY, 16, 16);
-                } else {
-                    ctx.fillStyle = '#7e7e7e';
-                    ctx.fillRect(worldX, worldY, 16, 16);
-                }
+                // Astuce anti-grille : on dessine 17x17 au lieu de 16x16 pour masquer les fissures !
+                ctx.fillRect(gx * 16, gy * 16, 17, 17);
             }
         }
     }
@@ -698,7 +703,7 @@ function drawGame() {
                 
                 if (alpha > 0) {
                     ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(alpha, 0.98)})`;
-                    ctx.fillRect(x, y, 16, 16);
+                    ctx.fillRect(x, y, 17, 17);
                 }
             }
         }
