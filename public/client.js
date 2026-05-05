@@ -383,6 +383,7 @@ function generateInitialState() {
     addWallBlock(1, 4, 15, 1);    addWallBlock(15, 4, 1, 9);
     addWallBlock(1, 4, 1, 5);     addWallBlock(0, 9, 1, 1);
     addWallBlock(1, 9, 1, 12);
+    addWallBlock(2, 8, 1, 1);
 
     // ALCÔVES BAS GAUCHE
     addWallBlock(1, 21, 2, 1);    addWallBlock(3, 21, 1, 8);
