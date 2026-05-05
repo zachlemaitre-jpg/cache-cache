@@ -17,7 +17,8 @@ const TILES = {
     BED_OPEN:      71,   // 36x72 ouvert (cachette)
     WARDROBE:      80,   // 48x48 fermée
     WARDROBE_OPEN: 81,   // 48x48 ouverte (cachette)
-    CHAIR:         60    // 32x32 décoratif
+    CHAIR:         60,   // 32x32 décoratif
+    DESK_MAC:      31,   // 51x25, version Mac (chambre)
 };
 
 // 2. ENSUITE LE DICTIONNAIRE D'IMAGES (Un seul !)
@@ -54,7 +55,8 @@ const imagePaths = {
     [TILES.WARDROBE_OPEN]: 'assets/armoire_f.png',  
     [TILES.CHAIR]:         'assets/chaise.png',
     [TILES.DESK]:          'assets/bureau.png',
-    [TILES.SHELF]:         'assets/etagere.png'
+    [TILES.SHELF]:         'assets/etagere.png',
+    [TILES.DESK_MAC]:      'assets/bureau_mac.png',
 };
 
 // ==========================================
@@ -396,7 +398,7 @@ function generateInitialState() {
 
     // MOBILIER
     // Bureau chambre
-    furnitures.push({ x: 455, y: 156, width: 68, height: 34, rotation: 180, type: TILES.DESK });
+    furnitures.push({ x: 456, y: 167, width: 51, height: 25, rotation: 180, type: TILES.DESK_MAC });
     // Lit horizontal (image native 36x72 pivotée → occupe 72x36)
     furnitures.push({ x: 404, y: 52, width: 72, height: 36, rotation: 270, type: TILES.BED });
     // Étagère verticale (image native 52x26 pivotée → occupe 26x52)
