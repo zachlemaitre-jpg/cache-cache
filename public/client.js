@@ -17,8 +17,10 @@ const TILES = {
     KANGOO_OPEN:     77,   // voiture ouverte
     SHOWER:          74,   // douche
     SHOWER_OPEN:     75,   // douche ouverte
-    RUG:             78,   // Tapis
-    RUG_OPEN:        79,   // Tapis ouvert
+    RUG:             78,   // tapis
+    RUG_OPEN:        79,   // tapis ouvert
+    BATHTUB:         88,   // baignoire
+    BATHTUB_OPEN:    89,   // baignoire ouverte
 
     // === DECORS ===
     PLANT:           61,   // 25x24 plante décorative
@@ -82,6 +84,8 @@ const imagePaths = {
     [TILES.KANGOO_OPEN]:     'assets/kangoo_f.png',
     [TILES.RUG]:             'assets/tapis.png',    
     [TILES.RUG_OPEN]:        'assets/tapis_f.png',
+    [TILES.BATHTUB]:         'assets/baignoire.png',      
+    [TILES.BATHTUB_OPEN]:    'assets/baignoire.png',
 
     // === DECORS ===
     [TILES.CHAIR]:           'assets/chaise.png',
@@ -1023,7 +1027,8 @@ function collides(x, y, size) {
             TILES.SHOWER_OPEN, 
             TILES.KANGOO_OPEN,
             TILES.RUG_OPEN, 
-            TILES.RUG
+            TILES.RUG,
+            TILES.BATHTUB_OPEN
         ];
         if (openHideouts.includes(f.type)) continue;
 
@@ -1045,7 +1050,8 @@ function isHidingSpot(type) {
         TILES.WARDROBE, TILES.WARDROBE_OPEN,
         TILES.SHOWER, TILES.SHOWER_OPEN,
         TILES.KANGOO, TILES.KANGOO_OPEN,
-        TILES.RUG, TILES.RUG_OPEN
+        TILES.RUG, TILES.RUG_OPEN,
+        TILES.BATHTUB, TILES.BATHTUB_OPEN
     ].includes(type);
 }
 
@@ -1079,6 +1085,7 @@ function toggleFurniture(f, isHunter) {
         if (f.type === TILES.SHOWER)             { f.type = TILES.SHOWER_OPEN;      return true; } 
         if (f.type === TILES.KANGOO)             { f.type = TILES.KANGOO_OPEN;      return true; } 
         if (f.type === TILES.RUG)                { f.type = TILES.RUG_OPEN;         return true; }
+        if (f.type === TILES.BATHTUB)            { f.type = TILES.BATHTUB_OPEN;     return true; }
     } else {
         // Le traqué FERME derrière lui
         if (f.type === TILES.WARDROBE_OPEN)      { f.type = TILES.WARDROBE;    return true; }
@@ -1087,6 +1094,7 @@ function toggleFurniture(f, isHunter) {
         if (f.type === TILES.SHOWER_OPEN)        { f.type = TILES.SHOWER;      return true; } 
         if (f.type === TILES.KANGOO_OPEN)        { f.type = TILES.KANGOO;      return true; } 
         if (f.type === TILES.RUG_OPEN)           { f.type = TILES.RUG;         return true; }
+        if (f.type === TILES.BATHTUB_OPEN)       { f.type = TILES.BATHTUB;     return true; }
     }
     return false;
 }
