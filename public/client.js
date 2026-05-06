@@ -80,7 +80,7 @@ const imagePaths = {
 let myRole = 'SPECTATOR';
 let isHost = false;
 let currentRoom = '';
-let gameSettings = { roundDuration: 120000 };
+let gameSettings = { roundDuration: 120000, mapIndex: 0 };
 
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
@@ -174,6 +174,12 @@ function setTime(action) {
     if (isHost && currentRoom) socket.emit('lobbyAction', { room: currentRoom, action: action });
 }
 
+function changeMap(mapIndex) {
+    if (isHost && currentRoom) {
+        socket.emit('lobbyAction', { room: currentRoom, action: 'SET_MAP_' + mapIndex });
+    }
+}
+
 function startGame() {
     if (isHost && currentRoom) socket.emit('startGame', currentRoom);
 }
@@ -238,6 +244,10 @@ socket.on('lobbyJoined', (data) => {
         startBtn.innerText = "En attente de l'hôte...";
     }
     updateTimeButtons(gameSettings.roundDuration);
+    if (gameSettings.mapIndex !== undefined) {
+        const mapSelect = document.getElementById('map-select');
+        if (mapSelect) mapSelect.value = String(gameSettings.mapIndex);
+    }
 });
 
 socket.on('playersUpdated', (players) => {
@@ -290,6 +300,10 @@ socket.on('playersUpdated', (players) => {
 socket.on('settingsUpdated', (settings) => {
     gameSettings = settings;
     updateTimeButtons(settings.roundDuration);
+    if (settings.mapIndex !== undefined) {
+        const mapSelect = document.getElementById('map-select');
+        if (mapSelect) mapSelect.value = String(settings.mapIndex);
+    }
 });
 
 socket.on('hostMigrated', () => {
@@ -392,62 +406,94 @@ function generateInitialState() {
         }
     }
 
-    // MURS EXTÉRIEURS
+    // MURS EXTÉRIEURS (communs à toutes les cartes)
     addWallBlock(0, 0, 56, 1);    addWallBlock(0, 29, 56, 1);
     addWallBlock(0, 0, 1, 30);    addWallBlock(55, 0, 1, 30);
 
-    // PIÈCE GAUCHE
-    addWallBlock(1, 4, 15, 1);    addWallBlock(15, 4, 1, 9);
-    addWallBlock(1, 4, 1, 5);     addWallBlock(0, 9, 1, 1);
-    addWallBlock(1, 9, 1, 12);
-    addWallBlock(2, 8, 1, 1);
+    // ==========================================
+    // SÉLECTION DE LA CARTE
+    // ==========================================
+    const mapIndex = (gameSettings && gameSettings.mapIndex) || 0;
 
-    // ALCÔVES BAS GAUCHE
-    addWallBlock(1, 21, 2, 1);    addWallBlock(3, 21, 1, 8);
-    addWallBlock(3, 28, 3, 1);    addWallBlock(5, 21, 1, 8);
-    addWallBlock(6, 21, 2, 1);    addWallBlock(7, 21, 1, 8);
-    addWallBlock(7, 28, 3, 1);    addWallBlock(10, 21, 1, 8);
-    addWallBlock(10, 21, 2, 1);
+    if (mapIndex === 0) {
+        // ----- CARTE 1 : LA MAISON (carte complète) -----
 
-    // DIAGONALE (Mêmes pixels de départ, convertis par l'outil)
-    addDiagonalWall("diag_g", 192, 336, 240, 256);
-    addWallBlock(16, 16, 1, 1);
+        // PIÈCE GAUCHE
+        addWallBlock(1, 4, 15, 1);    addWallBlock(15, 4, 1, 9);
+        addWallBlock(1, 4, 1, 5);     addWallBlock(0, 9, 1, 1);
+        addWallBlock(1, 9, 1, 12);
+        addWallBlock(2, 8, 1, 1);
 
-    // COULOIR ET PIÈCE CENTRALE
-    addWallBlock(16, 12, 8, 1);   addWallBlock(24, 12, 11, 1);
-    addWallBlock(38, 12, 8, 1);  addWallBlock(16, 15, 19, 1); addWallBlock(37, 15, 18, 1);
-    addWallBlock(34, 16, 1, 5); 
-    addWallBlock(37, 16, 1, 6);
+        // ALCÔVES BAS GAUCHE
+        addWallBlock(1, 21, 2, 1);    addWallBlock(3, 21, 1, 8);
+        addWallBlock(3, 28, 3, 1);    addWallBlock(5, 21, 1, 8);
+        addWallBlock(6, 21, 2, 1);    addWallBlock(7, 21, 1, 8);
+        addWallBlock(7, 28, 3, 1);    addWallBlock(10, 21, 1, 8);
+        addWallBlock(10, 21, 2, 1);
 
-    // PIÈCE CENTRALE HAUTE
-    addWallBlock(24, 2, 1, 11);   addWallBlock(24, 2, 16, 1);
-    addWallBlock(40, 2, 1, 4);    addWallBlock(38, 6, 3, 1);
-    addWallBlock(38, 6, 1, 7);
+        // DIAGONALE
+        addDiagonalWall("diag_g", 192, 336, 240, 256);
+        addWallBlock(16, 16, 1, 1);
 
-    // PIÈCE DROITE
-    addWallBlock(45, 9, 10, 1);   addWallBlock(54, 9, 1, 7);
-    addWallBlock(45, 10, 1, 2);
+        // COULOIR ET PIÈCE CENTRALE
+        addWallBlock(16, 12, 8, 1);   addWallBlock(24, 12, 11, 1);
+        addWallBlock(38, 12, 8, 1);   addWallBlock(16, 15, 19, 1); addWallBlock(37, 15, 18, 1);
+        addWallBlock(34, 16, 1, 5); 
+        addWallBlock(37, 16, 1, 6);
 
-    // MOBILIER
-    // Lampe chambre
-    furnitures.push({ x: 610, y: 66, width: 24, height: 24, type: TILES.LAMP });
-    // Chaise de bureau
-    furnitures.push({ x: 435, y: 135, width: 26, height: 26, type: TILES.CHAIR_DESK });
-    // Tables de chevet
-    furnitures.push({ x: 90, y: 84, width: 24, height: 24, type: TILES.NIGHTSTAND });
-    furnitures.push({ x: 181, y: 84, width: 24, height: 24, type: TILES.NIGHTSTAND });
-    // Lit double
-    furnitures.push({ x: 114, y: 85, width: 64, height: 64, rotation: 0, type: TILES.BED_DOUBLE });
-    // Plante chambre
-    furnitures.push({ x: 403, y: 104, width: 27, height: 27, type: TILES.PLANT });
-    // Bureau chambre
-    furnitures.push({ x: 456, y: 165, width: 51, height: 25, rotation: 180, type: TILES.DESK_MAC });
-    // Lit horizontal (image native 36x72 pivotée → occupe 72x36)
-    furnitures.push({ x: 404, y: 52, width: 72, height: 36, rotation: 270, type: TILES.BED });
-    // Étagère verticale (image native 52x26 pivotée → occupe 26x52)
-    furnitures.push({ x: 403, y: 131, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
+        // PIÈCE CENTRALE HAUTE
+        addWallBlock(24, 2, 1, 11);   addWallBlock(24, 2, 16, 1);
+        addWallBlock(40, 2, 1, 4);    addWallBlock(38, 6, 3, 1);
+        addWallBlock(38, 6, 1, 7);
 
-    // JOUEURS
+        // PIÈCE DROITE
+        addWallBlock(45, 9, 10, 1);   addWallBlock(54, 9, 1, 7);
+        addWallBlock(45, 10, 1, 2);
+
+        // MOBILIER
+        // Lampe chambre
+        furnitures.push({ x: 610, y: 66, width: 24, height: 24, type: TILES.LAMP });
+        // Chaise de bureau
+        furnitures.push({ x: 435, y: 135, width: 26, height: 26, type: TILES.CHAIR_DESK });
+        // Tables de chevet
+        furnitures.push({ x: 90, y: 84, width: 24, height: 24, type: TILES.NIGHTSTAND });
+        furnitures.push({ x: 181, y: 84, width: 24, height: 24, type: TILES.NIGHTSTAND });
+        // Lit double
+        furnitures.push({ x: 114, y: 85, width: 64, height: 64, rotation: 0, type: TILES.BED_DOUBLE });
+        // Plante chambre
+        furnitures.push({ x: 403, y: 104, width: 27, height: 27, type: TILES.PLANT });
+        // Bureau chambre
+        furnitures.push({ x: 456, y: 165, width: 51, height: 25, rotation: 180, type: TILES.DESK_MAC });
+        // Lit horizontal (image native 36x72 pivotée → occupe 72x36)
+        furnitures.push({ x: 404, y: 52, width: 72, height: 36, rotation: 270, type: TILES.BED });
+        // Étagère verticale (image native 52x26 pivotée → occupe 26x52)
+        furnitures.push({ x: 403, y: 131, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
+
+    } else if (mapIndex === 1) {
+        // ----- CARTE 2 : L'ENTREPÔT (placeholder de test) -----
+        // Quelques blocs pour visualiser la structure ; à remplir plus tard.
+        addWallBlock(10, 5,  20, 1);   // mur horizontal haut
+        addWallBlock(10, 5,  1, 15);   // mur vertical gauche
+        addWallBlock(29, 5,  1, 15);   // mur vertical droit
+        addWallBlock(10, 19, 8, 1);    // mur bas (avec ouverture au milieu)
+        addWallBlock(22, 19, 8, 1);
+
+        addWallBlock(15, 10, 4, 4);    // pilier central
+        addWallBlock(22, 10, 4, 4);    // pilier central 2
+
+    } else if (mapIndex === 2) {
+        // ----- CARTE 3 : LE LABYRINTHE (placeholder de test) -----
+        // Quelques couloirs pour visualiser la structure ; à remplir plus tard.
+        for (let i = 0; i < 6; i++) {
+            const yLine = 5 + i * 4;
+            const offset = (i % 2 === 0) ? 5 : 15;
+            addWallBlock(offset, yLine, 35, 1);
+        }
+    }
+
+    // ==========================================
+    // JOUEURS (commun à toutes les cartes)
+    // ==========================================
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
     const spawns = [{x: 470, y: 135}, {x: 450, y: 210}, {x: 550, y: 210}, {x: 750, y: 210}];

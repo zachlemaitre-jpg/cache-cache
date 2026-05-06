@@ -51,6 +51,13 @@
                 <button class="btn primary" onclick="goToFilmMode()">FILM</button>
 
                 <div id="host-settings" class="disabled-for-client">
+                    <h3 class="panel-title">Carte</h3>
+                    <select id="map-select" class="pixel-select" onchange="changeMap(this.value)">
+                        <option value="0">CARTE 1 : LA MAISON</option>
+                        <option value="1">CARTE 2 : L'ENTREPÔT</option>
+                        <option value="2">CARTE 3 : LE LABYRINTHE</option>
+                    </select>
+
                     <h3 class="panel-title">Temps de jeu</h3>
                     <div class="time-container">
                         <button class="btn time-btn" id="btn-time-120" onclick="setTime('SET_TIME_120')">2 Min</button>
