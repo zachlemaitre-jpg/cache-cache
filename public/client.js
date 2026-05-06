@@ -1,31 +1,24 @@
 const socket = io();
 
-// 1. D'ABORD LES TUILES
+// 1. TUILES
 const TILES = {
     FLOOR: 0, WALL: 1, ENTRY_DOOR: 99,
-    // Anciens IDs (laissés pour compat, peuvent être supprimés plus tard)
-    BED_TOP: 10, BED_BOTTOM: 11, BED_OPEN_TOP: 12, BED_OPEN_BOTTOM: 13,
-    BED_DOUBLE: 72, BED_DOUBLE_OPEN: 73, 
-    WARDROBE_CLOSED_L: 20, WARDROBE_CLOSED_R: 21,
-    WARDROBE_OPEN_TL: 22, WARDROBE_OPEN_TR: 23, WARDROBE_OPEN_BL: 24, WARDROBE_OPEN_BR: 25,
-    SHELF: 26,
-    DESK: 30,
-    BATHTUB: 40,
-    TOILET: 50,
-    STAIRS_UP: 90, STAIRS_DOWN: 91,
+    
     // === MEUBLES ===
     
     // === CACHETTES ===
-    BED:             70,   // 36x58 fermé
-    BED_OPEN:        71,   // 19x59 ouvert
-    BED_DOUBLE:      72,   // 67x58 fermé
-    BED_DOUBLE_OPEN: 73,   // 19x59 ouvert
-    WARDROBE:        80,   // 48x48 fermée
-    WARDROBE_OPEN:   81,   // 48x48 ouverte
-    KANGOO:          76,   // 
-    KANGOO_OPEN:     77,   // 
-    SHOWER:          74,   // 
-    SHOWER_OPEN:     75,
+    BED:             70,   // 36x58 lit
+    BED_OPEN:        71,   // 19x59 lit ouvert
+    BED_DOUBLE:      72,   // 67x58 lit double
+    BED_DOUBLE_OPEN: 73,   // 19x59 lit double ouvert
+    WARDROBE:        80,   // 48x48 armoire
+    WARDROBE_OPEN:   81,   // 48x48 armoire ouverte
+    KANGOO:          76,   // voiture
+    KANGOO_OPEN:     77,   // voiture ouverte
+    SHOWER:          74,   // douche
+    SHOWER_OPEN:     75,   // douche ouverte
+    RUG:             78,   // Tapis
+    RUG_OPEN:        79,   // Tapis ouvert
 
     // === DECORS ===
     PLANT:           61,   // 25x24 plante décorative
@@ -35,14 +28,20 @@ const TILES = {
     NIGHTSTAND:      62,   // 23x23 table de chevet 
     CHAIR_DESK:      63,   // 30x28 chaise de bureau
     LAMP:            64,   // 23x23 lampe de chambre
-    BILLARD:         65,   //
-    CHAIR_TABLE:     67,   //
-    FRIDGE:          69,   //
-    COUCH:           66,   //
-    ARMCHAIR:        68,   //
+    BILLARD:         65,   // billard
+    CHAIR_TABLE:     67,   // chaise table
+    FRIDGE:          69,   // frigo
+    COUCH:           66,   // canapé
+    ARMCHAIR:        68,   // fauteuil
+    BOILER:          82,   // chaudière
+    MOTO:            83,   // moto Kawasaki
+    TRUNK:           84,   // malle
+    TABLE:           85,   // table
+    TV:              87,   // télévision
+    TOILET:          50,   // wc
 };
 
-// 2. ENSUITE LE DICTIONNAIRE D'IMAGES (Un seul !)
+// 2. DICTIONNAIRE D'IMAGES
 const imagePaths = {
     // === TRAQUÉ (HIDER) ===
     hider_down: 'assets/hider_down.png',
@@ -81,6 +80,8 @@ const imagePaths = {
     [TILES.SHOWER_OPEN]:     'assets/douche_f.png',
     [TILES.KANGOO]:          'assets/kangoo.png',
     [TILES.KANGOO_OPEN]:     'assets/kangoo_f.png',
+    [TILES.RUG]:             'assets/tapis.png',    
+    [TILES.RUG_OPEN]:        'assets/tapis_f.png',
 
     // === DECORS ===
     [TILES.CHAIR]:           'assets/chaise.png',
@@ -96,6 +97,13 @@ const imagePaths = {
     [TILES.CHAIR_TABLE]:     'assets/chaise_table.png',
     [TILES.ARMCHAIR]:        'assets/fauteuil.png',
     [TILES.FRIDGE]:          'assets/frigo.png',
+    [TILES.FRIDGE]:          'assets/frigo.png',
+    [TILES.TOILET]:          'assets/toilettes.png',    //(utiliser l'ID 50)
+    [TILES.BOILER]:          'assets/chaudiere.png',    
+    [TILES.MOTO]:            'assets/kawasaki.png',   
+    [TILES.TRUNK]:           'assets/malle.png',       
+    [TILES.TABLE]:           'assets/table.png',     
+    [TILES.TV]:              'assets/tv.png',     
     
 
 };
@@ -1013,7 +1021,9 @@ function collides(x, y, size) {
             TILES.BED_OPEN, 
             TILES.BED_DOUBLE_OPEN, 
             TILES.SHOWER_OPEN, 
-            TILES.KANGOO_OPEN
+            TILES.KANGOO_OPEN,
+            TILES.RUG_OPEN, 
+            TILES.RUG
         ];
         if (openHideouts.includes(f.type)) continue;
 
@@ -1034,7 +1044,8 @@ function isHidingSpot(type) {
         TILES.BED, TILES.BED_OPEN, TILES.BED_DOUBLE, TILES.BED_DOUBLE_OPEN,
         TILES.WARDROBE, TILES.WARDROBE_OPEN,
         TILES.SHOWER, TILES.SHOWER_OPEN,
-        TILES.KANGOO, TILES.KANGOO_OPEN
+        TILES.KANGOO, TILES.KANGOO_OPEN,
+        TILES.RUG, TILES.RUG_OPEN
     ].includes(type);
 }
 
@@ -1062,18 +1073,20 @@ function findInteractiveFurniture(cx, cy) {
 function toggleFurniture(f, isHunter) {
     if (isHunter) {
         // Le chasseur OUVRE
-        if (f.type === TILES.WARDROBE)           { f.type = TILES.WARDROBE_OPEN; return true; }
-        if (f.type === TILES.BED)                { f.type = TILES.BED_OPEN;      return true; }
-        if (f.type === TILES.BED_DOUBLE)         { f.type = TILES.BED_DOUBLE_OPEN; return true; }
-        if (f.type === TILES.SHOWER)             { f.type = TILES.SHOWER_OPEN;   return true; } 
+        if (f.type === TILES.WARDROBE)           { f.type = TILES.WARDROBE_OPEN;    return true; }
+        if (f.type === TILES.BED)                { f.type = TILES.BED_OPEN;         return true; }
+        if (f.type === TILES.BED_DOUBLE)         { f.type = TILES.BED_DOUBLE_OPEN;  return true; }
+        if (f.type === TILES.SHOWER)             { f.type = TILES.SHOWER_OPEN;      return true; } 
         if (f.type === TILES.KANGOO)             { f.type = TILES.KANGOO_OPEN;      return true; } 
+        if (f.type === TILES.RUG)                { f.type = TILES.RUG_OPEN;         return true; }
     } else {
         // Le traqué FERME derrière lui
-        if (f.type === TILES.WARDROBE_OPEN)      { f.type = TILES.WARDROBE; return true; }
-        if (f.type === TILES.BED_OPEN)           { f.type = TILES.BED;      return true; }
-        if (f.type === TILES.BED_DOUBLE_OPEN)    { f.type = TILES.BED_DOUBLE; return true; }
-        if (f.type === TILES.SHOWER_OPEN)        { f.type = TILES.SHOWER;   return true; } 
+        if (f.type === TILES.WARDROBE_OPEN)      { f.type = TILES.WARDROBE;    return true; }
+        if (f.type === TILES.BED_OPEN)           { f.type = TILES.BED;         return true; }
+        if (f.type === TILES.BED_DOUBLE_OPEN)    { f.type = TILES.BED_DOUBLE;  return true; }
+        if (f.type === TILES.SHOWER_OPEN)        { f.type = TILES.SHOWER;      return true; } 
         if (f.type === TILES.KANGOO_OPEN)        { f.type = TILES.KANGOO;      return true; } 
+        if (f.type === TILES.RUG_OPEN)           { f.type = TILES.RUG;         return true; }
     }
     return false;
 }
