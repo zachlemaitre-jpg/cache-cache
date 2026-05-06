@@ -153,6 +153,7 @@ loadImages();
 function showScreen(screenId) {
     document.getElementById('main-menu').classList.add('hidden');
     document.getElementById('lobby-screen').classList.add('hidden');
+    document.getElementById('film-screen').classList.add('hidden');
     document.getElementById('game-screen').classList.add('hidden');
     document.getElementById(screenId).classList.remove('hidden');
 }
@@ -175,6 +176,21 @@ function setTime(action) {
 
 function startGame() {
     if (isHost && currentRoom) socket.emit('startGame', currentRoom);
+}
+
+function goToFilmMode() {
+    if (myRole === 'SPECTATOR') {
+        alert("Choisis d'abord un rôle (Chasseur ou Traqué) avant d'entrer en Mode Film.");
+        return;
+    }
+    const subtitle = document.getElementById('film-mode-subtitle');
+    if (myRole === 'HUNTER') subtitle.innerText = 'MODE CHASSEUR';
+    else if (myRole === 'HIDER') subtitle.innerText = 'MODE TRAQUÉ';
+    showScreen('film-screen');
+}
+
+function startFilmGame() {
+    if (currentRoom) socket.emit('startFilmMode', currentRoom);
 }
 
 function leaveRoom() {

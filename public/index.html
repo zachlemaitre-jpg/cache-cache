@@ -48,6 +48,8 @@
                     <button class="btn role-btn hider" onclick="requestRole('REQUEST_HIDER')">TRAQUE</button>
                 </div>
 
+                <button class="btn primary" onclick="goToFilmMode()">FILM</button>
+
                 <div id="host-settings" class="disabled-for-client">
                     <h3 class="panel-title">Temps de jeu</h3>
                     <div class="time-container">
@@ -75,6 +77,16 @@
 
         <div class="game-sidebar">
             <canvas id="minimap-canvas"></canvas>
+            <button class="btn back-btn" onclick="returnToLobby()">&#x21A9; SALON</button>
+        </div>
+    </div>
+
+    <div id="film-screen" class="screen hidden">
+        <h1 class="title">CACHE-CACHE</h1>
+        <h2 id="film-mode-subtitle" class="subtitle"></h2>
+
+        <div class="menu-box">
+            <button class="btn success" onclick="startFilmGame()">LANCER LA PARTIE</button>
             <button class="btn back-btn" onclick="returnToLobby()">&#x21A9; SALON</button>
         </div>
     </div>
