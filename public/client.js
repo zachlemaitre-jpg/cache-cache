@@ -26,7 +26,7 @@ const TILES = {
     PLANT:           61,   // 25x24 décoratif
     NIGHTSTAND:      62,   // 23x23 table de chevet 
     CHAIR_DESK:      63,   // 30x28 chaise de bureau
-
+    LAMP:            64,   // 23x23 lampe de chambre
 };
 
 // 2. ENSUITE LE DICTIONNAIRE D'IMAGES (Un seul !)
@@ -70,6 +70,7 @@ const imagePaths = {
     [TILES.PLANT]:           'assets/plant.png',
     [TILES.NIGHTSTAND]:      'assets/chevet.png',
     [TILES.CHAIR_DESK]:      'assets/desk_chair.png',
+    [TILES.LAMP]:            'assets/lampe.png',
 
 };
 
@@ -412,6 +413,8 @@ function generateInitialState() {
     addWallBlock(45, 10, 1, 2);
 
     // MOBILIER
+    // Lampe chambre
+    furnitures.push({ x: 610, y: 66, width: 24, height: 24, type: TILES.LAMP });
     // Chaise de bureau
     furnitures.push({ x: 435, y: 135, width: 26, height: 26, type: TILES.CHAIR_DESK });
     // Tables de chevet
