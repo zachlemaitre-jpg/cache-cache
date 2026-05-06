@@ -116,6 +116,15 @@ io.on('connection', (socket) => {
             io.to(data.room).emit('settingsUpdated', room.settings);
         }
 
+        // --- Choix de la carte (Seul l'Hôte peut faire ça) ---
+        if (isHost && data.action.startsWith('SET_MAP_')) {
+            const mapIdx = parseInt(data.action.split('_').pop(), 10);
+            if (!isNaN(mapIdx) && mapIdx >= 0 && mapIdx <= 2) {
+                room.settings.mapIndex = mapIdx;
+                io.to(data.room).emit('settingsUpdated', room.settings);
+            }
+        }
+
         // On met à jour l'affichage de tout le monde
         io.to(data.room).emit('playersUpdated', room.clients);
     });
