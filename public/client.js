@@ -470,25 +470,65 @@ function generateInitialState() {
         furnitures.push({ x: 403, y: 131, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
 
     } else if (mapIndex === 1) {
-        // ----- CARTE 2 : L'ENTREPÔT (placeholder de test) -----
-        // Quelques blocs pour visualiser la structure ; à remplir plus tard.
-        addWallBlock(10, 5,  20, 1);   // mur horizontal haut
-        addWallBlock(10, 5,  1, 15);   // mur vertical gauche
-        addWallBlock(29, 5,  1, 15);   // mur vertical droit
-        addWallBlock(10, 19, 8, 1);    // mur bas (avec ouverture au milieu)
-        addWallBlock(22, 19, 8, 1);
+        // ----- CARTE 2 : L'ENTREPÔT -----
+        // 3 pièces hautes (gauche / centre / droite) + 2 compartiments en bas
 
-        addWallBlock(15, 10, 4, 4);    // pilier central
-        addWallBlock(22, 10, 4, 4);    // pilier central 2
+        // Porte sur le mur extérieur gauche (on perce le mur)
+        isWallGrid[8][0] = false;
+        isWallGrid[9][0] = false;
+
+        // Murs verticaux séparant les 3 pièces hautes
+        addWallBlock(19, 1, 1, 8);        // sépare pièce gauche / centre
+        addWallBlock(38, 1, 1, 8);        // sépare pièce centre / droite
+
+        // Mur médian horizontal (avec 3 ouvertures)
+        addWallBlock(1, 13, 13, 1);       // segment gauche
+        addWallBlock(20, 13, 12, 1);      // segment centre
+        addWallBlock(38, 13, 8, 1);       // segment droit
+        addWallBlock(50, 13, 5, 1);       // segment extrême-droit
+
+        // Petite porte de sortie sur le mur droit extérieur
+        isWallGrid[14][55] = false;
+        isWallGrid[15][55] = false;
+
+        // Compartiment 1 en bas (U inversé ouvert vers le bas)
+        addWallBlock(15, 19, 1, 10);      // mur vertical gauche
+        addWallBlock(15, 19, 9, 1);       // toit
+        addWallBlock(23, 19, 1, 10);      // mur vertical droit
+
+        // Compartiment 2 en bas (U inversé ouvert vers le bas)
+        addWallBlock(30, 19, 1, 10);      // mur vertical gauche
+        addWallBlock(30, 19, 9, 1);       // toit
+        addWallBlock(38, 19, 1, 10);      // mur vertical droit
 
     } else if (mapIndex === 2) {
-        // ----- CARTE 3 : LE LABYRINTHE (placeholder de test) -----
-        // Quelques couloirs pour visualiser la structure ; à remplir plus tard.
-        for (let i = 0; i < 6; i++) {
-            const yLine = 5 + i * 4;
-            const offset = (i % 2 === 0) ? 5 : 15;
-            addWallBlock(offset, yLine, 35, 1);
-        }
+        // ----- CARTE 3 : LE LABYRINTHE -----
+        // Alcôve haute, deux murs en L à droite, mur médian, mur vertical bas
+
+        // Porte sur le mur extérieur gauche
+        isWallGrid[10][0] = false;
+        isWallGrid[11][0] = false;
+
+        // Alcôve étroite en haut-centre (cabine)
+        addWallBlock(25, 1, 1, 6);        // mur vertical gauche de l'alcôve
+        addWallBlock(28, 1, 1, 6);        // mur vertical droit de l'alcôve
+        addWallBlock(25, 6, 4, 1);        // fond de l'alcôve
+
+        // Mur en L au tiers-droit (descend du haut puis tourne à gauche)
+        addWallBlock(38, 1, 1, 13);       // segment vertical (descend)
+        addWallBlock(34, 13, 4, 1);       // segment horizontal vers la gauche
+
+        // Petit retour de mur en L plus à droite
+        addWallBlock(48, 14, 1, 4);       // mur vertical
+        addWallBlock(48, 17, 7, 1);       // mur horizontal
+
+        // Mur médian horizontal (avec ouvertures)
+        addWallBlock(1, 17, 18, 1);       // segment gauche
+        addWallBlock(22, 17, 6, 1);       // section courte
+        addWallBlock(31, 17, 16, 1);      // segment central-droit
+
+        // Mur vertical qui monte du bas (centre)
+        addWallBlock(27, 20, 1, 9);       // descend depuis le mur médian (presque) jusqu'au bas
     }
 
     // ==========================================
