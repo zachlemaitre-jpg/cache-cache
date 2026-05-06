@@ -147,6 +147,28 @@ io.on('connection', (socket) => {
         }
     });
 
+    // ⚡ Mode Film : n'importe quel joueur peut lancer la partie
+    socket.on('startFilmMode', (roomCode) => {
+        const room = rooms[roomCode];
+        if (!room) return;
+        room.isPlaying = true;
+        room.timeRemaining = room.settings.roundDuration;
+
+        if (room.timerInterval) clearInterval(room.timerInterval);
+
+        room.timerInterval = setInterval(() => {
+            if (room.timeRemaining > 0) {
+                room.timeRemaining -= 1000;
+                io.to(roomCode).emit('timerUpdate', room.timeRemaining);
+            } else {
+                clearInterval(room.timerInterval);
+                io.to(roomCode).emit('gameOver', { reason: 'TIME_UP' });
+            }
+        }, 1000);
+
+        io.to(roomCode).emit('gameStarted');
+    });
+
     // ⚡ L'Invité envoie ses touches de clavier (Z,Q,S,D,E)
     socket.on('playerInput', (data) => {
         const room = rooms[data.room];
