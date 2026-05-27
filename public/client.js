@@ -521,9 +521,6 @@ function generateInitialState() {
         // mur entre : x:192y:22 et x:192y:206
         addWallBlock(12, 1, 1, 12);
         
-        // mur entre : x:628y:306 et x:895y:306
-        addWallBlock(39, 19, 17, 1);
-        
         // mur entre : x:615y:353 et x:615y:468
         addWallBlock(38, 22, 1, 8);
         
@@ -541,6 +538,15 @@ function generateInitialState() {
         
         // mur entre : x:692y:16 et x:692y:101
         addWallBlock(43, 1, 1, 6);
+        
+        // mur entre x:414y:403 et x:613y:403
+        addWallBlock(26, 25, 13, 1);
+        
+        // mur entre x:611y:244 et x:883y:244
+        addWallBlock(38, 15, 18, 1);
+        
+        // mur entre x:611y:308 et x:611y:355
+        addWallBlock(38, 19, 1, 4);
 
         // Spawns map 2 (Ajustés pour ne pas apparaître dans les murs)
         hunterSpawn = { x: 50, y: 50 };
@@ -894,7 +900,7 @@ function drawGame() {
     ctx.fillRect(0, 0, 896, 480);
 
     // 1bis. DESSIN DE L'ESCALIER (purement visuel)
-    {
+    if (gameSettings && gameSettings.mapIndex === 0) {
         const sx1 = 35, sx2 = 36;       // colonnes (inclus)
         const sy1 = 15, sy2 = 21;       // lignes (inclus)
         const stepCount = sy2 - sy1 + 1;
