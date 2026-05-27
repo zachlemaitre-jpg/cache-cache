@@ -453,6 +453,11 @@ function generateInitialState() {
     // ==========================================
     const mapIndex = (gameSettings && gameSettings.mapIndex) || 0;
 
+    // On prépare les variables de spawn 
+    let hunterSpawn = { x: 0, y: 0 };
+    let hiderSpawns = [];
+
+    // Maps :
     if (mapIndex === 0) {
         // ----- CARTE 1 : LA MAISON (carte complète) -----
 
@@ -506,6 +511,10 @@ function generateInitialState() {
         furnitures.push({ x: 404, y: 52, width: 72, height: 36, rotation: 270, type: TILES.BED });
         // Étagère verticale (image native 52x26 pivotée → occupe 26x52)
         furnitures.push({ x: 403, y: 131, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
+        
+        // Spawns map 1
+        hunterSpawn = { x: 830, y: 165 };
+        hiderSpawns = [{x: 470, y: 135}, {x: 550, y: 210}, {x: 750, y: 210}];
 
     } else if (mapIndex === 1) {
         // ----- CARTE 2 : L'ENTREPÔT -----
@@ -539,6 +548,10 @@ function generateInitialState() {
         addWallBlock(30, 19, 9, 1);       // toit
         addWallBlock(38, 19, 1, 10);      // mur vertical droit
 
+        // Spawns map 2
+        hunterSpawn = { x: 830, y: 165 };
+        hiderSpawns = [{x: 470, y: 135}, {x: 550, y: 210}, {x: 750, y: 210}];
+
     } else if (mapIndex === 2) {
         // ----- CARTE 3 : LE LABYRINTHE -----
         // Alcôve haute, deux murs en L à droite, mur médian, mur vertical bas
@@ -567,36 +580,32 @@ function generateInitialState() {
 
         // Mur vertical qui monte du bas (centre)
         addWallBlock(27, 20, 1, 9);       // descend depuis le mur médian (presque) jusqu'au bas
+
+        // Spawns map 1
+        hunterSpawn = { x: 830, y: 165 };
+        hiderSpawns = [{x: 470, y: 135}, {x: 550, y: 210}, {x: 750, y: 210}];
+
     }
 
     // ==========================================
-    // JOUEURS (commun à toutes les cartes)
+    // INITIALISATION DES JOUEURS
     // ==========================================
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
-    
-    // 1. Définis ici les coordonnées du chasseur
-    const hunterSpawn = { x: 470, y: 135 }; 
-    
-    // 2. Définis ici la liste des apparitions pour les traqués
-    const hiderSpawns = [
-        {x: 450, y: 210}, 
-        {x: 550, y: 210}, 
-        {x: 750, y: 210}
-    ];
     
     let hiderIdx = 0;
     
     for (const id in playersState) {
         let p = playersState[id];
         
-        // On vérifie le rôle du joueur pour lui donner le bon point de départ
         if (p.role === 'HUNTER') {
             p.x = hunterSpawn.x;
             p.y = hunterSpawn.y;
         } else {
-            p.x = hiderSpawns[hiderIdx % hiderSpawns.length].x; 
-            p.y = hiderSpawns[hiderIdx % hiderSpawns.length].y;
+            // Sécurité au cas où il manquerait des points de spawn
+            const spawn = hiderSpawns[hiderIdx % hiderSpawns.length] || {x: 100, y: 100};
+            p.x = spawn.x; 
+            p.y = spawn.y;
             hiderIdx++;
         }
         
