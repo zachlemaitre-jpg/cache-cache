@@ -574,13 +574,33 @@ function generateInitialState() {
     // ==========================================
     timeRemaining = gameSettings.roundDuration;
     hunterCountdown = 10000;
-    const spawns = [{x: 470, y: 135}, {x: 450, y: 210}, {x: 550, y: 210}, {x: 750, y: 210}];
-    let idx = 0;
+    
+    // 1. Définis ici les coordonnées du chasseur
+    const hunterSpawn = { x: 470, y: 135 }; 
+    
+    // 2. Définis ici la liste des apparitions pour les traqués
+    const hiderSpawns = [
+        {x: 450, y: 210}, 
+        {x: 550, y: 210}, 
+        {x: 750, y: 210}
+    ];
+    
+    let hiderIdx = 0;
+    
     for (const id in playersState) {
         let p = playersState[id];
-        p.x = spawns[idx % spawns.length].x; p.y = spawns[idx % spawns.length].y;
+        
+        // On vérifie le rôle du joueur pour lui donner le bon point de départ
+        if (p.role === 'HUNTER') {
+            p.x = hunterSpawn.x;
+            p.y = hunterSpawn.y;
+        } else {
+            p.x = hiderSpawns[hiderIdx % hiderSpawns.length].x; 
+            p.y = hiderSpawns[hiderIdx % hiderSpawns.length].y;
+            hiderIdx++;
+        }
+        
         p.alive = true; p.hidden = false; p.dir = 'down'; p.moving = false; p.animTimer = 0;
-        idx++;
     }
 }
 
