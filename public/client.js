@@ -548,9 +548,40 @@ function generateInitialState() {
         addWallBlock(30, 19, 9, 1);       // toit
         addWallBlock(38, 19, 1, 10);      // mur vertical droit
 
-        // Spawns map 2
-        hunterSpawn = { x: 830, y: 165 };
-        hiderSpawns = [{x: 470, y: 135}, {x: 550, y: 210}, {x: 750, y: 210}];
+        // MOBILIER (Loft Moderne)
+        // Pièce Haut-Gauche (Chambre)
+        furnitures.push({ x: 50, y: 40, width: 67, height: 58, type: TILES.BED_DOUBLE });
+        furnitures.push({ x: 20, y: 40, width: 24, height: 24, type: TILES.NIGHTSTAND });
+        furnitures.push({ x: 125, y: 40, width: 24, height: 24, type: TILES.NIGHTSTAND });
+        furnitures.push({ x: 200, y: 40, width: 48, height: 48, type: TILES.WARDROBE });
+        furnitures.push({ x: 60, y: 120, width: 64, height: 48, type: TILES.RUG });
+
+        // Pièce Haut-Centre (Salle de bain)
+        furnitures.push({ x: 340, y: 40, width: 64, height: 32, type: TILES.BATHTUB });
+        furnitures.push({ x: 440, y: 40, width: 24, height: 32, type: TILES.TOILET });
+        furnitures.push({ x: 500, y: 40, width: 48, height: 48, type: TILES.SHOWER });
+        furnitures.push({ x: 550, y: 140, width: 32, height: 32, type: TILES.BOILER });
+
+        // Pièce Haut-Droite (Garage / Débarras)
+        furnitures.push({ x: 650, y: 40, width: 64, height: 128, type: TILES.KANGOO });
+        furnitures.push({ x: 750, y: 40, width: 32, height: 64, type: TILES.MOTO });
+        furnitures.push({ x: 800, y: 140, width: 48, height: 32, type: TILES.TRUNK });
+
+        // Compartiment Bas-Gauche (Cuisine / Salle à manger)
+        furnitures.push({ x: 255, y: 320, width: 32, height: 48, type: TILES.FRIDGE });
+        furnitures.push({ x: 280, y: 380, width: 64, height: 64, type: TILES.TABLE });
+        furnitures.push({ x: 250, y: 400, width: 24, height: 24, type: TILES.CHAIR_TABLE });
+        furnitures.push({ x: 350, y: 400, width: 24, height: 24, type: TILES.CHAIR_TABLE });
+
+        // Compartiment Bas-Droit (Salon)
+        furnitures.push({ x: 520, y: 320, width: 64, height: 32, type: TILES.COUCH });
+        furnitures.push({ x: 520, y: 430, width: 64, height: 20, type: TILES.TV });
+        furnitures.push({ x: 490, y: 360, width: 32, height: 32, type: TILES.ARMCHAIR });
+        furnitures.push({ x: 600, y: 320, width: 32, height: 32, type: TILES.PLANT });
+
+        // Spawns map 2 (Ajustés pour ne pas apparaître dans les murs)
+        hunterSpawn = { x: 450, y: 220 };
+        hiderSpawns = [{x: 100, y: 160}, {x: 800, y: 250}, {x: 310, y: 400}];
 
     } else if (mapIndex === 2) {
         // ----- CARTE 3 : LE LABYRINTHE -----
@@ -581,9 +612,38 @@ function generateInitialState() {
         // Mur vertical qui monte du bas (centre)
         addWallBlock(27, 20, 1, 9);       // descend depuis le mur médian (presque) jusqu'au bas
 
-        // Spawns map 1
-        hunterSpawn = { x: 830, y: 165 };
-        hiderSpawns = [{x: 470, y: 135}, {x: 550, y: 210}, {x: 750, y: 210}];
+        // NOUVEAU (Manoir Atypique)
+        // Alcôve Haut-Centre (Petite salle d'eau)
+        furnitures.push({ x: 410, y: 30, width: 48, height: 48, type: TILES.SHOWER });
+        furnitures.push({ x: 420, y: 90, width: 24, height: 32, type: TILES.TOILET });
+
+        // Coin Haut-Droit (Chambre de maître)
+        furnitures.push({ x: 750, y: 40, width: 67, height: 58, type: TILES.BED_DOUBLE });
+        furnitures.push({ x: 630, y: 40, width: 48, height: 48, type: TILES.WARDROBE });
+        furnitures.push({ x: 700, y: 120, width: 64, height: 48, type: TILES.RUG });
+        furnitures.push({ x: 825, y: 50, width: 24, height: 24, type: TILES.LAMP });
+
+        // Grand espace Haut-Gauche (Bureau & Détente)
+        furnitures.push({ x: 80, y: 80, width: 51, height: 25, type: TILES.DESK_MAC });
+        furnitures.push({ x: 90, y: 110, width: 30, height: 28, type: TILES.CHAIR_DESK });
+        furnitures.push({ x: 40, y: 80, width: 32, height: 32, type: TILES.PLANT });
+        furnitures.push({ x: 200, y: 100, width: 96, height: 48, type: TILES.BILLARD });
+
+        // Espace Bas-Gauche (Coin TV)
+        furnitures.push({ x: 150, y: 320, width: 64, height: 32, type: TILES.COUCH });
+        furnitures.push({ x: 150, y: 420, width: 64, height: 20, type: TILES.TV });
+        furnitures.push({ x: 100, y: 350, width: 32, height: 32, type: TILES.ARMCHAIR });
+        furnitures.push({ x: 150, y: 360, width: 64, height: 48, type: TILES.RUG });
+
+        // Espace Bas-Droit (Cuisine et Atelier)
+        furnitures.push({ x: 600, y: 350, width: 64, height: 64, type: TILES.TABLE });
+        furnitures.push({ x: 500, y: 300, width: 32, height: 48, type: TILES.FRIDGE });
+        furnitures.push({ x: 750, y: 400, width: 48, height: 32, type: TILES.TRUNK });
+        furnitures.push({ x: 800, y: 300, width: 32, height: 32, type: TILES.BOILER });
+
+        // Spawns map 3
+        hunterSpawn = { x: 450, y: 220 };
+        hiderSpawns = [{x: 80, y: 200}, {x: 650, y: 220}, {x: 300, y: 400}];
 
     }
 
