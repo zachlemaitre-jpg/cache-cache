@@ -518,14 +518,17 @@ function generateInitialState() {
 
     } else if (mapIndex === 1) {
         // ----- CARTE 2 : L'ENTREPÔT -----
-        // mur entre : x:192y:22 et x:192y:206
-        addWallBlock(12, 1, 1, 12);
+        // mur entre x:20y:244 et x:196y:244
+        addWallBlock(1, 15, 12, 1);
+
+        // mur entre : x:192y:22 et x:192y:181 
+        addWallBlock(12, 1, 1, 10);
+        
+        // mur entre : x:192y:302 et x:192y:468 
+        addWallBlock(12, 19, 1, 11);
         
         // mur entre : x:615y:353 et x:615y:468
         addWallBlock(38, 22, 1, 8);
-        
-        // mur entre : x:192y:276 et x:192y:468
-        addWallBlock(12, 17, 1, 13);
         
         // mur entre : x:409y:310 et x:428y:310
         addWallBlock(25, 19, 2, 1);
