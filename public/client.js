@@ -518,70 +518,33 @@ function generateInitialState() {
 
     } else if (mapIndex === 1) {
         // ----- CARTE 2 : L'ENTREPÔT -----
-        // 3 pièces hautes (gauche / centre / droite) + 2 compartiments en bas
-
-        // Porte sur le mur extérieur gauche (on perce le mur)
-        isWallGrid[8][0] = false;
-        isWallGrid[9][0] = false;
-
-        // Murs verticaux séparant les 3 pièces hautes
-        addWallBlock(19, 1, 1, 8);        // sépare pièce gauche / centre
-        addWallBlock(38, 1, 1, 8);        // sépare pièce centre / droite
-
-        // Mur médian horizontal (avec 3 ouvertures)
-        addWallBlock(1, 13, 13, 1);       // segment gauche
-        addWallBlock(20, 13, 12, 1);      // segment centre
-        addWallBlock(38, 13, 8, 1);       // segment droit
-        addWallBlock(50, 13, 5, 1);       // segment extrême-droit
-
-        // Petite porte de sortie sur le mur droit extérieur
-        isWallGrid[14][55] = false;
-        isWallGrid[15][55] = false;
-
-        // Compartiment 1 en bas (U inversé ouvert vers le bas)
-        addWallBlock(15, 19, 1, 10);      // mur vertical gauche
-        addWallBlock(15, 19, 9, 1);       // toit
-        addWallBlock(23, 19, 1, 10);      // mur vertical droit
-
-        // Compartiment 2 en bas (U inversé ouvert vers le bas)
-        addWallBlock(30, 19, 1, 10);      // mur vertical gauche
-        addWallBlock(30, 19, 9, 1);       // toit
-        addWallBlock(38, 19, 1, 10);      // mur vertical droit
-
-        // MOBILIER (Loft Moderne)
-        // Pièce Haut-Gauche (Chambre)
-        furnitures.push({ x: 50, y: 40, width: 67, height: 58, type: TILES.BED_DOUBLE });
-        furnitures.push({ x: 20, y: 40, width: 24, height: 24, type: TILES.NIGHTSTAND });
-        furnitures.push({ x: 125, y: 40, width: 24, height: 24, type: TILES.NIGHTSTAND });
-        furnitures.push({ x: 200, y: 40, width: 48, height: 48, type: TILES.WARDROBE });
-        furnitures.push({ x: 60, y: 120, width: 64, height: 48, type: TILES.RUG });
-
-        // Pièce Haut-Centre (Salle de bain)
-        furnitures.push({ x: 340, y: 40, width: 64, height: 32, type: TILES.BATHTUB });
-        furnitures.push({ x: 440, y: 40, width: 24, height: 32, type: TILES.TOILET });
-        furnitures.push({ x: 500, y: 40, width: 48, height: 48, type: TILES.SHOWER });
-        furnitures.push({ x: 550, y: 140, width: 32, height: 32, type: TILES.BOILER });
-
-        // Pièce Haut-Droite (Garage / Débarras)
-        furnitures.push({ x: 650, y: 40, width: 64, height: 128, type: TILES.KANGOO });
-        furnitures.push({ x: 750, y: 40, width: 32, height: 64, type: TILES.MOTO });
-        furnitures.push({ x: 800, y: 140, width: 48, height: 32, type: TILES.TRUNK });
-
-        // Compartiment Bas-Gauche (Cuisine / Salle à manger)
-        furnitures.push({ x: 255, y: 320, width: 32, height: 48, type: TILES.FRIDGE });
-        furnitures.push({ x: 280, y: 380, width: 64, height: 64, type: TILES.TABLE });
-        furnitures.push({ x: 250, y: 400, width: 24, height: 24, type: TILES.CHAIR_TABLE });
-        furnitures.push({ x: 350, y: 400, width: 24, height: 24, type: TILES.CHAIR_TABLE });
-
-        // Compartiment Bas-Droit (Salon)
-        furnitures.push({ x: 520, y: 320, width: 64, height: 32, type: TILES.COUCH });
-        furnitures.push({ x: 520, y: 430, width: 64, height: 20, type: TILES.TV });
-        furnitures.push({ x: 490, y: 360, width: 32, height: 32, type: TILES.ARMCHAIR });
-        furnitures.push({ x: 600, y: 320, width: 32, height: 32, type: TILES.PLANT });
+        // mur entre : x:192y:22 et x:192y:206
+        addWallBlock(12, 1, 1, 12);
+        
+        // mur entre : x:628y:306 et x:895y:306
+        addWallBlock(39, 19, 17, 1);
+        
+        // mur entre : x:615y:353 et x:615y:468
+        addWallBlock(38, 22, 1, 8);
+        
+        // mur entre : x:192y:276 et x:192y:468
+        addWallBlock(12, 17, 1, 13);
+        
+        // mur entre : x:409y:310 et x:428y:310
+        addWallBlock(25, 19, 2, 1);
+        
+        // mur entre : x:487y:310 et x:617y:310
+        addWallBlock(30, 19, 9, 1);
+        
+        // mur entre : x:409y:310 et x:409y:405
+        addWallBlock(25, 19, 1, 7);
+        
+        // mur entre : x:692y:16 et x:692y:101
+        addWallBlock(43, 1, 1, 6);
 
         // Spawns map 2 (Ajustés pour ne pas apparaître dans les murs)
-        hunterSpawn = { x: 450, y: 220 };
-        hiderSpawns = [{x: 100, y: 160}, {x: 800, y: 250}, {x: 310, y: 400}];
+        hunterSpawn = { x: 50, y: 50 };
+        hiderSpawns = [{x: 400, y: 150}, {x: 500, y: 150}, {x: 600, y: 150}];
 
     } else if (mapIndex === 2) {
         // ----- CARTE 3 : LE LABYRINTHE -----
