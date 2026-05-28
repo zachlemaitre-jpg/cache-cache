@@ -957,8 +957,8 @@ function drawGame() {
             if (f.rotation) {
                 const cx = f.x + f.width / 2;
                 const cy = f.y + f.height / 2;
-                const nw = img.naturalWidth;   // taille NATIVE de l'image
-                const nh = img.naturalHeight;
+                const renderW = (f.rotation % 180 === 0) ? f.width : f.height;
+                const renderH = (f.rotation % 180 === 0) ? f.height : f.width;
                 ctx.save();
                 ctx.translate(cx, cy);
                 ctx.rotate(f.rotation * Math.PI / 180);
