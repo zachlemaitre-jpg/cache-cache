@@ -556,66 +556,49 @@ function generateInitialState() {
         hiderSpawns = [{x: 400, y: 150}, {x: 500, y: 150}, {x: 600, y: 150}];
 
     } else if (mapIndex === 2) {
-        // ----- CARTE 3 : LE LABYRINTHE -----
-        // Alcôve haute, deux murs en L à droite, mur médian, mur vertical bas
+        // ----- CARTE 3 : NOUVELLE CARTE SUR MESURE -----
+        
+        // mur entre x:21y:278 et x:214y:278
+        addWallBlock(1, 17, 13, 1);
+        
+        // mur entre x:422y:278 et x:422y:473
+        addWallBlock(26, 17, 1, 13);
+        
+        // mur entre x:599y:151 et x:599y:473
+        addWallBlock(37, 9, 1, 21);
+        
+        // mur entre x:422y:151 et x:599y:151
+        addWallBlock(26, 9, 12, 1);
+        
+        // mur entre x:422y:230 et x:599y:230
+        addWallBlock(26, 14, 12, 1);
+        
+        // mur entre x:422y:73 et x:599y:73
+        addWallBlock(26, 4, 12, 1);
+        
+        // mur entre x:697y:151 et x:697y:250
+        addWallBlock(43, 9, 1, 7);
+        
+        // mur entre x:697y:373 et x:697y:473
+        addWallBlock(43, 23, 1, 7);
+        
+        // mur entre x:697y:312 et x:890y:312
+        addWallBlock(43, 19, 13, 1);
+        
+        // (Le mur ponctuel entre x:697y:151 et x:697y:151 est déjà inclus dans le mur ci-dessus)
+        
+        // mur entre x:599y:7 et x:599y:73
+        addWallBlock(37, 1, 1, 4);
+        
+        // mur entre x:697y:73 et x:757y:73
+        addWallBlock(43, 4, 5, 1);
+        
+        // mur entre x:757y:7 et x:757y:88
+        addWallBlock(47, 1, 1, 5);
 
-        // Porte sur le mur extérieur gauche
-        isWallGrid[10][0] = false;
-        isWallGrid[11][0] = false;
-
-        // Alcôve étroite en haut-centre (cabine)
-        addWallBlock(25, 1, 1, 6);        // mur vertical gauche de l'alcôve
-        addWallBlock(28, 1, 1, 6);        // mur vertical droit de l'alcôve
-        addWallBlock(25, 6, 4, 1);        // fond de l'alcôve
-
-        // Mur en L au tiers-droit (descend du haut puis tourne à gauche)
-        addWallBlock(38, 1, 1, 13);       // segment vertical (descend)
-        addWallBlock(34, 13, 4, 1);       // segment horizontal vers la gauche
-
-        // Petit retour de mur en L plus à droite
-        addWallBlock(48, 14, 1, 4);       // mur vertical
-        addWallBlock(48, 17, 7, 1);       // mur horizontal
-
-        // Mur médian horizontal (avec ouvertures)
-        addWallBlock(1, 17, 18, 1);       // segment gauche
-        addWallBlock(22, 17, 6, 1);       // section courte
-        addWallBlock(31, 17, 16, 1);      // segment central-droit
-
-        // Mur vertical qui monte du bas (centre)
-        addWallBlock(27, 20, 1, 9);       // descend depuis le mur médian (presque) jusqu'au bas
-
-        // NOUVEAU (Manoir Atypique)
-        // Alcôve Haut-Centre (Petite salle d'eau)
-        furnitures.push({ x: 410, y: 30, width: 48, height: 48, type: TILES.SHOWER });
-        furnitures.push({ x: 420, y: 90, width: 24, height: 32, type: TILES.TOILET });
-
-        // Coin Haut-Droit (Chambre de maître)
-        furnitures.push({ x: 750, y: 40, width: 67, height: 58, type: TILES.BED_DOUBLE });
-        furnitures.push({ x: 630, y: 40, width: 48, height: 48, type: TILES.WARDROBE });
-        furnitures.push({ x: 700, y: 120, width: 64, height: 48, type: TILES.RUG });
-        furnitures.push({ x: 825, y: 50, width: 24, height: 24, type: TILES.LAMP });
-
-        // Grand espace Haut-Gauche (Bureau & Détente)
-        furnitures.push({ x: 80, y: 80, width: 51, height: 25, type: TILES.DESK_MAC });
-        furnitures.push({ x: 90, y: 110, width: 30, height: 28, type: TILES.CHAIR_DESK });
-        furnitures.push({ x: 40, y: 80, width: 32, height: 32, type: TILES.PLANT });
-        furnitures.push({ x: 200, y: 100, width: 96, height: 48, type: TILES.BILLARD });
-
-        // Espace Bas-Gauche (Coin TV)
-        furnitures.push({ x: 150, y: 320, width: 64, height: 32, type: TILES.COUCH });
-        furnitures.push({ x: 150, y: 420, width: 64, height: 20, type: TILES.TV });
-        furnitures.push({ x: 100, y: 350, width: 32, height: 32, type: TILES.ARMCHAIR });
-        furnitures.push({ x: 150, y: 360, width: 64, height: 48, type: TILES.RUG });
-
-        // Espace Bas-Droit (Cuisine et Atelier)
-        furnitures.push({ x: 600, y: 350, width: 64, height: 64, type: TILES.TABLE });
-        furnitures.push({ x: 500, y: 300, width: 32, height: 48, type: TILES.FRIDGE });
-        furnitures.push({ x: 750, y: 400, width: 48, height: 32, type: TILES.TRUNK });
-        furnitures.push({ x: 800, y: 300, width: 32, height: 32, type: TILES.BOILER });
-
-        // Spawns map 3
-        hunterSpawn = { x: 450, y: 220 };
-        hiderSpawns = [{x: 80, y: 200}, {x: 650, y: 220}, {x: 300, y: 400}];
+        // Spawns par défaut (à ajuster au besoin)
+        hunterSpawn = { x: 50, y: 50 };
+        hiderSpawns = [{x: 200, y: 100}, {x: 750, y: 200}, {x: 800, y: 400}];
 
     }
 
