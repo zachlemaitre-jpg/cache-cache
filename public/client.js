@@ -570,9 +570,9 @@ function generateInitialState() {
         // Étagère (Axe Y -> Pivotée à 90°)
         furnitures.push({ x: 19, y: 259, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
         // Bureau (Axe Y -> Pivoté à 90°)
-        furnitures.push({ x: 160, y: 403, width: 25, height: 51, rotation: 90, type: TILES.DESK_MAC });
+        furnitures.push({ x: 160, y: 403, width: 25, height: 51, rotation: 90, type: TILES.DESK });
         // Armoire (Axe X)
-        furnitures.push({ x: 21, y: 206, width: 48, height: 48, type: TILES.WARDROBE });
+        furnitures.push({ x: 21, y: 206, width: 48, height: 51, rotation: 180, type: TILES.WARDROBE });
         // Lit (Axe Y -> Position native verticale)
         furnitures.push({ x: 23, y: 22, width: 36, height: 58, type: TILES.BED });
         // Bureau (Axe X -> Position native horizontale)
@@ -582,7 +582,7 @@ function generateInitialState() {
         // Moto (Axe Y -> Position native verticale)
         furnitures.push({ x: 698, y: 332, width: 32, height: 64, type: TILES.MOTO });
 
-        // Spawns map 2 (Ajustés pour ne pas apparaître dans les murs)
+        // Spawns map 2 (Ajustés pour ne pas apparaître dans les murs)dzq
         hunterSpawn = { x: 50, y: 50 };
         hiderSpawns = [{x: 400, y: 150}, {x: 500, y: 150}, {x: 600, y: 150}];
 
