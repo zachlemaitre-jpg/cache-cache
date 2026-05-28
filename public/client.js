@@ -570,7 +570,7 @@ function generateInitialState() {
         // Étagère (Axe Y -> Pivotée à 90°)
         furnitures.push({ x: 19, y: 259, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
         // Bureau (Axe Y -> Pivoté à 90°)
-        furnitures.push({ x: 160, y: 403, width: 25, height: 51, rotation: 90, type: TILES.DESK });
+        furnitures.push({ x: 160, y: 403, width: 25, height: 51, rotation: 90, type: TILES.DESK_MAC });
         // Armoire (Axe X)
         furnitures.push({ x: 21, y: 206, width: 48, height: 51, rotation: 180, type: TILES.WARDROBE });
         // Lit (Axe Y -> Position native verticale)
@@ -962,7 +962,7 @@ function drawGame() {
                 ctx.save();
                 ctx.translate(cx, cy);
                 ctx.rotate(f.rotation * Math.PI / 180);
-                ctx.drawImage(img, -nw / 2, -nh / 2, nw, nh);
+                ctx.drawImage(img, -renderW / 2, -renderH / 2, renderW, renderH);
                 ctx.restore();
             } else {
                 ctx.drawImage(img, f.x, f.y, f.width, f.height);
