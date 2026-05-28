@@ -566,15 +566,15 @@ function generateInitialState() {
         // WC (Axe X)
         furnitures.push({ x: 574, y: 430, width: 32, height: 24, rotation: 90, type: TILES.TOILET });
         // Lit (Axe X -> Pivoté à 90°)
-        furnitures.push({ x: 20, y: 426, width: 58, height: 36, rotation: 90, type: TILES.BED });
+        furnitures.push({ x: 20, y: 426, width: 58, height: 36, rotation: 270, type: TILES.BED });
         // Étagère (Axe Y -> Pivotée à 90°)
         furnitures.push({ x: 19, y: 259, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
         // Bureau (Axe Y -> Pivoté à 90°)
         furnitures.push({ x: 160, y: 403, width: 25, height: 51, rotation: 90, type: TILES.DESK_MAC });
         // Armoire (Axe X)
-        furnitures.push({ x: 25, y: 190, width: 48, height: 51, rotation: 180, type: TILES.WARDROBE });
+        furnitures.push({ x: 23, y: 211, width: 65, height: 51, rotation: 180, type: TILES.WARDROBE });
         // Lit (Axe Y -> Position native verticale)
-        furnitures.push({ x: 23, y: 22, width: 36, height: 68, rotation: 270, type: TILES.BED });
+        furnitures.push({ x: 23, y: 22, width: 36, height: 68, type: TILES.BED });
         // Bureau (Axe X -> Position native horizontale)
         furnitures.push({ x: 101, y: 21, width: 51, height: 25, type: TILES.DESK_MAC });
         // Kangoo (Axe Y -> Position native verticale)
