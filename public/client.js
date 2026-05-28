@@ -556,13 +556,13 @@ function generateInitialState() {
         // Télé (Axe X)
         furnitures.push({ x: 294, y: 23, width: 64, height: 20, type: TILES.TV });
         // Tapis (Axe X)
-        furnitures.push({ x: 278, y: 52, width: 64, height: 62, type: TILES.RUG });
+        furnitures.push({ x: 278, y: 52, width: 64, height: 70, type: TILES.RUG });
         // Canapé (Axe X)
         furnitures.push({ x: 300, y: 119, width: 64, height: 32, rotation: 180, type: TILES.COUCH });
         // Table (Axe X)
         furnitures.push({ x: 518, y: 85, width: 64, height: 64, type: TILES.TABLE });
         // Frigo (Axe X)
-        furnitures.push({ x: 708, y: 21, width: 32, height: 48, type: TILES.FRIDGE });
+        furnitures.push({ x: 708, y: 21, width: 32, height: 33, type: TILES.FRIDGE });
         // WC (Axe X)
         furnitures.push({ x: 574, y: 430, width: 24, height: 32, rotation: 90, type: TILES.TOILET });
         // Lit (Axe X -> Pivoté à 90°)
@@ -572,7 +572,7 @@ function generateInitialState() {
         // Bureau (Axe Y -> Pivoté à 90°)
         furnitures.push({ x: 160, y: 403, width: 25, height: 51, rotation: 90, type: TILES.DESK_MAC });
         // Armoire (Axe X)
-        furnitures.push({ x: 25, y: 170, width: 48, height: 51, rotation: 180, type: TILES.WARDROBE });
+        furnitures.push({ x: 25, y: 190, width: 48, height: 51, rotation: 180, type: TILES.WARDROBE });
         // Lit (Axe Y -> Position native verticale)
         furnitures.push({ x: 23, y: 22, width: 36, height: 58, type: TILES.BED });
         // Bureau (Axe X -> Position native horizontale)
