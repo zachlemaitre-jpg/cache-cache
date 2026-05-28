@@ -585,8 +585,6 @@ function generateInitialState() {
         // mur entre x:697y:312 et x:890y:312
         addWallBlock(43, 19, 13, 1);
         
-        // (Le mur ponctuel entre x:697y:151 et x:697y:151 est déjà inclus dans le mur ci-dessus)
-        
         // mur entre x:599y:7 et x:599y:73
         addWallBlock(37, 1, 1, 4);
         
@@ -595,6 +593,12 @@ function generateInitialState() {
         
         // mur entre x:757y:7 et x:757y:88
         addWallBlock(47, 1, 1, 5);
+
+        // mur entre x:314y:7 et x:314y:151
+        addWallBlock(20, 1, 1, 9);
+
+        // mur entre x:697y:151 et x:890y:151
+        addWallBlock(43, 9, 13, 1);
 
         // Spawns par défaut (à ajuster au besoin)
         hunterSpawn = { x: 50, y: 50 };
