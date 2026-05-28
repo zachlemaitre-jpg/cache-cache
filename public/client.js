@@ -556,7 +556,7 @@ function generateInitialState() {
         // Télé (Axe X)
         furnitures.push({ x: 294, y: 23, width: 64, height: 20, type: TILES.TV });
         // Tapis (Axe X)
-        furnitures.push({ x: 278, y: 52, width: 64, height: 52, type: TILES.RUG });
+        furnitures.push({ x: 278, y: 52, width: 64, height: 62, type: TILES.RUG });
         // Canapé (Axe X)
         furnitures.push({ x: 300, y: 119, width: 64, height: 32, rotation: 180, type: TILES.COUCH });
         // Table (Axe X)
@@ -572,7 +572,7 @@ function generateInitialState() {
         // Bureau (Axe Y -> Pivoté à 90°)
         furnitures.push({ x: 160, y: 403, width: 25, height: 51, rotation: 90, type: TILES.DESK_MAC });
         // Armoire (Axe X)
-        furnitures.push({ x: 25, y: 210, width: 48, height: 51, rotation: 180, type: TILES.WARDROBE });
+        furnitures.push({ x: 25, y: 170, width: 48, height: 51, rotation: 180, type: TILES.WARDROBE });
         // Lit (Axe Y -> Position native verticale)
         furnitures.push({ x: 23, y: 22, width: 36, height: 58, type: TILES.BED });
         // Bureau (Axe X -> Position native horizontale)
