@@ -595,7 +595,7 @@ function generateInitialState() {
         // plaques cuisine
         furnitures.push({ x: 745, y: 20, width: 55, height: 32, type: TILES.STOVE });
         // chaudière cuisine
-        furnitures.push({ x: 552, y: 26, width: 32, height: 32, type: TILES.BOILER });
+        furnitures.push({ x: 843, y: 262, width: 32, height: 32, type: TILES.BOILER });
 
 
         // Spawns map 2 (Ajustés pour ne pas apparaître dans les murs)dzq
@@ -679,8 +679,8 @@ function generateInitialState() {
         furnitures.push({ x: 850, y:88, width: 28, height: 45, rotation: 90, type: TILES.SINK });
         // plaques cuisine
         furnitures.push({ x: 558, y: 372, width: 32, height: 55, rotation: 90, type: TILES.STOVE });
-        // chaudière 
-        furnitures.push({ x: 845, y: 260, width: 32, height: 32, type: TILES.BOILER });
+        // chaudière
+        furnitures.push({ x: 552, y: 26, width: 32, height: 32, type: TILES.BOILER });
         // baignoire
         furnitures.push({ x: 773, y: 20, width: 57, height: 30, type: TILES.BATHTUB });
         // table de chevet chambre bas
