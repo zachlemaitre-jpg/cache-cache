@@ -651,35 +651,35 @@ function generateInitialState() {
         // WC 
         furnitures.push({ x: 714, y: 20, width: 32, height: 24, rotation: 90, type: TILES.TOILET });
         // Armoire 
-        furnitures.push({ x: 20, y: 401, width: 65, height: 30, rotation: 270, type: TILES.WARDROBE });
+        furnitures.push({ x: 20, y: 401, width: 30, height: 65, rotation: 270, type: TILES.WARDROBE });
         // Lit double
-        furnitures.push({ x: 797, y: 230, width: 46, height: 78, rotation: 90, type: TILES.BED_DOUBLE });
+        furnitures.push({ x: 797, y: 230, width: 46, height: 78, rotation: 180, type: TILES.BED_DOUBLE });
         // Lit double
         furnitures.push({ x: 740, y: 394, width: 46, height: 78, rotation: 180, type: TILES.BED_DOUBLE });
         // Bureau mac
-        furnitures.push({ x: 852, y: 407, width: 51, height: 25, rotation: 90, type: TILES.DESK_MAC });
+        furnitures.push({ x: 852, y: 407, width: 25, height: 51, rotation: 90, type: TILES.DESK_MAC });
         // Étagère
         furnitures.push({ x: 97, y: 291, width: 52, height: 26, type: TILES.SHELF });
         // Étagère 
         furnitures.push({ x: 20, y: 291, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
         // Étagère salon
         furnitures.push({ x: 297, y: 55, width: 22, height: 52, rotation: 90, type: TILES.SHELF });
-        // Étagère 
-        furnitures.push({ x: 812, y: 324, width: 26, height: 52, type: TILES.SHELF });
+        // Étagère chambre bas
+        furnitures.push({ x: 812, y: 324, width: 52, height: 26, type: TILES.SHELF });
         // lavabo cuisine
         furnitures.push({ x: 470, y: 430, width: 75, height: 32, rotation: 180, type: TILES.SINK });
         // lavabo sdb
-        furnitures.push({ x: 850, y:88, width: 45, height: 28, rotation: 180, type: TILES.SINK });
+        furnitures.push({ x: 850, y:88, width: 28, height: 45, rotation: 270, type: TILES.SINK });
         // plaques cuisine
         furnitures.push({ x: 561, y: 372, width: 32, height: 55, rotation: 90, type: TILES.STOVE });
         // chaudière cuisine
         furnitures.push({ x: 555, y: 28, width: 32, height: 32, type: TILES.BOILER });
         // baignoire
         furnitures.push({ x: 773, y: 20, width: 57, height: 30, type: TILES.BATHTUB });
-        // table de chevet
+        // table de chevet chambre bas
         furnitures.push({ x: 707, y: 439, width: 23, height: 23, type: TILES.NIGHTSTAND });
-        // table de chevet
-        furnitures.push({ x: 865, y: 165, width: 23, height: 23, type: TILES.NIGHTSTAND });
+        // table de chevet chambre haut
+        furnitures.push({ x: 848, y: 281, width: 23, height: 23, type: TILES.NIGHTSTAND });
         // plante
         furnitures.push({ x: 243, y: 19, width: 25, height: 24, type: TILES.PLANT });
 
