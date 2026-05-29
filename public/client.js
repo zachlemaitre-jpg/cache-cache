@@ -603,6 +603,8 @@ function generateInitialState() {
         furnitures.push({ x: 420, y:372, width: 45, height: 28, rotation: 180, type: TILES.SINK });
         // plaques cuisine
         furnitures.push({ x: 745, y: 20, width: 55, height: 32, type: TILES.STOVE });
+        // chaudière cuisine
+        furnitures.push({ x: 850, y: 210, width: 32, height: 32, type: TILES.BOILER });
 
 
         // Spawns map 2 (Ajustés pour ne pas apparaître dans les murs)dzq
