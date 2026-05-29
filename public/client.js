@@ -11,12 +11,12 @@ const TILES = {
     BED_OPEN:        71,   // 19x59 lit ouvert
     BED_DOUBLE:      72,   // 67x58 lit double
     BED_DOUBLE_OPEN: 73,   // 19x59 lit double ouvert
-    WARDROBE:        80,   // 48x48 armoire
-    WARDROBE_OPEN:   81,   // 48x48 armoire ouverte
+    WARDROBE:        80,   // 36x22 armoire
+    WARDROBE_OPEN:   81,   // 48x35 armoire ouverte
     KANGOO:          76,   // voiture
     KANGOO_OPEN:     77,   // voiture ouverte
-    SHOWER:          74,   // douche
-    SHOWER_OPEN:     75,   // douche ouverte
+    SHOWER:          74,   // 36x40 douche
+    SHOWER_OPEN:     75,   // 36x40 douche ouverte
     RUG:             78,   // tapis
     RUG_OPEN:        79,   // tapis ouvert
     BATHTUB:         88,   // baignoire
@@ -570,7 +570,7 @@ function generateInitialState() {
         // Étagère (Axe Y -> Pivotée à 90°)
         furnitures.push({ x: 19, y: 259, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
         // Bureau (Axe Y -> Pivoté à 90°)
-        furnitures.push({ x: 160, y: 403, width: 25, height: 51, rotation: 90, type: TILES.DESK_MAC });
+        furnitures.push({ x: 160, y: 403, width: 25, height: 30, rotation: 90, type: TILES.DESK_MAC });
         // Armoire (Axe X)
         furnitures.push({ x: 20, y: 212, width: 65, height: 55, rotation: 180, type: TILES.WARDROBE });
         // Lit (Axe Y -> Position native verticale)
@@ -991,14 +991,23 @@ function drawGame() {
         const p = playersState[id];
         if (!p.alive || (p.role === 'HIDER' && p.hidden && id !== socket.id)) continue;
 
-        const spriteSize = 32;
-        const drawX = p.x - (spriteSize - p.size) / 2;
-        const drawY = p.y - (spriteSize - p.size) / 2;
         const imgKey = p.role === 'HUNTER' ? (p.moving ? `hunter_walk${(Math.floor(p.animTimer / 200) % 2)+1}_${p.dir}` : `hunter_idle_${p.dir}`) : `hider_${p.dir}`;
         const img = images[imgKey] || images.hider_down;
 
-        if (img && img.complete) ctx.drawImage(img, drawX, drawY, spriteSize, spriteSize);
-        else { ctx.fillStyle = (p.role === 'HUNTER') ? '#e63946' : '#2196f3'; ctx.fillRect(p.x, p.y, p.size, p.size); }
+        if (img && img.complete && img.naturalWidth > 0) {
+            // NOUVEAU : On récupère les dimensions exactes de ton image modifiée
+            const renderW = img.naturalWidth;
+            const renderH = img.naturalHeight;
+            
+            // On centre l'image parfaitement sur la boîte de collision physique du joueur
+            const drawX = p.x + (p.size / 2) - (renderW / 2);
+            const drawY = p.y + (p.size / 2) - (renderH / 2);
+            
+            ctx.drawImage(img, drawX, drawY, renderW, renderH);
+        } else { 
+            ctx.fillStyle = (p.role === 'HUNTER') ? '#e63946' : '#2196f3'; 
+            ctx.fillRect(p.x, p.y, p.size, p.size); 
+        }
     }
 
     // 4. BROUILLARD
