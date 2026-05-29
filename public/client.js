@@ -687,7 +687,7 @@ function generateInitialState() {
         //Chaise2
         furnitures.push({ x: 262, y: 359, width: 35, height: 35, rotation: 270, type: TILES.CHAIR });
         //Fauteuil
-        furnitures.push({ x: 188, y: 239, width: 26, height: 23, rotation: 180, type: TILES.ARMCHAIR });
+        furnitures.push({ x: 188, y: 239, width: 35, height: 35, rotation: 180, type: TILES.ARMCHAIR });
 
         // Spawns map 3
         hunterSpawn = { x: 50, y: 50 };
