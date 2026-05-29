@@ -547,33 +547,33 @@ function generateInitialState() {
 
         // MOBILIER - CARTE 2
         // ==========================================
-        // Télé (Axe X)
+        // Télé 
         furnitures.push({ x: 294, y: 23, width: 64, height: 20, type: TILES.TV });
-        // Tapis (Axe X)
+        // Tapis 
         furnitures.push({ x: 278, y: 52, width: 84, height: 70, type: TILES.RUG });
-        // Canapé (Axe X)
+        // Canapé
         furnitures.push({ x: 300, y: 119, width: 84, height: 42, rotation: 180, type: TILES.COUCH });
-        // Table (Axe X)
+        // Table 
         furnitures.push({ x: 518, y: 85, width: 64, height: 64, type: TILES.TABLE });
-        // Frigo (Axe X)
+        // Frigo 
         furnitures.push({ x: 708, y: 21, width: 32, height: 33, type: TILES.FRIDGE });
-        // WC (Axe X)
+        // WC 
         furnitures.push({ x: 574, y: 430, width: 32, height: 24, rotation: 90, type: TILES.TOILET });
-        // Lit (Axe X -> Pivoté à 90°)
+        // Lit bas
         furnitures.push({ x: 20, y: 406, width: 78, height: 46, rotation: 270, type: TILES.BED });
-        // Étagère (Axe Y -> Pivotée à 90°)
+        // Étagère 
         furnitures.push({ x: 19, y: 259, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
-        // Bureau (Axe Y -> Pivoté à 90°)
+        // Bureau 
         furnitures.push({ x: 160, y: 403, width: 25, height: 30, rotation: 90, type: TILES.DESK_MAC });
-        // Armoire (Axe X)
-        furnitures.push({ x: 20, y: 212, width: 65, height: 30, rotation: 180, type: TILES.WARDROBE });
-        // Lit (Axe Y -> Position native verticale)
-        furnitures.push({ x: 23, y: 22, width: 46, height: 78, type: TILES.BED });
-        // Bureau (Axe X -> Position native horizontale)
+        // Armoire 
+        furnitures.push({ x: 20, y: 205, width: 65, height: 30, rotation: 180, type: TILES.WARDROBE });
+        // Lit haut
+        furnitures.push({ x: 23, y: 22, width: 46, height: 68, type: TILES.BED });
+        // Bureau 
         furnitures.push({ x: 101, y: 21, width: 51, height: 25, type: TILES.DESK_MAC });
-        // Kangoo (Axe Y -> Position native verticale)
+        // Kangoo 
         furnitures.push({ x: 774, y: 311, width: 64, height: 128, type: TILES.KANGOO });
-        // Moto (Axe Y -> Position native verticale)
+        // Moto 
         furnitures.push({ x: 698, y: 332, width: 32, height: 64, type: TILES.MOTO });
         //Douche
         furnitures.push({ x: 549, y: 341, width: 55, height: 55, rotation: 180, type: TILES.SHOWER });
