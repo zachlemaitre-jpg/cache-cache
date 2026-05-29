@@ -1113,8 +1113,11 @@ function drawGame() {
                 }
                 
                 if (alpha > 0) {
-                    ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(alpha, 0.98)})`;
-                    ctx.fillRect(x, y, 16, 16);
+                    ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+                    
+                    // On dessine du 17x17 pour superposer légèrement les blocs 
+                    // et boucher toutes les micro-fissures de la grille
+                    ctx.fillRect(x, y, 17, 17);
                 }
             }
         }
