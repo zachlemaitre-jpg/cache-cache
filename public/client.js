@@ -25,6 +25,7 @@ const TILES = {
     // === DECORS ===
     PLANT:           61,   // 25x24 plante décorative
     CHAIR:           60,   // 32x32 décoratif
+    DESK:            94,   // 43x27 pc fixe
     DESK_MAC:        31,   // 51x25 version Mac
     PLANT:           61,   // 25x24 décoratif
     NIGHTSTAND:      62,   // 23x23 table de chevet 
@@ -563,8 +564,8 @@ function generateInitialState() {
         furnitures.push({ x: 20, y: 406, width: 78, height: 46, rotation: 270, type: TILES.BED });
         // Étagère 
         furnitures.push({ x: 19, y: 259, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
-        // Bureau 
-        furnitures.push({ x: 160, y: 403, width: 25, height: 55, rotation: 90, type: TILES.DESK_MAC });
+        // Bureau pc fixe
+        furnitures.push({ x: 160, y: 403, width: 25, height: 55, rotation: 90, type: TILES.DESK });
         // Armoire 
         furnitures.push({ x: 20, y: 205, width: 65, height: 30, rotation: 180, type: TILES.WARDROBE });
         // Lit haut
