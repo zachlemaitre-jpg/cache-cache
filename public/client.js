@@ -524,34 +524,24 @@ function generateInitialState() {
         // ----- CARTE 2 : L'ENTREPÔT -----
         // mur entre x:20y:244 et x:196y:244
         addWallBlock(1, 15, 12, 1);
-
         // mur entre : x:192y:22 et x:192y:181 
         addWallBlock(12, 1, 1, 10);
-        
         // mur entre : x:192y:302 et x:192y:468 
         addWallBlock(12, 19, 1, 11);
-        
         // mur entre : x:615y:353 et x:615y:468
         addWallBlock(38, 22, 1, 8);
-        
         // mur entre : x:409y:310 et x:428y:310
         addWallBlock(25, 19, 2, 1);
-        
         // mur entre : x:487y:310 et x:617y:310
         addWallBlock(30, 19, 9, 1);
-        
         // mur entre : x:409y:310 et x:409y:405
         addWallBlock(25, 19, 1, 7);
-        
         // mur entre : x:692y:16 et x:692y:101
         addWallBlock(43, 1, 1, 6);
-        
         // mur entre x:414y:403 et x:613y:403
         addWallBlock(26, 25, 13, 1);
-        
         // mur entre x:611y:244 et x:883y:244
         addWallBlock(38, 15, 18, 1);
-        
         // mur entre x:611y:308 et x:611y:355
         addWallBlock(38, 19, 1, 4);
 
@@ -613,77 +603,63 @@ function generateInitialState() {
 
     } else if (mapIndex === 2) {
         // ----- CARTE 3 : NOUVELLE CARTE SUR MESURE -----
-        
         // mur entre x:21y:278 et x:214y:278
         addWallBlock(1, 17, 13, 1);
-        
         // mur entre x:422y:278 et x:422y:473
         addWallBlock(26, 17, 1, 13);
-        
         // mur entre x:599y:151 et x:599y:473
         addWallBlock(37, 9, 1, 21);
-        
         // mur entre x:422y:151 et x:599y:151
         addWallBlock(26, 9, 12, 1);
-        
         // mur entre x:422y:230 et x:599y:230
         addWallBlock(26, 14, 12, 1);
-        
         // mur entre x:422y:73 et x:599y:73
         addWallBlock(26, 4, 12, 1);
-        
         // mur entre x:697y:151 et x:697y:250
         addWallBlock(43, 9, 1, 7);
-        
         // mur entre x:697y:373 et x:697y:473
         addWallBlock(43, 23, 1, 7);
-        
         // mur entre x:697y:312 et x:890y:312
         addWallBlock(43, 19, 13, 1);
-        
         // mur entre x:599y:7 et x:599y:73
         addWallBlock(37, 1, 1, 4);
-        
         // mur entre x:697y:73 et x:757y:73
         addWallBlock(43, 4, 5, 1);
-        
         // mur entre x:757y:7 et x:757y:88
         addWallBlock(47, 1, 1, 5);
-
         // mur entre x:314y:7 et x:314y:151
         addWallBlock(20, 1, 1, 9);
-
         // mur entre x:697y:151 et x:890y:151
         addWallBlock(43, 9, 13, 1);
 
         // MOBILIER - CARTE 3
         // ==========================================
-        // Télé (Axe X)
-        furnitures.push({ x: 20, y: 92, width: 64, height: 20, rotation: 270, type: TILES.TV });
-        // Tapis (Axe X)
+        // Télé 
+        furnitures.push({ x: 20, y: 92, width: 20, height: 64, rotation: 270, type: TILES.TV });
+        // Tapis 
         furnitures.push({ x: 79, y: 336, width: 84, height: 70, type: TILES.RUG });
-        // Canapé (Axe X)
+        // Canapé 
         furnitures.push({ x: 57, y: 57, width: 84, height: 42, type: TILES.COUCH });
-        // Canapé (Axe X)
+        // Canapé
         furnitures.push({ x: 57, y: 190, width: 84, height: 42, rotation: 180, type: TILES.COUCH });
-        // Table (Axe X)
+        // Table 
         furnitures.push({ x: 518, y: 85, width: 64, height: 64, type: TILES.TABLE });
-        // Frigo (Axe X)
+        // Frigo 
         furnitures.push({ x: 436, y: 435, width: 32, height: 33, rotation: 180, type: TILES.FRIDGE });
-        // WC (Axe X)
+        // WC 
         furnitures.push({ x: 551, y: 183, width: 32, height: 24, rotation: 90, type: TILES.TOILET });
-        // WC (Axe X)
+        // WC 
         furnitures.push({ x: 714, y: 20, width: 32, height: 24, rotation: 90, type: TILES.TOILET });
         // Armoire (Axe X)
         furnitures.push({ x: 20, y: 401, width: 65, height: 30, type: TILES.WARDROBE });
-        // Lit (Axe Y -> Position native verticale)
+        // Lit double
         furnitures.push({ x: 797, y: 230, width: 46, height: 78, rotation: 90, type: TILES.BED_DOUBLE });
-        // Lit (Axe Y -> Position native verticale)
+        // Lit double
         furnitures.push({ x: 740, y: 394, width: 46, height: 78, rotation: 180, type: TILES.BED_DOUBLE });
-        // Bureau (Axe X -> Position native horizontale)
+        // Bureau mac
         furnitures.push({ x: 852, y: 407, width: 51, height: 25, rotation: 90, type: TILES.DESK_MAC });
-        // Étagère 
-        furnitures.push({ x: 97, y: 291, width: 26, height: 52, type: TILES.SHELF });
+        // Étagère
+        furnitures.push({ x: 97, y: 291, width: 52, height: 26, type: TILES.SHELF });
         // Étagère 
         furnitures.push({ x: 20, y: 291, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
         // Étagère
@@ -707,7 +683,7 @@ function generateInitialState() {
         // plante
         furnitures.push({ x: 243, y: 19, width: 25, height: 24, type: TILES.PLANT });
 
-        // Spawns par défaut (à ajuster au besoin)
+        // Spawns map 3
         hunterSpawn = { x: 50, y: 50 };
         hiderSpawns = [{x: 200, y: 100}, {x: 750, y: 200}, {x: 800, y: 400}];
 
