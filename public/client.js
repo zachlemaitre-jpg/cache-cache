@@ -41,6 +41,8 @@ const TILES = {
     TABLE:           85,   // table
     TV:              87,   // télévision
     TOILET:          50,   // wc
+    SINK:            92,   // lavabo
+    STOVE:           93,   // plaques de cuisson
 };
 
 // 2. DICTIONNAIRE D'IMAGES
@@ -107,7 +109,9 @@ const imagePaths = {
     [TILES.MOTO]:            'assets/kawasaki.png',   
     [TILES.TRUNK]:           'assets/malle.png',       
     [TILES.TABLE]:           'assets/table.png',     
-    [TILES.TV]:              'assets/tv.png',     
+    [TILES.TV]:              'assets/tv.png',  
+    [TILES.SINK]:            'assets/lavabo.png',
+    [TILES.STOVE]:           'assets/plaque.png',   
     
 
 };
@@ -593,6 +597,12 @@ function generateInitialState() {
         furnitures.push({ x: 539, y: 151, width: 35, height: 35, rotation: 180, type: TILES.CHAIR });
         // Étagère salon
         furnitures.push({ x: 661, y: 22, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
+        // lavabo cuisine
+        furnitures.push({ x: 661, y: 22, width: 26, height: 52, rotation: 90, type: TILES.SINK });
+        // lavabo sdb
+        furnitures.push({ x: 661, y: 22, width: 45, height: 32, type: TILES.SINK });
+        // plaques cuisine
+        furnitures.push({ x: 661, y: 22, width: 45, height: 32, type: TILES.STOVE });
 
 
         // Spawns map 2 (Ajustés pour ne pas apparaître dans les murs)dzq
@@ -995,11 +1005,20 @@ function drawGame() {
         const img = images[imgKey] || images.hider_down;
 
         if (img && img.complete && img.naturalWidth > 0) {
-            // NOUVEAU : On récupère les dimensions exactes de ton image modifiée
-            const renderW = img.naturalWidth;
-            const renderH = img.naturalHeight;
             
-            // On centre l'image parfaitement sur la boîte de collision physique du joueur
+            // NOUVEAU : Facteur de taille. 1 = taille normale.
+            let customScale = 1; 
+            
+            // On réduit spécifiquement la taille du Traqué (ici moitié moins grand)
+            if (p.role === 'HIDER') {
+                customScale = 0.5; // <-- Modifie ce chiffre selon tes besoins !
+            }
+
+            // On applique le facteur d'échelle aux dimensions de l'image
+            const renderW = img.naturalWidth * customScale;
+            const renderH = img.naturalHeight * customScale;
+            
+            // On centre l'image parfaitement sur la boîte de collision physique
             const drawX = p.x + (p.size / 2) - (renderW / 2);
             const drawY = p.y + (p.size / 2) - (renderH / 2);
             
