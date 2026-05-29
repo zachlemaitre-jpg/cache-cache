@@ -666,6 +666,10 @@ function generateInitialState() {
         furnitures.push({ x: 20, y: 291, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
         // Étagère salon
         furnitures.push({ x: 297, y: 55, width: 22, height: 52, rotation: 90, type: TILES.SHELF });
+        // Étagère cuisine
+        furnitures.push({ x: 845, y: 169, width: 22, height: 52, rotation: 90, type: TILES.SHELF });
+        // Étagère entrée
+        furnitures.push({ x: 213, y: 386, width: 22, height: 52, rotation: 90, type: TILES.SHELF });
         // Étagère chambre bas
         furnitures.push({ x: 812, y: 324, width: 52, height: 26, type: TILES.SHELF });
         // lavabo cuisine
@@ -675,7 +679,7 @@ function generateInitialState() {
         // plaques cuisine
         furnitures.push({ x: 558, y: 372, width: 32, height: 55, rotation: 90, type: TILES.STOVE });
         // chaudière cuisine
-        furnitures.push({ x: 555, y: 28, width: 32, height: 32, type: TILES.BOILER });
+        furnitures.push({ x: 845, y: 260, width: 32, height: 32, type: TILES.BOILER });
         // baignoire
         furnitures.push({ x: 773, y: 20, width: 57, height: 30, type: TILES.BATHTUB });
         // table de chevet chambre bas
