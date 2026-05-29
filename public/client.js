@@ -34,7 +34,7 @@ const TILES = {
     CHAIR_TABLE:     67,   // chaise table
     FRIDGE:          69,   // frigo
     COUCH:           66,   // canapé
-    ARMCHAIR:        68,   // fauteuil
+    ARMCHAIR:        68,   // 26x23 fauteuil
     BOILER:          82,   // chaudière
     MOTO:            83,   // moto Kawasaki
     TRUNK:           84,   // malle
@@ -645,17 +645,17 @@ function generateInitialState() {
         // Table 
         furnitures.push({ x: 290, y: 340, width: 64, height: 64, type: TILES.TABLE });
         // Frigo 
-        furnitures.push({ x: 436, y: 432, width: 32, height: 33, rotation: 180, type: TILES.FRIDGE });
+        furnitures.push({ x: 436, y: 428, width: 32, height: 33, rotation: 180, type: TILES.FRIDGE });
         // WC 
         furnitures.push({ x: 551, y: 183, width: 32, height: 24, rotation: 90, type: TILES.TOILET });
         // WC 
         furnitures.push({ x: 714, y: 20, width: 32, height: 24, rotation: 90, type: TILES.TOILET });
         // Armoire 
-        furnitures.push({ x: 20, y: 401, width: 30, height: 65, rotation: 270, type: TILES.WARDROBE });
-        // Lit double
-        furnitures.push({ x: 797, y: 230, width: 46, height: 78, rotation: 180, type: TILES.BED_DOUBLE });
-        // Lit double
-        furnitures.push({ x: 740, y: 394, width: 46, height: 78, rotation: 180, type: TILES.BED_DOUBLE });
+        furnitures.push({ x: 20, y: 391, width: 30, height: 65, rotation: 270, type: TILES.WARDROBE });
+        // Lit double chambre haut
+        furnitures.push({ x: 797, y: 230, width: 64, height: 78, rotation: 180, type: TILES.BED_DOUBLE });
+        // Lit double chambre bas
+        furnitures.push({ x: 740, y: 394, width: 64, height: 78, rotation: 180, type: TILES.BED_DOUBLE });
         // Bureau mac
         furnitures.push({ x: 852, y: 407, width: 25, height: 51, rotation: 90, type: TILES.DESK_MAC });
         // Étagère
@@ -667,11 +667,11 @@ function generateInitialState() {
         // Étagère chambre bas
         furnitures.push({ x: 812, y: 324, width: 52, height: 26, type: TILES.SHELF });
         // lavabo cuisine
-        furnitures.push({ x: 470, y: 430, width: 75, height: 32, rotation: 180, type: TILES.SINK });
+        furnitures.push({ x: 487, y: 430, width: 68, height: 32, rotation: 180, type: TILES.SINK });
         // lavabo sdb
-        furnitures.push({ x: 850, y:88, width: 28, height: 45, rotation: 270, type: TILES.SINK });
+        furnitures.push({ x: 850, y:88, width: 28, height: 45, rotation: 180, type: TILES.SINK });
         // plaques cuisine
-        furnitures.push({ x: 561, y: 372, width: 32, height: 55, rotation: 90, type: TILES.STOVE });
+        furnitures.push({ x: 558, y: 372, width: 32, height: 55, rotation: 90, type: TILES.STOVE });
         // chaudière cuisine
         furnitures.push({ x: 555, y: 28, width: 32, height: 32, type: TILES.BOILER });
         // baignoire
@@ -682,6 +682,12 @@ function generateInitialState() {
         furnitures.push({ x: 848, y: 281, width: 23, height: 23, type: TILES.NIGHTSTAND });
         // plante
         furnitures.push({ x: 243, y: 19, width: 25, height: 24, type: TILES.PLANT });
+        //Chaise1
+        furnitures.push({ x: 308, y: 406, width: 35, height: 35, rotation: 180, type: TILES.CHAIR });
+        //Chaise2
+        furnitures.push({ x: 262, y: 359, width: 35, height: 35, rotation: 270, type: TILES.CHAIR });
+        //Fauteuil
+        furnitures.push({ x: 188, y: 239, width: 26, height: 23, rotation: 180, type: TILES.ARMCHAIR });
 
         // Spawns map 3
         hunterSpawn = { x: 50, y: 50 };
