@@ -598,7 +598,7 @@ function generateInitialState() {
         // Étagère salon
         furnitures.push({ x: 661, y: 22, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
         // lavabo cuisine
-        furnitures.push({ x: 661, y: 22, width: 26, height: 52, rotation: 90, type: TILES.SINK });
+        furnitures.push({ x: 804, y: 20, width: 55, height: 32, type: TILES.SINK });
         // lavabo sdb
         furnitures.push({ x: 420, y:372, width: 45, height: 28, rotation: 180, type: TILES.SINK });
         // plaques cuisine
