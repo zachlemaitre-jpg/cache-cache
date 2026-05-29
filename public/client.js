@@ -576,7 +576,7 @@ function generateInitialState() {
         // Bureau (Axe Y -> Pivoté à 90°)
         furnitures.push({ x: 160, y: 403, width: 25, height: 30, rotation: 90, type: TILES.DESK_MAC });
         // Armoire (Axe X)
-        furnitures.push({ x: 20, y: 212, width: 65, height: 40, rotation: 180, type: TILES.WARDROBE });
+        furnitures.push({ x: 20, y: 200, width: 65, height: 30, rotation: 180, type: TILES.WARDROBE });
         // Lit (Axe Y -> Position native verticale)
         furnitures.push({ x: 23, y: 22, width: 46, height: 78, type: TILES.BED });
         // Bureau (Axe X -> Position native horizontale)
