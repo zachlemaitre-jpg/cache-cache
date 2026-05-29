@@ -635,7 +635,7 @@ function generateInitialState() {
         // MOBILIER - CARTE 3
         // ==========================================
         // Télé 
-        furnitures.push({ x: 20, y: 92, width: 20, height: 64, rotation: 270, type: TILES.TV });
+        furnitures.push({ x: 20, y: 114, width: 20, height: 64, rotation: 270, type: TILES.TV });
         // Tapis 
         furnitures.push({ x: 79, y: 336, width: 84, height: 70, type: TILES.RUG });
         // Canapé 
@@ -643,15 +643,15 @@ function generateInitialState() {
         // Canapé
         furnitures.push({ x: 57, y: 190, width: 84, height: 42, rotation: 180, type: TILES.COUCH });
         // Table 
-        furnitures.push({ x: 518, y: 85, width: 64, height: 64, type: TILES.TABLE });
+        furnitures.push({ x: 290, y: 340, width: 64, height: 64, type: TILES.TABLE });
         // Frigo 
-        furnitures.push({ x: 436, y: 435, width: 32, height: 33, rotation: 180, type: TILES.FRIDGE });
+        furnitures.push({ x: 436, y: 432, width: 32, height: 33, rotation: 180, type: TILES.FRIDGE });
         // WC 
         furnitures.push({ x: 551, y: 183, width: 32, height: 24, rotation: 90, type: TILES.TOILET });
         // WC 
         furnitures.push({ x: 714, y: 20, width: 32, height: 24, rotation: 90, type: TILES.TOILET });
-        // Armoire (Axe X)
-        furnitures.push({ x: 20, y: 401, width: 65, height: 30, type: TILES.WARDROBE });
+        // Armoire 
+        furnitures.push({ x: 20, y: 401, width: 65, height: 30, rotation: 270, type: TILES.WARDROBE });
         // Lit double
         furnitures.push({ x: 797, y: 230, width: 46, height: 78, rotation: 90, type: TILES.BED_DOUBLE });
         // Lit double
@@ -662,16 +662,16 @@ function generateInitialState() {
         furnitures.push({ x: 97, y: 291, width: 52, height: 26, type: TILES.SHELF });
         // Étagère 
         furnitures.push({ x: 20, y: 291, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
-        // Étagère
-        furnitures.push({ x: 297, y: 55, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
+        // Étagère salon
+        furnitures.push({ x: 297, y: 55, width: 22, height: 52, rotation: 90, type: TILES.SHELF });
         // Étagère 
         furnitures.push({ x: 812, y: 324, width: 26, height: 52, type: TILES.SHELF });
         // lavabo cuisine
-        furnitures.push({ x: 470, y: 433, width: 55, height: 32, rotation: 180, type: TILES.SINK });
+        furnitures.push({ x: 470, y: 430, width: 75, height: 32, rotation: 180, type: TILES.SINK });
         // lavabo sdb
         furnitures.push({ x: 850, y:88, width: 45, height: 28, rotation: 180, type: TILES.SINK });
         // plaques cuisine
-        furnitures.push({ x: 561, y: 372, width: 55, height: 32, rotation: 90, type: TILES.STOVE });
+        furnitures.push({ x: 561, y: 372, width: 32, height: 55, rotation: 90, type: TILES.STOVE });
         // chaudière cuisine
         furnitures.push({ x: 555, y: 28, width: 32, height: 32, type: TILES.BOILER });
         // baignoire
