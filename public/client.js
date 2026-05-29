@@ -564,15 +564,15 @@ function generateInitialState() {
         // Étagère 
         furnitures.push({ x: 19, y: 259, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
         // Bureau 
-        furnitures.push({ x: 160, y: 403, width: 25, height: 30, rotation: 90, type: TILES.DESK_MAC });
+        furnitures.push({ x: 160, y: 403, width: 25, height: 55, rotation: 90, type: TILES.DESK_MAC });
         // Armoire 
         furnitures.push({ x: 20, y: 205, width: 65, height: 30, rotation: 180, type: TILES.WARDROBE });
         // Lit haut
-        furnitures.push({ x: 23, y: 22, width: 46, height: 68, type: TILES.BED });
+        furnitures.push({ x: 23, y: 22, width: 46, height: 78, type: TILES.BED });
         // Bureau 
         furnitures.push({ x: 101, y: 21, width: 51, height: 25, type: TILES.DESK_MAC });
         // Kangoo 
-        furnitures.push({ x: 774, y: 311, width: 64, height: 128, type: TILES.KANGOO });
+        furnitures.push({ x: 774, y: 311, width: 61, height: 122, type: TILES.KANGOO });
         // Moto 
         furnitures.push({ x: 698, y: 332, width: 32, height: 64, type: TILES.MOTO });
         //Douche
