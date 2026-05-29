@@ -599,7 +599,7 @@ function generateInitialState() {
 
 
         // Spawns map 2 (Ajustés pour ne pas apparaître dans les murs)dzq
-        hunterSpawn = { x: 50, y: 50 };
+        hunterSpawn = { x: 285, y: 427 };
         hiderSpawns = [{x: 400, y: 150}, {x: 500, y: 150}, {x: 600, y: 150}];
 
     } else if (mapIndex === 2) {
@@ -699,7 +699,7 @@ function generateInitialState() {
         furnitures.push({ x: 185, y: 235, width: 35, height: 35, rotation: 180, type: TILES.ARMCHAIR });
 
         // Spawns map 3
-        hunterSpawn = { x: 50, y: 50 };
+        hunterSpawn = { x: 103, y: 427 };
         hiderSpawns = [{x: 200, y: 100}, {x: 750, y: 200}, {x: 800, y: 400}];
 
     }
@@ -1076,7 +1076,7 @@ function drawGame() {
                 customScale = 0.5; 
             } else if (p.role === 'HUNTER') {
                 // On augmente la taille du Chasseur (ex: 1.2 = 20% plus grand)
-                customScale = 1.2; 
+                customScale = 1.4; 
             }
 
             // On applique le facteur d'échelle aux dimensions de l'image
