@@ -584,13 +584,13 @@ function generateInitialState() {
         //Douche
         furnitures.push({ x: 549, y: 341, width: 55, height: 55, rotation: 180, type: TILES.SHOWER });
         //Chaise1
-        furnitures.push({ x: 539, y: 63, width: 55, height: 55, rotation: 180, type: TILES.CHAIR });
+        furnitures.push({ x: 539, y: 63, width: 35, height: 35, type: TILES.CHAIR });
         //Chaise2
-        furnitures.push({ x: 586, y: 105, width: 55, height: 55, rotation: 270, type: TILES.CHAIR });
+        furnitures.push({ x: 586, y: 105, width: 35, height: 35, rotation: 90, type: TILES.CHAIR });
         //Chaise3
-        furnitures.push({ x: 488, y: 100, width: 55, height: 55, rotation: 90, type: TILES.CHAIR });
+        furnitures.push({ x: 488, y: 100, width: 35, height: 35, rotation: 90, type: TILES.CHAIR });
         //Chaise4
-        furnitures.push({ x: 539, y: 151, width: 55, height: 55, type: TILES.CHAIR });
+        furnitures.push({ x: 539, y: 151, width: 35, height: 35, rotation: 180, type: TILES.CHAIR });
 
 
         // Spawns map 2 (Ajustés pour ne pas apparaître dans les murs)dzq
