@@ -1071,9 +1071,12 @@ function drawGame() {
             // NOUVEAU : Facteur de taille. 1 = taille normale.
             let customScale = 1; 
             
-            // On réduit spécifiquement la taille du Traqué (ici moitié moins grand)
             if (p.role === 'HIDER') {
-                customScale = 0.5; // <-- Modifie ce chiffre selon tes besoins !
+                // On réduit la taille du Traqué (ex: 0.5 = moitié de la taille native)
+                customScale = 0.5; 
+            } else if (p.role === 'HUNTER') {
+                // On augmente la taille du Chasseur (ex: 1.2 = 20% plus grand)
+                customScale = 1.2; 
             }
 
             // On applique le facteur d'échelle aux dimensions de l'image
