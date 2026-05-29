@@ -19,8 +19,8 @@ const TILES = {
     SHOWER_OPEN:     75,   // 36x40 douche ouverte
     RUG:             78,   // tapis
     RUG_OPEN:        79,   // tapis ouvert
-    BATHTUB:         88,   // baignoire
-    BATHTUB_OPEN:    89,   // baignoire ouverte
+    BATHTUB:         88,   // 57x30 baignoire
+    BATHTUB_OPEN:    89,   // 57x30 baignoire ouverte
 
     // === DECORS ===
     PLANT:           61,   // 25x24 plante décorative
@@ -576,7 +576,7 @@ function generateInitialState() {
         // Bureau (Axe Y -> Pivoté à 90°)
         furnitures.push({ x: 160, y: 403, width: 25, height: 30, rotation: 90, type: TILES.DESK_MAC });
         // Armoire (Axe X)
-        furnitures.push({ x: 20, y: 200, width: 65, height: 30, rotation: 180, type: TILES.WARDROBE });
+        furnitures.push({ x: 20, y: 212, width: 65, height: 30, rotation: 180, type: TILES.WARDROBE });
         // Lit (Axe Y -> Position native verticale)
         furnitures.push({ x: 23, y: 22, width: 46, height: 78, type: TILES.BED });
         // Bureau (Axe X -> Position native horizontale)
@@ -655,6 +655,57 @@ function generateInitialState() {
 
         // mur entre x:697y:151 et x:890y:151
         addWallBlock(43, 9, 13, 1);
+
+        // MOBILIER - CARTE 3
+        // ==========================================
+        // Télé (Axe X)
+        furnitures.push({ x: 20, y: 92, width: 64, height: 20, rotation: 270, type: TILES.TV });
+        // Tapis (Axe X)
+        furnitures.push({ x: 79, y: 336, width: 84, height: 70, type: TILES.RUG });
+        // Canapé (Axe X)
+        furnitures.push({ x: 57, y: 57, width: 84, height: 42, type: TILES.COUCH });
+        // Canapé (Axe X)
+        furnitures.push({ x: 57, y: 190, width: 84, height: 42, rotation: 180, type: TILES.COUCH });
+        // Table (Axe X)
+        furnitures.push({ x: 518, y: 85, width: 64, height: 64, type: TILES.TABLE });
+        // Frigo (Axe X)
+        furnitures.push({ x: 436, y: 435, width: 32, height: 33, rotation: 180, type: TILES.FRIDGE });
+        // WC (Axe X)
+        furnitures.push({ x: 551, y: 183, width: 32, height: 24, rotation: 90, type: TILES.TOILET });
+        // WC (Axe X)
+        furnitures.push({ x: 714, y: 20, width: 32, height: 24, rotation: 90, type: TILES.TOILET });
+        // Armoire (Axe X)
+        furnitures.push({ x: 20, y: 401, width: 65, height: 30, type: TILES.WARDROBE });
+        // Lit (Axe Y -> Position native verticale)
+        furnitures.push({ x: 797, y: 230, width: 46, height: 78, rotation: 90, type: TILES.BED_DOUBLE });
+        // Lit (Axe Y -> Position native verticale)
+        furnitures.push({ x: 740, y: 394, width: 46, height: 78, rotation: 180, type: TILES.BED_DOUBLE });
+        // Bureau (Axe X -> Position native horizontale)
+        furnitures.push({ x: 852, y: 407, width: 51, height: 25, rotation: 90, type: TILES.DESK_MAC });
+        // Étagère 
+        furnitures.push({ x: 97, y: 291, width: 26, height: 52, type: TILES.SHELF });
+        // Étagère 
+        furnitures.push({ x: 20, y: 291, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
+        // Étagère
+        furnitures.push({ x: 297, y: 55, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
+        // Étagère 
+        furnitures.push({ x: 812, y: 324, width: 26, height: 52, type: TILES.SHELF });
+        // lavabo cuisine
+        furnitures.push({ x: 470, y: 433, width: 55, height: 32, rotation: 180, type: TILES.SINK });
+        // lavabo sdb
+        furnitures.push({ x: 850, y:88, width: 45, height: 28, rotation: 180, type: TILES.SINK });
+        // plaques cuisine
+        furnitures.push({ x: 561, y: 372, width: 55, height: 32, rotation: 90, type: TILES.STOVE });
+        // chaudière cuisine
+        furnitures.push({ x: 555, y: 28, width: 32, height: 32, type: TILES.BOILER });
+        // baignoire
+        furnitures.push({ x: 773, y: 20, width: 57, height: 30, type: TILES.BATHTUB });
+        // table de chevet
+        furnitures.push({ x: 707, y: 439, width: 23, height: 23, type: TILES.NIGHTSTAND });
+        // table de chevet
+        furnitures.push({ x: 865, y: 165, width: 23, height: 23, type: TILES.NIGHTSTAND });
+        // plante
+        furnitures.push({ x: 243, y: 19, width: 25, height: 24, type: TILES.PLANT });
 
         // Spawns par défaut (à ajuster au besoin)
         hunterSpawn = { x: 50, y: 50 };
