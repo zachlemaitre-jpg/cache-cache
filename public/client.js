@@ -650,8 +650,10 @@ function generateInitialState() {
         furnitures.push({ x: 551, y: 183, width: 32, height: 24, rotation: 90, type: TILES.TOILET });
         // WC 
         furnitures.push({ x: 714, y: 20, width: 32, height: 24, rotation: 90, type: TILES.TOILET });
-        // Armoire 
+        // Armoire entrée
         furnitures.push({ x: 20, y: 391, width: 30, height: 65, rotation: 270, type: TILES.WARDROBE });
+        // Armoire chambre bas
+        furnitures.push({ x: 814, y: 163, width: 30, height: 65, type: TILES.WARDROBE });
         // Lit double chambre haut
         furnitures.push({ x: 780, y: 230, width: 64, height: 78, rotation: 180, type: TILES.BED_DOUBLE });
         // Lit double chambre bas
