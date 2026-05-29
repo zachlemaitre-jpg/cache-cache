@@ -653,7 +653,7 @@ function generateInitialState() {
         // Armoire entrée
         furnitures.push({ x: 20, y: 391, width: 30, height: 65, rotation: 270, type: TILES.WARDROBE });
         // Armoire chambre bas
-        furnitures.push({ x: 814, y: 163, width: 30, height: 65, type: TILES.WARDROBE });
+        furnitures.push({ x: 809, y: 163, width: 65, height: 30, type: TILES.WARDROBE });
         // Lit double chambre haut
         furnitures.push({ x: 780, y: 230, width: 64, height: 78, rotation: 180, type: TILES.BED_DOUBLE });
         // Lit double chambre bas
