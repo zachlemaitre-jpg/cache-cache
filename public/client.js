@@ -637,7 +637,7 @@ function generateInitialState() {
         // Télé 
         furnitures.push({ x: 20, y: 114, width: 20, height: 64, rotation: 270, type: TILES.TV });
         // Tapis 
-        furnitures.push({ x: 79, y: 336, width: 84, height: 70, type: TILES.RUG });
+        furnitures.push({ x: 79, y: 336, width: 84, height: 80, type: TILES.RUG });
         // Canapé 
         furnitures.push({ x: 57, y: 57, width: 84, height: 42, type: TILES.COUCH });
         // Canapé
@@ -653,7 +653,7 @@ function generateInitialState() {
         // Armoire entrée
         furnitures.push({ x: 20, y: 391, width: 30, height: 65, rotation: 270, type: TILES.WARDROBE });
         // Armoire chambre bas
-        furnitures.push({ x: 809, y: 163, width: 65, height: 30, type: TILES.WARDROBE });
+        furnitures.push({ x: 707, y: 163, width: 65, height: 30, type: TILES.WARDROBE });
         // Lit double chambre haut
         furnitures.push({ x: 780, y: 230, width: 64, height: 78, rotation: 180, type: TILES.BED_DOUBLE });
         // Lit double chambre bas
@@ -682,8 +682,10 @@ function generateInitialState() {
         furnitures.push({ x: 707, y: 439, width: 23, height: 23, type: TILES.NIGHTSTAND });
         // table de chevet chambre haut
         furnitures.push({ x: 848, y: 281, width: 23, height: 23, type: TILES.NIGHTSTAND });
-        // plante
+        // plante salon
         furnitures.push({ x: 243, y: 19, width: 25, height: 24, type: TILES.PLANT });
+        // plante entrée
+        furnitures.push({ x: 157, y: 294, width: 25, height: 24, type: TILES.PLANT });
         //Chaise1
         furnitures.push({ x: 308, y: 406, width: 35, height: 35, rotation: 180, type: TILES.CHAIR });
         //Chaise2
