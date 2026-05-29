@@ -1232,18 +1232,20 @@ function isHidingSpot(type) {
     ].includes(type);
 }
 
-// Cherche le meuble interactif le plus proche du joueur (Rayon de 40px max)
+// Cherche le meuble interactif le plus proche du joueur (par rapport à ses bords)
 function findInteractiveFurniture(cx, cy) {
     let closest = null;
-    let minDist = 40; 
+    let minDist = 30; // Le joueur doit être à moins de 30px du BORD du meuble
 
     for (const f of furnitures) {
         if (!isHidingSpot(f.type)) continue;
 
-        // On calcule le centre du meuble
-        let fCx = f.x + f.width / 2;
-        let fCy = f.y + f.height / 2;
-        let dist = Math.hypot(cx - fCx, cy - fCy);
+        // On trouve le point du meuble le plus proche du joueur
+        let closestX = Math.max(f.x, Math.min(cx, f.x + f.width));
+        let closestY = Math.max(f.y, Math.min(cy, f.y + f.height));
+        
+        // On calcule la distance entre le joueur et ce bord
+        let dist = Math.hypot(cx - closestX, cy - closestY);
 
         if (dist < minDist) {
             minDist = dist;
