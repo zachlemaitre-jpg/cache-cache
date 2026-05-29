@@ -653,9 +653,9 @@ function generateInitialState() {
         // Armoire 
         furnitures.push({ x: 20, y: 391, width: 30, height: 65, rotation: 270, type: TILES.WARDROBE });
         // Lit double chambre haut
-        furnitures.push({ x: 797, y: 230, width: 64, height: 78, rotation: 180, type: TILES.BED_DOUBLE });
+        furnitures.push({ x: 780, y: 230, width: 64, height: 78, rotation: 180, type: TILES.BED_DOUBLE });
         // Lit double chambre bas
-        furnitures.push({ x: 740, y: 394, width: 64, height: 78, rotation: 180, type: TILES.BED_DOUBLE });
+        furnitures.push({ x: 740, y: 390, width: 64, height: 78, rotation: 180, type: TILES.BED_DOUBLE });
         // Bureau mac
         furnitures.push({ x: 852, y: 407, width: 25, height: 51, rotation: 90, type: TILES.DESK_MAC });
         // Étagère
@@ -669,7 +669,7 @@ function generateInitialState() {
         // lavabo cuisine
         furnitures.push({ x: 487, y: 430, width: 68, height: 32, rotation: 180, type: TILES.SINK });
         // lavabo sdb
-        furnitures.push({ x: 850, y:88, width: 28, height: 45, rotation: 180, type: TILES.SINK });
+        furnitures.push({ x: 850, y:88, width: 28, height: 45, rotation: 90, type: TILES.SINK });
         // plaques cuisine
         furnitures.push({ x: 558, y: 372, width: 32, height: 55, rotation: 90, type: TILES.STOVE });
         // chaudière cuisine
@@ -685,9 +685,9 @@ function generateInitialState() {
         //Chaise1
         furnitures.push({ x: 308, y: 406, width: 35, height: 35, rotation: 180, type: TILES.CHAIR });
         //Chaise2
-        furnitures.push({ x: 262, y: 359, width: 35, height: 35, rotation: 270, type: TILES.CHAIR });
+        furnitures.push({ x: 257, y: 359, width: 35, height: 35, rotation: 270, type: TILES.CHAIR });
         //Fauteuil
-        furnitures.push({ x: 188, y: 239, width: 35, height: 35, rotation: 180, type: TILES.ARMCHAIR });
+        furnitures.push({ x: 185, y: 235, width: 35, height: 35, rotation: 180, type: TILES.ARMCHAIR });
 
         // Spawns map 3
         hunterSpawn = { x: 50, y: 50 };
@@ -980,20 +980,38 @@ function drawGame() {
 
     // 1bis. DESSIN DE L'ESCALIER (purement visuel)
     if (gameSettings && gameSettings.mapIndex === 0) {
-        const sx1 = 35, sx2 = 36;       // colonnes (inclus)
-        const sy1 = 15, sy2 = 21;       // lignes (inclus)
+        // --- ESCALIER MAP 1 (Vertical) ---
+        const sx1 = 35, sx2 = 36;       
+        const sy1 = 15, sy2 = 21;       
         const stepCount = sy2 - sy1 + 1;
 
         for (let gy = sy1; gy <= sy2; gy++) {
-            // 0 en haut → 1 en bas : la marche s'assombrit à mesure qu'on descend
             const t = (gy - sy1) / (stepCount - 1);
-            ctx.fillStyle = `hsl(28, 38%, ${58 - t * 28}%)`;  // marron clair → foncé
+            ctx.fillStyle = `hsl(28, 38%, ${58 - t * 28}%)`;  
             for (let gx = sx1; gx <= sx2; gx++) {
                 ctx.fillRect(gx * 16, gy * 16, 16, 16);
             }
-            // Liseré sombre en bas de chaque marche pour souligner le bord
             ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
             ctx.fillRect(sx1 * 16, gy * 16 + 14, (sx2 - sx1 + 1) * 16, 2);
+        }
+    } else if (gameSettings && gameSettings.mapIndex === 2) {
+        // --- NOUVEL ESCALIER MAP 3 (Horizontal) ---
+        const sx1 = 26, sx2 = 38; // colonnes (X: 418 à 609 environ)
+        const sy1 = 5, sy2 = 9;   // lignes   (Y: 82 à 145 environ)
+        const stepCount = sx2 - sx1 + 1;
+
+        for (let gx = sx1; gx <= sx2; gx++) {
+            // Le haut est à droite (sx2), donc on assombrit en allant vers la gauche (sx1)
+            const t = (sx2 - gx) / (stepCount - 1);
+            ctx.fillStyle = `hsl(28, 38%, ${58 - t * 28}%)`; 
+            
+            for (let gy = sy1; gy <= sy2; gy++) {
+                ctx.fillRect(gx * 16, gy * 16, 16, 16);
+            }
+            
+            // Liseré sombre sur le bord gauche de chaque marche (effet de relief)
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.fillRect(gx * 16, sy1 * 16, 2, (sy2 - sy1 + 1) * 16);
         }
     }
 
