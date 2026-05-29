@@ -576,9 +576,9 @@ function generateInitialState() {
         // Bureau (Axe Y -> Pivoté à 90°)
         furnitures.push({ x: 160, y: 403, width: 25, height: 30, rotation: 90, type: TILES.DESK_MAC });
         // Armoire (Axe X)
-        furnitures.push({ x: 20, y: 212, width: 65, height: 55, rotation: 180, type: TILES.WARDROBE });
+        furnitures.push({ x: 20, y: 212, width: 65, height: 40, rotation: 180, type: TILES.WARDROBE });
         // Lit (Axe Y -> Position native verticale)
-        furnitures.push({ x: 23, y: 22, width: 36, height: 68, type: TILES.BED });
+        furnitures.push({ x: 23, y: 22, width: 46, height: 78, type: TILES.BED });
         // Bureau (Axe X -> Position native horizontale)
         furnitures.push({ x: 101, y: 21, width: 51, height: 25, type: TILES.DESK_MAC });
         // Kangoo (Axe Y -> Position native verticale)
@@ -604,7 +604,7 @@ function generateInitialState() {
         // plaques cuisine
         furnitures.push({ x: 745, y: 20, width: 55, height: 32, type: TILES.STOVE });
         // chaudière cuisine
-        furnitures.push({ x: 850, y: 210, width: 32, height: 32, type: TILES.BOILER });
+        furnitures.push({ x: 847, y: 207, width: 32, height: 32, type: TILES.BOILER });
 
 
         // Spawns map 2 (Ajustés pour ne pas apparaître dans les murs)dzq
