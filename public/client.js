@@ -600,9 +600,9 @@ function generateInitialState() {
         // lavabo cuisine
         furnitures.push({ x: 661, y: 22, width: 26, height: 52, rotation: 90, type: TILES.SINK });
         // lavabo sdb
-        furnitures.push({ x: 661, y: 22, width: 45, height: 32, type: TILES.SINK });
+        furnitures.push({ x: 420, y:372, width: 45, height: 32, rotation: 180, type: TILES.SINK });
         // plaques cuisine
-        furnitures.push({ x: 661, y: 22, width: 45, height: 32, type: TILES.STOVE });
+        furnitures.push({ x: 745, y: 20, width: 45, height: 32, type: TILES.STOVE });
 
 
         // Spawns map 2 (Ajustés pour ne pas apparaître dans les murs)dzq
