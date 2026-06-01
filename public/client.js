@@ -1098,7 +1098,7 @@ function drawGame() {
         // On ne dessine pas les joueurs en rôle SPECTATEUR
         if (p.role === 'SPECTATOR') continue;
 
-        // NOUVEAU : Détermination de l'image à afficher (Vivants ou Morts)
+        // Détermination de l'image à afficher (Vivants ou Morts)
         let imgKey;
         if (!p.alive && p.role === 'HIDER') {
             imgKey = 'hider_dead'; // Si le traqué est mort, on affiche le corps !
@@ -1112,12 +1112,17 @@ function drawGame() {
 
         if (img && img.complete && img.naturalWidth > 0) {
             
-            // Facteur de taille personnalisable par rôle
+            // Facteur de taille personnalisable par rôle et par état
             let customScale = 1; 
             
             if (p.role === 'HIDER') {
-                // On réduit la taille du Traqué (et de son cadavre)
-                customScale = 0.5; 
+                if (!p.alive) {
+                    // NOUVEAU : On redonne une taille normale au cadavre au sol
+                    customScale = 1.0; // <-- Tu peux monter à 1.2 ou 1.3 si c'est encore trop petit
+                } else {
+                    // On garde la petite taille pour le Traqué vivant
+                    customScale = 0.5; 
+                }
             } else if (p.role === 'HUNTER') {
                 // On augmente la taille du Chasseur
                 customScale = 1.4; 
