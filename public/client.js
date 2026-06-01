@@ -1052,18 +1052,33 @@ function drawGame() {
     for (const f of furnitures) {
         const img = images[f.type];
         if (img && img.complete && img.naturalWidth > 0) {
+            
+            // NOUVEAU : On détecte si c'est un meuble avec un cadavre (IDs 100 à 105)
+            const isDead = (f.type >= 100 && f.type <= 105);
+
             if (f.rotation) {
                 const cx = f.x + f.width / 2;
                 const cy = f.y + f.height / 2;
-                const renderW = (f.rotation % 180 === 0) ? f.width : f.height;
-                const renderH = (f.rotation % 180 === 0) ? f.height : f.width;
+                
+                // Si c'est un meuble mort, on utilise sa vraie taille pour ne pas le déformer
+                const renderW = isDead ? img.naturalWidth : ((f.rotation % 180 === 0) ? f.width : f.height);
+                const renderH = isDead ? img.naturalHeight : ((f.rotation % 180 === 0) ? f.height : f.width);
+                
                 ctx.save();
                 ctx.translate(cx, cy);
                 ctx.rotate(f.rotation * Math.PI / 180);
                 ctx.drawImage(img, -renderW / 2, -renderH / 2, renderW, renderH);
                 ctx.restore();
             } else {
-                ctx.drawImage(img, f.x, f.y, f.width, f.height);
+                if (isDead) {
+                    // On centre la nouvelle image (plus grande) par-dessus l'ancienne boîte
+                    const cx = f.x + f.width / 2;
+                    const cy = f.y + f.height / 2;
+                    ctx.drawImage(img, cx - img.naturalWidth / 2, cy - img.naturalHeight / 2, img.naturalWidth, img.naturalHeight);
+                } else {
+                    // Meuble normal
+                    ctx.drawImage(img, f.x, f.y, f.width, f.height);
+                }
             }
         } else {
             ctx.fillStyle = getTileFallbackColor(f.type);
