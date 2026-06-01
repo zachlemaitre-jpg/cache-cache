@@ -53,6 +53,7 @@ const imagePaths = {
     hider_up: 'assets/hider_up.png',
     hider_left: 'assets/hider_left.png',
     hider_right: 'assets/hider_right.png',
+    hider_dead: 'assets/hider_dead.png',
 
     // === CHASSEUR (HUNTER) - IDLE ===
     hunter_idle_down: 'assets/hunter_idle_down.png',
@@ -1061,21 +1062,35 @@ function drawGame() {
     // 3. JOUEURS
     for (const id in playersState) {
         const p = playersState[id];
-        if (!p.alive || (p.role === 'HIDER' && p.hidden && id !== socket.id)) continue;
+        
+        // On ne dessine pas les traqués VIVANTS et cachés (sauf si c'est nous)
+        if (p.alive && p.role === 'HIDER' && p.hidden && id !== socket.id) continue;
+        
+        // On ne dessine pas les joueurs en rôle SPECTATEUR
+        if (p.role === 'SPECTATOR') continue;
 
-        const imgKey = p.role === 'HUNTER' ? (p.moving ? `hunter_walk${(Math.floor(p.animTimer / 200) % 2)+1}_${p.dir}` : `hunter_idle_${p.dir}`) : `hider_${p.dir}`;
+        // NOUVEAU : Détermination de l'image à afficher (Vivants ou Morts)
+        let imgKey;
+        if (!p.alive && p.role === 'HIDER') {
+            imgKey = 'hider_dead'; // Si le traqué est mort, on affiche le corps !
+        } else if (!p.alive) {
+            continue; // Sécurité si un autre rôle venait à mourir
+        } else {
+            imgKey = p.role === 'HUNTER' ? (p.moving ? `hunter_walk${(Math.floor(p.animTimer / 200) % 2)+1}_${p.dir}` : `hunter_idle_${p.dir}`) : `hider_${p.dir}`;
+        }
+        
         const img = images[imgKey] || images.hider_down;
 
         if (img && img.complete && img.naturalWidth > 0) {
             
-            // NOUVEAU : Facteur de taille. 1 = taille normale.
+            // Facteur de taille personnalisable par rôle
             let customScale = 1; 
             
             if (p.role === 'HIDER') {
-                // On réduit la taille du Traqué (ex: 0.5 = moitié de la taille native)
+                // On réduit la taille du Traqué (et de son cadavre)
                 customScale = 0.5; 
             } else if (p.role === 'HUNTER') {
-                // On augmente la taille du Chasseur (ex: 1.2 = 20% plus grand)
+                // On augmente la taille du Chasseur
                 customScale = 1.4; 
             }
 
@@ -1089,7 +1104,7 @@ function drawGame() {
             
             ctx.drawImage(img, drawX, drawY, renderW, renderH);
         } else { 
-            ctx.fillStyle = (p.role === 'HUNTER') ? '#e63946' : '#2196f3'; 
+            ctx.fillStyle = (p.role === 'HUNTER') ? '#e63946' : (!p.alive ? '#555555' : '#2196f3'); 
             ctx.fillRect(p.x, p.y, p.size, p.size); 
         }
     }
