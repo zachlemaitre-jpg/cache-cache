@@ -9,16 +9,22 @@ const TILES = {
     // === CACHETTES ===
     BED:             70,   // 36x58 lit
     BED_OPEN:        71,   // 19x59 lit ouvert
+    BED_DEAD:        104,
     BED_DOUBLE:      72,   // 67x58 lit double
     BED_DOUBLE_OPEN: 73,   // 19x59 lit double ouvert
+    BED_DOUBLE_DEAD: 105,
     WARDROBE:        80,   // 36x22 armoire
     WARDROBE_OPEN:   81,   // 48x35 armoire ouverte
+    WARDROBE_DEAD:   100,
     KANGOO:          76,   // voiture
     KANGOO_OPEN:     77,   // voiture ouverte
+    KANGOO_DEAD:     101,
     SHOWER:          74,   // 36x40 douche
     SHOWER_OPEN:     75,   // 36x40 douche ouverte
+    SHOWER_DEAD:     102,
     RUG:             78,   // tapis
     RUG_OPEN:        79,   // tapis ouvert
+    RUG_DEAD:        103,
     BATHTUB:         88,   // 57x30 baignoire
     BATHTUB_OPEN:    89,   // 57x30 baignoire ouverte
 
@@ -78,16 +84,22 @@ const imagePaths = {
     // === CACHETTES ===
     [TILES.BED]:             'assets/bed.png',
     [TILES.BED_OPEN]:        'assets/bed_f.png',
+    [TILES.BED_DEAD]:        'assets/hider_dead_bed.png',
     [TILES.BED_DOUBLE]:      'assets/lit_double.png',
-    [TILES.BED_DOUBLE_OPEN]: 'assets/lit_double_f.png',
+    [TILES.BED_DOUBLE_OPEN]: 'assets/bed_f.png',
+    [TILES.BED_DOUBLE_DEAD]: 'assets/hider_dead_bed.png',
     [TILES.WARDROBE]:        'assets/armoire.png',
     [TILES.WARDROBE_OPEN]:   'assets/armoire_f.png',
+    [TILES.WARDROBE_DEAD]:   'assets/hider_dead_armoire.png',
     [TILES.SHOWER]:          'assets/douche.png',
     [TILES.SHOWER_OPEN]:     'assets/douche_f.png',
+    [TILES.SHOWER_DEAD]:     'assets/hider_dead_douche.png',
     [TILES.KANGOO]:          'assets/kangoo.png',
     [TILES.KANGOO_OPEN]:     'assets/kangoo_f.png',
+    [TILES.KANGOO_DEAD]:     'assets/hider_dead_kangoo.png',
     [TILES.RUG]:             'assets/tapis.png',    
     [TILES.RUG_OPEN]:        'assets/tapis_f.png',
+    [TILES.RUG_DEAD]:        'assets/hider_dead_tapis.png',
     [TILES.BATHTUB]:         'assets/baignoire.png',      
     [TILES.BATHTUB_OPEN]:    'assets/baignoire.png',
 
@@ -1066,6 +1078,8 @@ function drawGame() {
         // On ne dessine pas les traqués VIVANTS et cachés (sauf si c'est nous)
         if (p.alive && p.role === 'HIDER' && p.hidden && id !== socket.id) continue;
         
+        if (!p.alive && p.hidden) continue;
+
         // On ne dessine pas les joueurs en rôle SPECTATEUR
         if (p.role === 'SPECTATOR') continue;
 
@@ -1225,11 +1239,17 @@ function collides(x, y, size) {
         // On laisse passer le joueur à travers les cachettes si elles sont OUVERTES
         const openHideouts = [
             TILES.WARDROBE_OPEN, 
+            TILES.WARDROBE_DEAD,
             TILES.BED_OPEN, 
+            TILES.BED_DEAD,
             TILES.BED_DOUBLE_OPEN, 
+            TILES.BED_DOUBLE_DEAD,
             TILES.SHOWER_OPEN, 
-            TILES.KANGOO_OPEN,
+            TILES.SHOWER_DEAD,
+            TILES.KANGOO_OPEN, 
+            TILES.KANGOO_DEAD,
             TILES.RUG_OPEN, 
+            TILES.RUG_DEAD,
             TILES.RUG,
             TILES.BATHTUB_OPEN
         ];
@@ -1335,6 +1355,7 @@ function handleHunterSearch(p) {
     if (target) {
         const opened = toggleFurniture(target, true);
         if (opened) {
+            let hiderFound = false;
             for (const id in playersState) {
                 const targetPlayer = playersState[id];
                 if (targetPlayer.role === 'HIDER' && targetPlayer.alive && targetPlayer.hidden) {
@@ -1346,10 +1367,30 @@ function handleHunterSearch(p) {
                     // Si le traqué est au centre de ce meuble précis
                     if (Math.hypot(tCx - fCx, tCy - fCy) < 10) {
                         targetPlayer.alive = false;
-                        targetPlayer.hidden = false;
-                        console.log(targetPlayer.pseudo + " a été attrapé dans sa cachette !");
+                        
+                        // On vérifie si ce meuble possède une frame ensanglantée
+                        const hasDeadFrame = [TILES.WARDROBE_OPEN, TILES.BED_OPEN, TILES.BED_DOUBLE_OPEN, TILES.SHOWER_OPEN, TILES.KANGOO_OPEN, TILES.RUG_OPEN].includes(target.type);
+                        
+                        if (hasDeadFrame) {
+                            targetPlayer.hidden = true; // Le meuble cache le corps
+                        } else {
+                            targetPlayer.hidden = false; // Ex: Baignoire (pas d'image), le corps tombe au sol
+                        }
+                        
+                        hiderFound = true;
+                        console.log(targetPlayer.pseudo + " a été démembré dans sa cachette !");
                     }
                 }
+            }
+
+            // On modifie l'image du meuble si on a trouvé un joueur !
+            if (hiderFound) {
+                if (target.type === TILES.WARDROBE_OPEN) target.type = TILES.WARDROBE_DEAD;
+                if (target.type === TILES.BED_OPEN)      target.type = TILES.BED_DEAD;
+                if (target.type === TILES.BED_DOUBLE_OPEN) target.type = TILES.BED_DOUBLE_DEAD;
+                if (target.type === TILES.SHOWER_OPEN)   target.type = TILES.SHOWER_DEAD;
+                if (target.type === TILES.KANGOO_OPEN)   target.type = TILES.KANGOO_DEAD;
+                if (target.type === TILES.RUG_OPEN)      target.type = TILES.RUG_DEAD;
             }
         }
     }
