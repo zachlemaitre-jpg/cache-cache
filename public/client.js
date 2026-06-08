@@ -27,6 +27,9 @@ const TILES = {
     RUG_DEAD:        103,
     BATHTUB:         88,   // 57x30 baignoire
     BATHTUB_OPEN:    89,   // 57x30 baignoire ouverte
+    DRESSING:        95,   // dressing fermé
+    DRESSING_OPEN:   96,   // dressing ouvert
+    DRESSING_DEAD:   106,  // hider dead in dressing
 
     // === DECORS ===
     PLANT:           61,   // 25x24 plante décorative
@@ -102,6 +105,9 @@ const imagePaths = {
     [TILES.RUG_DEAD]:        'assets/hider_dead_tapis.png',
     [TILES.BATHTUB]:         'assets/baignoire.png',      
     [TILES.BATHTUB_OPEN]:    'assets/baignoire.png',
+    [TILES.DRESSING]:        'assets/dressing_fermé.png',
+    [TILES.DRESSING_OPEN]:   'assets/dressing_ouvert.png',
+    [TILES.DRESSING_DEAD]:   'assets/hider_dead_dressing.png',
 
     // === DECORS ===
     [TILES.CHAIR]:           'assets/chaise.png',
@@ -1080,7 +1086,7 @@ function drawGame() {
         if (img && img.complete && img.naturalWidth > 0) {
             
             // NOUVEAU : On détecte si c'est un meuble avec un cadavre (IDs 100 à 105)
-            const isDead = (f.type >= 100 && f.type <= 105);
+            const isDead = (f.type >= 100 && f.type <= 106);
 
             if (f.rotation) {
                 const cx = f.x + f.width / 2;
@@ -1297,7 +1303,8 @@ function collides(x, y, size) {
             TILES.RUG_OPEN, 
             TILES.RUG_DEAD,
             TILES.RUG,
-            TILES.BATHTUB_OPEN
+            TILES.BATHTUB_OPEN,
+            TILES.DRESSING_OPEN, TILES.DRESSING_DEAD
         ];
         if (openHideouts.includes(f.type)) continue;
 
@@ -1320,7 +1327,8 @@ function isHidingSpot(type) {
         TILES.SHOWER, TILES.SHOWER_OPEN,
         TILES.KANGOO, TILES.KANGOO_OPEN,
         TILES.RUG, TILES.RUG_OPEN,
-        TILES.BATHTUB, TILES.BATHTUB_OPEN
+        TILES.BATHTUB, TILES.BATHTUB_OPEN,
+        TILES.DRESSING, TILES.DRESSING_OPEN
     ].includes(type);
 }
 
@@ -1357,6 +1365,7 @@ function toggleFurniture(f, isHunter) {
         if (f.type === TILES.KANGOO)             { f.type = TILES.KANGOO_OPEN;      return true; } 
         if (f.type === TILES.RUG)                { f.type = TILES.RUG_OPEN;         return true; }
         if (f.type === TILES.BATHTUB)            { f.type = TILES.BATHTUB_OPEN;     return true; }
+        if (f.type === TILES.DRESSING)           { f.type = TILES.DRESSING_OPEN;    return true; }
     } else {
         // Le traqué FERME derrière lui
         if (f.type === TILES.WARDROBE_OPEN)      { f.type = TILES.WARDROBE;    return true; }
@@ -1366,6 +1375,7 @@ function toggleFurniture(f, isHunter) {
         if (f.type === TILES.KANGOO_OPEN)        { f.type = TILES.KANGOO;      return true; } 
         if (f.type === TILES.RUG_OPEN)           { f.type = TILES.RUG;         return true; }
         if (f.type === TILES.BATHTUB_OPEN)       { f.type = TILES.BATHTUB;     return true; }
+        if (f.type === TILES.DRESSING_OPEN)      { f.type = TILES.DRESSING;    return true; }
     }
     return false;
 }
@@ -1415,7 +1425,7 @@ function handleHunterSearch(p) {
                         targetPlayer.alive = false;
                         
                         // On vérifie si ce meuble possède une frame ensanglantée
-                        const hasDeadFrame = [TILES.WARDROBE_OPEN, TILES.BED_OPEN, TILES.BED_DOUBLE_OPEN, TILES.SHOWER_OPEN, TILES.KANGOO_OPEN, TILES.RUG_OPEN].includes(target.type);
+                        const hasDeadFrame = [TILES.WARDROBE_OPEN, TILES.BED_OPEN, TILES.BED_DOUBLE_OPEN, TILES.SHOWER_OPEN, TILES.KANGOO_OPEN, TILES.RUG_OPEN, TILES.DRESSING_OPEN].includes(target.type);
                         
                         if (hasDeadFrame) {
                             targetPlayer.hidden = true; // Le meuble cache le corps
@@ -1437,6 +1447,7 @@ function handleHunterSearch(p) {
                 if (target.type === TILES.SHOWER_OPEN)   target.type = TILES.SHOWER_DEAD;
                 if (target.type === TILES.KANGOO_OPEN)   target.type = TILES.KANGOO_DEAD;
                 if (target.type === TILES.RUG_OPEN)      target.type = TILES.RUG_DEAD;
+                if (target.type === TILES.DRESSING_OPEN)   target.type = TILES.DRESSING_DEAD;
             }
         }
     }
