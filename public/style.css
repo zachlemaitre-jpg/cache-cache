@@ -385,21 +385,23 @@ canvas {
 
 .pixel-spinner-dot {
     position: absolute;
-    width: 20px;
-    height: 20px;
-    background: #555;
+    width: 16px;
+    height: 16px;
+    background: #2a2a2a;
 }
 
-/* Seulement 4 gros carrés en croix */
-.pixel-spinner-dot:nth-child(1) { top: 0;    left: 22px; animation: pixel-spin 0.8s steps(1) infinite 0s; }
-.pixel-spinner-dot:nth-child(2) { top: 22px; right: 0;   animation: pixel-spin 0.8s steps(1) infinite 0.2s; }
-.pixel-spinner-dot:nth-child(3) { bottom: 0; left: 22px; animation: pixel-spin 0.8s steps(1) infinite 0.4s; }
-.pixel-spinner-dot:nth-child(4) { top: 22px; left: 0;    animation: pixel-spin 0.8s steps(1) infinite 0.6s; }
+/* 6 carrés en cercle */
+.pixel-spinner-dot:nth-child(1) { top: 0;    left: 24px; animation: pixel-spin 0.9s steps(1) infinite 0s; }
+.pixel-spinner-dot:nth-child(2) { top: 12px; right: 4px; animation: pixel-spin 0.9s steps(1) infinite 0.15s; }
+.pixel-spinner-dot:nth-child(3) { bottom: 12px; right: 4px; animation: pixel-spin 0.9s steps(1) infinite 0.3s; }
+.pixel-spinner-dot:nth-child(4) { bottom: 0; left: 24px; animation: pixel-spin 0.9s steps(1) infinite 0.45s; }
+.pixel-spinner-dot:nth-child(5) { bottom: 12px; left: 4px; animation: pixel-spin 0.9s steps(1) infinite 0.6s; }
+.pixel-spinner-dot:nth-child(6) { top: 12px; left: 4px; animation: pixel-spin 0.9s steps(1) infinite 0.75s; }
 
-/* On masque les 4 dots en trop (5 à 8) car on n'en veut que 4 */
-.pixel-spinner-dot:nth-child(n+5) { display: none; }
+/* On masque les 2 dots en trop (7 et 8) */
+.pixel-spinner-dot:nth-child(n+7) { display: none; }
 
 @keyframes pixel-spin {
-    0%, 100% { background: #555; }
-    25%      { background: var(--gold); }
+    0%, 100% { background: #2a2a2a; }
+    16%      { background: #888; }
 }
