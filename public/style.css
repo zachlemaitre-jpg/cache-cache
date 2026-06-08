@@ -356,3 +356,10 @@ canvas {
     justify-content: center;
     min-height: 100vh;
 }
+
+.nouveau-mode-desc {
+    font-size: 0.55rem;
+    color: var(--hider-color);
+    text-align: center;
+    line-height: 1.8;
+}
