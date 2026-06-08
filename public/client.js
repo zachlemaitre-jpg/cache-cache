@@ -207,12 +207,12 @@ loadImages();
 // ==========================================
 
 function showScreen(screenId) {
-    document.getElementById('main-menu').classList.add('hidden');
-    document.getElementById('lobby-screen').classList.add('hidden');
-    document.getElementById('film-screen').classList.add('hidden');
-    document.getElementById('nouveau-mode-screen').classList.add('hidden');
-    document.getElementById('game-screen').classList.add('hidden');
-    document.getElementById(screenId).classList.remove('hidden');
+    ['main-menu', 'lobby-screen', 'film-screen', 'nouveau-mode-screen', 'game-screen'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+    });
+    const target = document.getElementById(screenId);
+    if (target) target.classList.remove('hidden');
 }
 
 function joinOrCreateRoom() {
