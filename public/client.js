@@ -603,8 +603,8 @@ function generateInitialState() {
         furnitures.push({ x: 404, y: 52, width: 72, height: 36, rotation: 270, type: TILES.BED });
         // Étagère verticale (image native 52x26 pivotée → occupe 26x52)
         furnitures.push({ x: 403, y: 131, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
-        // Dressing (Taille exacte 36x60)
-        furnitures.push({ x: 130, y: 338, width: 36, height: 60, type: TILES.DRESSING });
+        // Dressing (Taille x2 pour être bien proportionné aux persos)
+        furnitures.push({ x: 130, y: 338, width: 72, height: 120, type: TILES.DRESSING, scale: 2 });
         
         // Spawns map 1
         hunterSpawn = { x: 830, y: 165 };
@@ -1129,16 +1129,18 @@ function drawGame() {
         const img = images[f.type];
         if (img && img.complete && img.naturalWidth > 0) {
             
-            // NOUVEAU : On détecte si c'est un meuble avec un cadavre (IDs 100 à 105)
             const isDead = (f.type >= 100 && f.type <= 106);
+            
+            // NOUVEAU : On récupère l'échelle personnalisée du meuble (ou 1 par défaut)
+            const fScale = f.scale || 1; 
 
             if (f.rotation) {
                 const cx = f.x + f.width / 2;
                 const cy = f.y + f.height / 2;
                 
-                // Si c'est un meuble mort, on utilise sa vraie taille pour ne pas le déformer
-                const renderW = isDead ? img.naturalWidth : ((f.rotation % 180 === 0) ? f.width : f.height);
-                const renderH = isDead ? img.naturalHeight : ((f.rotation % 180 === 0) ? f.height : f.width);
+                // Si meuble mort, on utilise sa vraie taille MULTIPLIÉE par son échelle
+                const renderW = isDead ? (img.naturalWidth * fScale) : ((f.rotation % 180 === 0) ? f.width : f.height);
+                const renderH = isDead ? (img.naturalHeight * fScale) : ((f.rotation % 180 === 0) ? f.height : f.width);
                 
                 ctx.save();
                 ctx.translate(cx, cy);
@@ -1147,10 +1149,12 @@ function drawGame() {
                 ctx.restore();
             } else {
                 if (isDead) {
-                    // On centre la nouvelle image (plus grande) par-dessus l'ancienne boîte
                     const cx = f.x + f.width / 2;
                     const cy = f.y + f.height / 2;
-                    ctx.drawImage(img, cx - img.naturalWidth / 2, cy - img.naturalHeight / 2, img.naturalWidth, img.naturalHeight);
+                    const deadW = img.naturalWidth * fScale;
+                    const deadH = img.naturalHeight * fScale;
+                    // On centre l'image agrandie par-dessus l'ancienne boîte
+                    ctx.drawImage(img, cx - deadW / 2, cy - deadH / 2, deadW, deadH);
                 } else {
                     // Meuble normal
                     ctx.drawImage(img, f.x, f.y, f.width, f.height);
