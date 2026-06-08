@@ -210,6 +210,7 @@ function showScreen(screenId) {
     document.getElementById('main-menu').classList.add('hidden');
     document.getElementById('lobby-screen').classList.add('hidden');
     document.getElementById('film-screen').classList.add('hidden');
+    document.getElementById('nouveau-mode-screen').classList.add('hidden');
     document.getElementById('game-screen').classList.add('hidden');
     document.getElementById(screenId).classList.remove('hidden');
 }
@@ -253,6 +254,31 @@ function goToFilmMode() {
 
 function startFilmGame() {
     if (currentRoom) socket.emit('startFilmMode', currentRoom);
+}
+
+// ==========================================
+// NOUVEAU MODE : Mode traqué (forcé sur la map1)
+// ==========================================
+function goToNouveauMode() {
+    if (!currentRoom) return;
+
+    // On force le rôle Traqué (HIDER)
+    socket.emit('lobbyAction', { room: currentRoom, action: 'REQUEST_HIDER' });
+    myRole = 'HIDER';
+
+    // On force la carte 1 (mapIndex 0). Seul l'hôte modifie côté serveur,
+    // mais on met à jour la valeur locale dans tous les cas.
+    if (isHost) socket.emit('lobbyAction', { room: currentRoom, action: 'SET_MAP_0' });
+    gameSettings.mapIndex = 0;
+
+    showScreen('nouveau-mode-screen');
+}
+
+function startNouveauMode() {
+    if (!currentRoom) return;
+    // Sécurité : on s'assure d'être bien sur la map1 au moment du lancement
+    gameSettings.mapIndex = 0;
+    socket.emit('startFilmMode', currentRoom);
 }
 
 function leaveRoom() {
