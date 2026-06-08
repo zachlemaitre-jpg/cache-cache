@@ -569,7 +569,7 @@ function generateInitialState() {
         // Étagère verticale (image native 52x26 pivotée → occupe 26x52)
         furnitures.push({ x: 403, y: 131, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
         // Dressing 
-        furnitures.push({ x: 129, y: 338, width: 64, height: 128, type: TILES.DRESSING });
+        furnitures.push({ x: 129, y: 330, width: 64, height: 128, type: TILES.DRESSING });
         
         // Spawns map 1
         hunterSpawn = { x: 830, y: 165 };
