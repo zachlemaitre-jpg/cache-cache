@@ -351,3 +351,8 @@ canvas {
     background: #2a2a2a;
     color: #fff;
 }
+
+#nouveau-mode-screen {
+    justify-content: center;
+    min-height: 100vh;
+}
