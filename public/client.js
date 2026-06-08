@@ -522,11 +522,14 @@ function generateInitialState() {
         addWallBlock(2, 8, 1, 1);
 
         // ALCÔVES BAS GAUCHE
-        addWallBlock(1, 21, 2, 1);    addWallBlock(3, 21, 1, 8);
-        addWallBlock(3, 28, 3, 1);    addWallBlock(5, 21, 1, 8);
-        addWallBlock(6, 21, 2, 1);    addWallBlock(7, 21, 1, 8);
-        addWallBlock(7, 28, 3, 1);    addWallBlock(10, 21, 1, 8);
-        addWallBlock(10, 21, 2, 1);
+        addWallBlock(1, 21, 2, 1);    
+        addWallBlock(3, 21, 1, 8);
+        addWallBlock(3, 28, 3, 1);    
+        addWallBlock(5, 21, 1, 8);
+        addWallBlock(6, 21, 2, 1);    
+        
+        // MUR : Décalé de x:119 (colonne 7) à x:100 (colonne 6)
+        addWallBlock(6, 21, 1, 8);
 
         // DIAGONALE
         addDiagonalWall("diag_g", 192, 336, 240, 256);
