@@ -213,7 +213,7 @@ loadImages();
 // ==========================================
 
 function showScreen(screenId) {
-    ['main-menu', 'lobby-screen', 'film-screen', 'nouveau-mode-screen', 'game-screen'].forEach(id => {
+    ['main-menu', 'lobby-screen', 'film-screen', 'nouveau-mode-screen', 'game-screen', 'loading-screen'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.add('hidden');
     });
@@ -256,6 +256,10 @@ function goToFilmMode() {
     if (myRole === 'HUNTER') subtitle.innerText = 'MODE CHASSEUR';
     else if (myRole === 'HIDER') subtitle.innerText = 'MODE TRAQUÉ';
     showScreen('film-screen');
+}
+
+function goToLoadingScreen() {
+    showScreen('loading-screen');
 }
 
 function startFilmGame() {
