@@ -405,3 +405,38 @@ canvas {
     0%, 100% { background: #2a2a2a; }
     16%      { background: #888; }
 }
+
+.btn.game-over-btn {
+    background: #8b0000;
+    border-color: #4a0000;
+}
+
+#game-over-screen {
+    max-width: 100%;
+    width: 100%;
+    padding: 0;
+}
+
+.game-over-title-block {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.credits-block {
+    width: 100%;
+    padding: 80px 20px 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+
+.credits-text {
+    font-size: 0.8rem;
+    color: #aaa;
+    text-align: center;
+    line-height: 2;
+}

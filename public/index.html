@@ -52,6 +52,7 @@
 
                 <button class="btn primary" onclick="goToFilmMode()">FILM</button>
                 <button class="btn loading-btn" onclick="goToLoadingScreen()">CHARGEMENT</button>
+                <button class="btn game-over-btn" onclick="goToGameOver()">GAME OVER</button>
 
                 <div id="host-settings" class="disabled-for-client">
                     <h3 class="panel-title">Carte</h3>
@@ -121,6 +122,15 @@
             <div class="pixel-spinner-dot"></div>
             <div class="pixel-spinner-dot"></div>
             <div class="pixel-spinner-dot"></div>
+        </div>
+    </div>
+        <div id="game-over-screen" class="screen hidden">
+        <div class="game-over-title-block">
+            <h1 class="title">GAME OVER</h1>
+        </div>
+        <div id="credits-block" class="credits-block">
+            <!-- Tes crédits viendront ici -->
+            <p class="credits-text">Crédits à venir...</p>
         </div>
     </div>
 
