@@ -531,9 +531,11 @@ function generateInitialState() {
         // MUR : Décalé de x:119 (colonne 7) à x:100 (colonne 6)
         addWallBlock(6, 21, 1, 8);
         // NOUVEAUX MURS SUR MESURE
-        addWallBlock(8, 29, 4, 1);  // Mur horizontal (bas)
+        addWallBlock(8, 28, 4, 1);  // Mur horizontal (remonté d'un cran pour laisser un passage en bas)
         addWallBlock(12, 22, 1, 8); // Mur vertical (droit)
-        addWallBlock(7, 22, 1, 8);  // Mur vertical (gauche)
+        addWallBlock(7, 22, 1, 8);
+
+        addWallBlock(4, 21, 1, 1);
 
         // DIAGONALE
         addDiagonalWall("diag_g", 192, 336, 240, 256);
