@@ -23,10 +23,11 @@ body {
     color: var(--text-color);
     display: flex;
     justify-content: center;
-    align-items: center;
-    height: 100vh;
-    overflow: hidden;
-    image-rendering: pixelated; /* Très important pour que les images restent nettes */
+    align-items: flex-start;
+    min-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    image-rendering: pixelated;
 }
 
 .hidden { display: none !important; }
@@ -97,6 +98,7 @@ input {
 }
 
 .btn.primary { background: #4facfe; border-color: #2196f3; }
+.btn.new-mode-btn { background: #9b59b6; border-color: #6c3483; }
 .btn.success { background: #43e97b; color: #000; }
 .btn:active { transform: translate(2px, 2px); box-shadow: none; }
 
@@ -114,12 +116,15 @@ canvas {
 /* Game screen : canvas à gauche, sidebar à droite */
 #game-screen {
     flex-direction: row !important;
-    justify-content: center !important; /* Centre horizontalement */
-    align-items: center !important;     /* Centre verticalement */
+    justify-content: center !important;
+    align-items: center !important;
     max-width: none !important;
     gap: 16px;
     width: 100vw;
     height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
 /* Wrapper relatif pour superposer le HUD sur le canvas */
