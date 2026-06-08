@@ -377,30 +377,29 @@ canvas {
 
 .pixel-spinner {
     position: relative;
-    width: 80px;
-    height: 80px;
+    width: 64px;
+    height: 64px;
     margin: 30px 0;
+    image-rendering: pixelated;
 }
 
 .pixel-spinner-dot {
     position: absolute;
-    width: 16px;
-    height: 16px;
-    background: var(--gold);
-    box-shadow: 2px 2px 0 #000;
+    width: 20px;
+    height: 20px;
+    background: #555;
 }
 
-/* 8 carrés positionnés autour d'un cercle, chacun clignote à son tour */
-.pixel-spinner-dot:nth-child(1) { top: 0;    left: 32px; animation: pixel-spin 1s infinite 0s; }
-.pixel-spinner-dot:nth-child(2) { top: 9px;  left: 55px; animation: pixel-spin 1s infinite 0.125s; }
-.pixel-spinner-dot:nth-child(3) { top: 32px; left: 64px; animation: pixel-spin 1s infinite 0.25s; }
-.pixel-spinner-dot:nth-child(4) { top: 55px; left: 55px; animation: pixel-spin 1s infinite 0.375s; }
-.pixel-spinner-dot:nth-child(5) { top: 64px; left: 32px; animation: pixel-spin 1s infinite 0.5s; }
-.pixel-spinner-dot:nth-child(6) { top: 55px; left: 9px;  animation: pixel-spin 1s infinite 0.625s; }
-.pixel-spinner-dot:nth-child(7) { top: 32px; left: 0;    animation: pixel-spin 1s infinite 0.75s; }
-.pixel-spinner-dot:nth-child(8) { top: 9px;  left: 9px;  animation: pixel-spin 1s infinite 0.875s; }
+/* Seulement 4 gros carrés en croix */
+.pixel-spinner-dot:nth-child(1) { top: 0;    left: 22px; animation: pixel-spin 0.8s steps(1) infinite 0s; }
+.pixel-spinner-dot:nth-child(2) { top: 22px; right: 0;   animation: pixel-spin 0.8s steps(1) infinite 0.2s; }
+.pixel-spinner-dot:nth-child(3) { bottom: 0; left: 22px; animation: pixel-spin 0.8s steps(1) infinite 0.4s; }
+.pixel-spinner-dot:nth-child(4) { top: 22px; left: 0;    animation: pixel-spin 0.8s steps(1) infinite 0.6s; }
+
+/* On masque les 4 dots en trop (5 à 8) car on n'en veut que 4 */
+.pixel-spinner-dot:nth-child(n+5) { display: none; }
 
 @keyframes pixel-spin {
-    0%, 100% { background: #333; transform: scale(0.7); }
-    20%      { background: var(--gold); transform: scale(1); }
+    0%, 100% { background: #555; }
+    25%      { background: var(--gold); }
 }
