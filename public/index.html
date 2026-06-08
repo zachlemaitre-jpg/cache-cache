@@ -48,6 +48,8 @@
                     <button class="btn role-btn hider" onclick="requestRole('REQUEST_HIDER')">TRAQUE</button>
                 </div>
 
+                <button class="btn new-mode-btn" onclick="goToNouveauMode()">NOUVEAU MODE</button>
+
                 <button class="btn primary" onclick="goToFilmMode()">FILM</button>
 
                 <div id="host-settings" class="disabled-for-client">
@@ -95,6 +97,15 @@
         <div class="menu-box">
             <button class="btn success" onclick="startFilmGame()">LANCER LA PARTIE</button>
             <button class="btn back-btn" onclick="returnToLobby()">&#x21A9; SALON</button>
+        </div>
+    </div>
+
+    <div id="nouveau-mode-screen" class="screen hidden">
+        <h1 class="title">CACHE-CACHE</h1>
+
+        <div class="menu-box">
+            <h2 class="subtitle">Nouveau mode disponible : Mode traqué</h2>
+            <button class="btn success" onclick="startNouveauMode()">LANCER</button>
         </div>
     </div>
 
