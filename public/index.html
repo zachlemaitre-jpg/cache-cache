@@ -51,6 +51,7 @@
                 <button class="btn new-mode-btn" onclick="goToNouveauMode()">NOUVEAU MODE</button>
 
                 <button class="btn primary" onclick="goToFilmMode()">FILM</button>
+                <button class="btn loading-btn" onclick="goToLoadingScreen()">CHARGEMENT</button>
 
                 <div id="host-settings" class="disabled-for-client">
                     <h3 class="panel-title">Carte</h3>
@@ -108,6 +109,21 @@
             <p class="nouveau-mode-desc">À ton tour de te cacher</p>
             <button class="btn success" onclick="startNouveauMode()">LANCER</button>
         </div>
+    </div>
+
+    <div id="loading-screen" class="screen hidden">
+        <h1 class="title">CHARGEMENT</h1>
+        <div class="pixel-spinner">
+            <div class="pixel-spinner-dot"></div>
+            <div class="pixel-spinner-dot"></div>
+            <div class="pixel-spinner-dot"></div>
+            <div class="pixel-spinner-dot"></div>
+            <div class="pixel-spinner-dot"></div>
+            <div class="pixel-spinner-dot"></div>
+            <div class="pixel-spinner-dot"></div>
+            <div class="pixel-spinner-dot"></div>
+        </div>
+        <button class="btn back-btn" onclick="returnToLobby()">&#x21A9; SALON</button>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
