@@ -603,8 +603,8 @@ function generateInitialState() {
         furnitures.push({ x: 404, y: 52, width: 72, height: 36, rotation: 270, type: TILES.BED });
         // Étagère verticale (image native 52x26 pivotée → occupe 26x52)
         furnitures.push({ x: 403, y: 131, width: 26, height: 52, rotation: 90, type: TILES.SHELF });
-        // Dressing (Taille x2 pour être bien proportionné aux persos)
-        furnitures.push({ x: 130, y: 338, width: 72, height: 120, type: TILES.DRESSING, scale: 2 });
+        // Dressing (3 cases de large, taille parfaitement proportionnelle)
+        furnitures.push({ x: 129, y: 330, width: 48, height: 80, type: TILES.DRESSING, scale: 48/36 });
         
         // Spawns map 1
         hunterSpawn = { x: 830, y: 165 };
