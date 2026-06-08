@@ -565,6 +565,8 @@ function generateInitialState() {
         addWallBlock(7, 22, 1, 8);
 
         addWallBlock(4, 21, 1, 1);
+        addWallBlock(11, 21, 1, 9);
+        addWallBlock(8, 25, 3, 1);
 
         // DIAGONALE
         addDiagonalWall("diag_g", 192, 336, 240, 256);
