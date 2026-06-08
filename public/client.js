@@ -213,12 +213,41 @@ loadImages();
 // ==========================================
 
 function showScreen(screenId) {
-    ['main-menu', 'lobby-screen', 'film-screen', 'nouveau-mode-screen', 'game-screen', 'loading-screen'].forEach(id => {
+    ['main-menu', 'lobby-screen', 'film-screen', 'nouveau-mode-screen', 'game-screen', 'loading-screen', 'game-over-screen'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.add('hidden');
     });
     const target = document.getElementById(screenId);
     if (target) target.classList.remove('hidden');
+    // On annule un éventuel défilement de crédits en cours
+    if (creditsAnimationId) {
+        cancelAnimationFrame(creditsAnimationId);
+        creditsAnimationId = null;
+    }
+}
+
+let creditsAnimationId = null;
+
+function goToGameOver() {
+    showScreen('game-over-screen');
+    window.scrollTo(0, 0);
+
+    // Après 5 secondes, lancer le défilement lent vers le bas
+    setTimeout(() => {
+        const startY = window.scrollY;
+        const targetY = document.body.scrollHeight - window.innerHeight;
+        const duration = 30000; // 30 secondes pour faire défiler tous les crédits
+        const startTime = performance.now();
+
+        function step(now) {
+            const progress = Math.min((now - startTime) / duration, 1);
+            window.scrollTo(0, startY + (targetY - startY) * progress);
+            if (progress < 1) {
+                creditsAnimationId = requestAnimationFrame(step);
+            }
+        }
+        creditsAnimationId = requestAnimationFrame(step);
+    }, 5000);
 }
 
 function joinOrCreateRoom() {
