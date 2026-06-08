@@ -359,7 +359,7 @@ canvas {
 
 .nouveau-mode-desc {
     font-size: 0.55rem;
-    color: var(--hider-color);
+    color: #aaa;
     text-align: center;
     line-height: 1.8;
 }
