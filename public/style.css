@@ -423,6 +423,35 @@ canvas {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+}
+
+.game-over-image {
+    max-width: 90%;
+    max-height: 85vh;
+    image-rendering: pixelated;
+    border: var(--pixel-border);
+    box-shadow: 8px 8px 0 #000;
+}
+
+.game-over-title {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    margin: 0;
+    font-size: 4rem;
+    color: var(--hunter-color);
+    text-shadow:
+        4px 4px 0 #000,
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        0 0 20px rgba(0,0,0,0.9);
+    pointer-events: none;
+    letter-spacing: 4px;
+    white-space: nowrap;
 }
 
 .credits-block {
