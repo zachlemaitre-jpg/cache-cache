@@ -444,7 +444,7 @@ canvas {
 }
 
 .credits-section-title {
-    font-size: 1.2rem;
+    font-size: 1.6rem;
     color: var(--gold);
     text-shadow: 3px 3px #000;
     margin-bottom: 16px;
@@ -456,7 +456,7 @@ canvas {
     display: flex;
     align-items: baseline;
     width: 100%;
-    font-size: 0.7rem;
+    font-size: 1rem;
     color: #fff;
     gap: 8px;
 }
@@ -488,13 +488,13 @@ canvas {
 }
 
 .credits-crew-role {
-    font-size: 0.75rem;
+    font-size: 1.2rem;
     color: var(--hunter-color);
     letter-spacing: 1px;
 }
 
 .credits-crew-names {
-    font-size: 0.7rem;
+    font-size: 1rem;
     color: #fff;
     line-height: 1.8;
 }
@@ -502,7 +502,7 @@ canvas {
 /* REMERCIEMENTS */
 .credits-intro,
 .credits-outro {
-    font-size: 0.7rem;
+    font-size: 1rem;
     color: #aaa;
     text-align: left;
     line-height: 2;
@@ -510,7 +510,7 @@ canvas {
 }
 
 .credits-thanks {
-    font-size: 0.65rem;
+    font-size: 1rem;
     color: #ccc;
     text-align: left;
     line-height: 2;
@@ -527,7 +527,7 @@ canvas {
 }
 
 .credits-studio {
-    font-size: 1.4rem;
+    font-size: 2rem;
     color: var(--hunter-color);
     text-shadow: 4px 4px #000;
     text-align: left;
@@ -535,7 +535,7 @@ canvas {
 }
 
 .credits-copyright {
-    font-size: 0.7rem;
+    font-size: 1rem;
     color: #888;
     text-align: left;
 }
