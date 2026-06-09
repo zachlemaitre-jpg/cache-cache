@@ -427,16 +427,115 @@ canvas {
 
 .credits-block {
     width: 100%;
-    padding: 80px 20px 120px;
+    max-width: 800px;
+    padding: 100px 20px 100vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
+    gap: 80px;
+}
+
+.credits-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.credits-section-title {
+    font-size: 1rem;
+    color: var(--gold);
+    text-shadow: 3px 3px #000;
+    margin-bottom: 16px;
+    letter-spacing: 2px;
+}
+
+/* DISTRIBUTION : nom ... role avec dots qui s'étirent */
+.credits-cast-row {
+    display: flex;
+    align-items: baseline;
+    width: 100%;
+    font-size: 0.55rem;
+    color: #fff;
+    gap: 8px;
+}
+
+.credits-cast-name {
+    flex-shrink: 0;
+    color: var(--hider-color);
+}
+
+.credits-cast-dots {
+    flex: 1;
+    border-bottom: 3px dotted #555;
+    transform: translateY(-4px);
+    min-width: 30px;
+}
+
+.credits-cast-role {
+    flex-shrink: 0;
+    text-align: right;
+    color: #ccc;
+}
+
+/* ÉQUIPE TECHNIQUE : rôle au-dessus, noms en dessous */
+.credits-crew-row {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.credits-crew-role {
+    font-size: 0.6rem;
+    color: var(--hunter-color);
+    letter-spacing: 1px;
+}
+
+.credits-crew-names {
+    font-size: 0.55rem;
+    color: #fff;
+    line-height: 1.8;
+}
+
+/* REMERCIEMENTS */
+.credits-intro,
+.credits-outro {
+    font-size: 0.55rem;
+    color: #aaa;
+    text-align: left;
+    line-height: 2;
+    margin: 10px 0;
+}
+
+.credits-thanks {
+    font-size: 0.5rem;
+    color: #ccc;
+    text-align: left;
+    line-height: 2;
+}
+
+.credits-thanks-name {
+    color: var(--gold);
+}
+
+/* STUDIO + COPYRIGHT */
+.credits-final {
+    margin-top: 60px;
     gap: 30px;
 }
 
-.credits-text {
-    font-size: 0.8rem;
-    color: #aaa;
-    text-align: center;
-    line-height: 2;
+.credits-studio {
+    font-size: 1.2rem;
+    color: var(--hunter-color);
+    text-shadow: 4px 4px #000;
+    text-align: left;
+    letter-spacing: 3px;
+}
+
+.credits-copyright {
+    font-size: 0.55rem;
+    color: #888;
+    text-align: left;
 }
