@@ -236,7 +236,7 @@ function goToGameOver() {
     setTimeout(() => {
         const startY = window.scrollY;
         const targetY = document.body.scrollHeight - window.innerHeight;
-        const duration = 30000; // 30 secondes pour faire défiler tous les crédits
+        const duration = 60000; // 60 secondes pour faire défiler tous les crédits
         const startTime = performance.now();
 
         function step(now) {

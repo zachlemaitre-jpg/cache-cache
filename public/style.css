@@ -436,12 +436,12 @@ canvas {
 
 .game-over-title {
     position: absolute;
-    top: 50%;
+    top: 35%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 10;
     margin: 0;
-    font-size: 4rem;
+    font-size: 2.5rem;
     color: var(--hunter-color);
     text-shadow:
         4px 4px 0 #000,
