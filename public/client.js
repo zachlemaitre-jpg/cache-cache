@@ -1522,3 +1522,12 @@ canvas.addEventListener('mousemove', (e) => {
     // On affiche l'info dans le titre de la page ou dans la console
     document.title = `X: ${mouseX} | Y: ${mouseY}`;
 });
+
+// ==========================================
+// Écran de chargement initial (2 secondes)
+// ==========================================
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        showScreen('main-menu');
+    }, 2000);
+});
