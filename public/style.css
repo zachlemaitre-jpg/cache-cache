@@ -33,6 +33,80 @@ body {
 .hidden { display: none !important; }
 .screen { width: 100%; max-width: 900px; display: flex; flex-direction: column; align-items: center; }
 
+/* Centrer l'accueil et le salon, en gardant le contenu accessible sur petit écran. */
+#main-menu,
+#lobby-screen {
+    min-height: 100vh;
+    min-height: 100dvh;
+    justify-content: center;
+    padding: 32px 24px;
+}
+
+/* Titre en grand dans le fond de l'accueil, affiché en entier (contain = jamais rogné). */
+#main-menu {
+    padding-top: 30vh;
+}
+
+#main-menu::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 45vh;
+    z-index: -1;
+    background: url('assets/Cache cache titre.png') center / contain no-repeat;
+}
+
+/* Le titre en image remplace le titre texte (gardé pour l'accessibilité). */
+#main-menu > .title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}
+
+#main-menu .menu-box {
+    width: 100%;
+    max-width: 440px;
+}
+
+/* Titre en bannière au-dessus du salon, dans le flux pour ne jamais recouvrir le contenu. */
+#lobby-screen::before {
+    content: '';
+    flex: none;
+    width: 100%;
+    aspect-ratio: 1890 / 473;
+    max-height: 22vh;
+    margin-bottom: 16px;
+    background: url('assets/Cache cache titre.png') center / contain no-repeat;
+}
+
+#main-menu > .title,
+#lobby-screen > .title {
+    text-align: center;
+    overflow-wrap: anywhere;
+    line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+    #main-menu > .title,
+    #lobby-screen > .title {
+        font-size: 1.4rem;
+    }
+
+    #lobby-screen .lobby-layout {
+        flex-direction: column;
+    }
+
+    #lobby-screen .players-panel,
+    #lobby-screen .settings-panel {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
 /* Titres très carrés */
 .title { 
     font-size: 2rem; 
@@ -102,6 +176,7 @@ input {
 .btn.success { background: #43e97b; color: #000; }
 .btn:active { transform: translate(2px, 2px); box-shadow: none; }
 
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .disabled-for-client { pointer-events: none; opacity: 0.5; }
 
 /* Le Canvas */
@@ -155,6 +230,18 @@ canvas {
     box-shadow: 3px 3px 0 #000;
     padding: 8px 12px;
 }
+
+/* Indicateur du dash (traqués) */
+#dash-hud {
+    font-size: 0.6rem;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.75);
+    border: 3px solid #fff;
+    box-shadow: 3px 3px 0 #000;
+}
+#dash-hud.dash-ready    { border-color: #43e97b; color: #43e97b; }
+#dash-hud.dash-cooldown { border-color: #777;    color: #aaa; }
+#dash-hud.dash-active   { border-color: #4facfe; color: #4facfe; }
 
 #game-message {
     font-size: 0.6rem;

@@ -1,4 +1,5 @@
-const socket = io();
+// WebSocket direct (pas de long-polling) : moins de latence, repli automatique si bloqué
+const socket = io({ transports: ['websocket', 'polling'], tryAllTransports: true });
 
 // 1. TUILES
 const TILES = {
@@ -158,10 +159,22 @@ let timeRemaining = 0;
 let hunterCountdown = 0; // Décompte de 10s avant que le chasseur puisse jouer
 let clientsInputs = {};
 let isWallGrid = []; // NOUVEAU : La grille de collision et d'ombre
-let furnitures = []; // Liste des entités (vide pour l'instant) 
+let furnitures = []; // Liste des entités (vide pour l'instant)
+// Cartes plus grandes que le format de base 56x30 (cartes 1 à 3)
+const MAP_SIZES = {
+    3: { cols: 88,  rows: 48 },   // CARTE 4 : LE MANOIR
+    4: { cols: 104, rows: 56 }    // CARTE 5 : LA VILLA
+};
+// Dash des traqués : accélération brève, puis rechargement
+const DASH_DURATION_MS = 600;    // durée du dash
+const DASH_COOLDOWN_MS = 8000;   // le dash revient 8 s après la fin du dash
+const DASH_SPEED_MULT = 2.2;     // vitesse pendant le dash
+let worldCols = 56;  // Taille du monde en tuiles de 16px (change selon la carte)
+let worldRows = 30;
+let floorZones = []; // Zones de sol colorées (purement visuelles)
 
 // --- Gestion des Touches ---
-const keys = { up: false, down: false, left: false, right: false, action1: false, action2: false };
+const keys = { up: false, down: false, left: false, right: false, action1: false, action2: false, action3: false };
 
 window.addEventListener('keydown', (e) => {
     const key = e.key.toLowerCase(); // Transforme Z en z
@@ -169,8 +182,10 @@ window.addEventListener('keydown', (e) => {
     if (key === 's' || e.key === 'ArrowDown') keys.down = true;
     if (key === 'q' || e.key === 'ArrowLeft') keys.left = true;
     if (key === 'd' || e.key === 'ArrowRight') keys.right = true;
-    if (key === 'e') keys.action1 = true; 
-    if (key === 'f') keys.action2 = true; 
+    if (key === 'e') keys.action1 = true;
+    if (key === 'f') keys.action2 = true;
+    if (key === 'shift') keys.action3 = true; // Dash des traqués
+    sendInputIfChanged();
 });
 
 window.addEventListener('keyup', (e) => {
@@ -181,7 +196,29 @@ window.addEventListener('keyup', (e) => {
     if (key === 'd' || e.key === 'ArrowRight') keys.right = false;
     if (key === 'e') keys.action1 = false;
     if (key === 'f') keys.action2 = false;
+    if (key === 'shift') keys.action3 = false;
+    sendInputIfChanged();
 });
+
+// Touches coincées si la fenêtre perd le focus (alt-tab) : on relâche tout
+window.addEventListener('blur', () => {
+    for (const k in keys) keys[k] = false;
+    sendInputIfChanged();
+});
+
+// L'invité n'envoie ses touches qu'au moment où elles changent (plus un battement de secours),
+// au lieu de 30 messages par seconde en continu.
+let lastInputSig = '';
+let lastInputSentAt = 0;
+function sendInputIfChanged(force) {
+    if (isHost || !isPlaying || !currentRoom) return;
+    const sig = Object.values(keys).map(v => v ? 1 : 0).join('');
+    const now = performance.now();
+    if (!force && sig === lastInputSig) return;
+    lastInputSig = sig;
+    lastInputSentAt = now;
+    socket.emit('playerInput', { room: currentRoom, input: { ...keys } });
+}
 
 // --- Préchargement des Images ---
 const images = {};
@@ -272,8 +309,27 @@ function changeMap(mapIndex) {
     }
 }
 
+const MIN_PLAYERS = 2;
+let lobbyPlayerCount = 0;
+
+// Bouton "lancer" : désactivé tant qu'il n'y a pas assez de joueurs
+function refreshStartButton() {
+    const startBtn = document.getElementById('start-btn');
+    if (!startBtn) return;
+    if (!isHost) {
+        startBtn.innerText = "En attente de l'hôte...";
+        startBtn.disabled = false;
+    } else if (lobbyPlayerCount < MIN_PLAYERS) {
+        startBtn.innerText = "EN ATTENTE D'UN 2E JOUEUR...";
+        startBtn.disabled = true;
+    } else {
+        startBtn.innerText = "LANCER LA PARTIE";
+        startBtn.disabled = false;
+    }
+}
+
 function startGame() {
-    if (isHost && currentRoom) socket.emit('startGame', currentRoom);
+    if (isHost && currentRoom && lobbyPlayerCount >= MIN_PLAYERS) socket.emit('startGame', currentRoom);
 }
 
 function goToFilmMode() {
@@ -359,11 +415,11 @@ socket.on('lobbyJoined', (data) => {
     
     if (isHost) {
         hostSettings.classList.remove('disabled-for-client');
-        startBtn.innerText = "LANCER LA PARTIE";
     } else {
         hostSettings.classList.add('disabled-for-client');
-        startBtn.innerText = "En attente de l'hôte...";
     }
+    lobbyPlayerCount = 0;
+    refreshStartButton();
     updateTimeButtons(gameSettings.roundDuration);
     if (gameSettings.mapIndex !== undefined) {
         const mapSelect = document.getElementById('map-select');
@@ -379,6 +435,9 @@ socket.on('playersUpdated', (players) => {
     huntersList.innerHTML = '';
     hidersList.innerHTML  = '';
     spectatorsList.innerHTML = '';
+
+    lobbyPlayerCount = players.length;
+    refreshStartButton();
 
     // Synchroniser playersState pendant le lobby ET en jeu (hôte uniquement).
     // Sans ça, playersState serait vide au lancement et la caméra planterait.
@@ -430,7 +489,7 @@ socket.on('settingsUpdated', (settings) => {
 socket.on('hostMigrated', () => {
     isHost = true;
     document.getElementById('host-settings').classList.remove('disabled-for-client');
-    document.getElementById('start-btn').innerText = "LANCER LA PARTIE";
+    refreshStartButton();
     alert("L'hôte a quitté, vous êtes le nouveau chef du salon !");
 });
 
@@ -455,17 +514,178 @@ socket.on('clientInput', (data) => {
     if (isHost) clientsInputs[data.clientId] = data.input;
 });
 
+// --- État réseau de l'invité : prédiction de son propre déplacement + interpolation des autres ---
+let inputHeartbeat = null;
+let predPos = null;          // position prédite de mon joueur (invité)
+let predDash = 0;            // durée de dash restante prédite localement (ms)
+let predPrevAction3 = false;
+const guestSmooth = {};      // positions affichées des autres joueurs
+const guestTargets = {};     // dernières positions reçues de l'hôte
+
+function resetNetworkState() {
+    predPos = null;
+    predDash = 0;
+    predPrevAction3 = false;
+    for (const id in guestSmooth) delete guestSmooth[id];
+    for (const id in guestTargets) delete guestTargets[id];
+    lastFurnSig = '';
+    lastSnapshotAt = 0;
+    snapshotCount = 0;
+    lastInputSig = '';
+}
+
 // Réception de l'état officiel (uniquement pour les invités)
 socket.on('syncState', (state) => {
-    if (!isHost) {
-        playersState = state.players; 
-        mapTiles = state.currentMapTiles;
-        furnitures = state.furnitures; // <-- NOUVEAU !
-        timeRemaining = state.timeRemaining; 
-        hunterCountdown = state.hunterCountdown;
-        updateHUD();
+    if (isHost) return;
+
+    const next = {};
+    for (const p of state.players) next[p.id] = p;
+
+    // Meubles : seuls les changements d'état (ouvert / fermé / mort) voyagent sur le réseau
+    if (state.ft) {
+        for (let i = 0; i < state.ft.length && i < furnitures.length; i++) furnitures[i].type = state.ft[i];
     }
+
+    const moving = keys.up || keys.down || keys.left || keys.right;
+    for (const id in next) {
+        const p = next[id];
+        if (id === socket.id) {
+            // Mon joueur : je garde ma position prédite (réponse immédiate aux touches),
+            // sauf grosse erreur, cachette ou mort. À l'arrêt, je me recale en douceur.
+            if (!predPos || p.hidden || !p.alive || p.role === 'SPECTATOR' || Math.hypot(predPos.x - p.x, predPos.y - p.y) > 70) {
+                predPos = { x: p.x, y: p.y };
+            } else if (!moving) {
+                predPos.x += (p.x - predPos.x) * 0.35;
+                predPos.y += (p.y - predPos.y) * 0.35;
+            }
+            p.x = predPos.x;
+            p.y = predPos.y;
+        } else {
+            // Autres joueurs : on glisse vers la dernière position reçue au lieu de sauter
+            guestTargets[id] = { x: p.x, y: p.y };
+            const s = guestSmooth[id];
+            if (s && Math.hypot(s.x - p.x, s.y - p.y) < 120) { p.x = s.x; p.y = s.y; }
+            else guestSmooth[id] = { x: p.x, y: p.y };
+        }
+    }
+    for (const id in guestSmooth) {
+        if (!next[id]) { delete guestSmooth[id]; delete guestTargets[id]; }
+    }
+
+    playersState = next;
+    timeRemaining = state.timeRemaining;
+    hunterCountdown = state.hunterCountdown;
+    updateHUD();
 });
+
+// Appelé à chaque image chez l'invité : interpolation des autres + prédiction de mon déplacement
+function guestFrameUpdate(deltaMs) {
+    if (deltaMs > 100) deltaMs = 100;
+    const smoothK = 1 - Math.exp(-deltaMs / 60);
+
+    for (const id in playersState) {
+        if (id === socket.id) continue;
+        const s = guestSmooth[id], t = guestTargets[id];
+        if (!s || !t) continue;
+        s.x += (t.x - s.x) * smoothK;
+        s.y += (t.y - s.y) * smoothK;
+        playersState[id].x = s.x;
+        playersState[id].y = s.y;
+    }
+
+    const me = playersState[socket.id];
+    if (!me || !predPos) return;
+
+    const dashJustPressed = keys.action3 && !predPrevAction3;
+    predPrevAction3 = keys.action3;
+    predDash = Math.max(0, predDash - deltaMs);
+
+    me.x = predPos.x;
+    me.y = predPos.y;
+    if (!me.alive || me.hidden || me.role === 'SPECTATOR') return;
+    if (me.role === 'HUNTER' && hunterCountdown > 0) return;
+    if (!isWallGrid || isWallGrid.length === 0) return;
+
+    const wantsToMove = keys.up || keys.down || keys.left || keys.right;
+    if (dashJustPressed && me.role === 'HIDER' && wantsToMove && !(me.dashTimer > 0) && !(me.dashCooldown > 0) && predDash <= 0) {
+        predDash = DASH_DURATION_MS;
+    }
+    const dashing = me.dashTimer > 0 || predDash > 0;
+    applyMovement(me, keys, deltaMs, dashing ? DASH_SPEED_MULT : 1);
+    predPos.x = me.x;
+    predPos.y = me.y;
+}
+
+// Déplacement commun à l'hôte (officiel) et à l'invité (prédiction locale)
+function applyMovement(p, input, deltaMs, speedMult) {
+    let vx = 0, vy = 0;
+    if (input.up) vy -= 1;
+    if (input.down) vy += 1;
+    if (input.left) vx -= 1;
+    if (input.right) vx += 1;
+
+    if (vx !== 0 || vy !== 0) {
+        p.moving = true;
+        p.animTimer = (p.animTimer || 0) + deltaMs;
+        // Déterminer la direction (priorité X puis Y)
+        if (Math.abs(vx) > Math.abs(vy)) {
+            p.dir = vx > 0 ? 'right' : 'left';
+        } else {
+            p.dir = vy > 0 ? 'down' : 'up';
+        }
+    } else {
+        p.moving = false;
+        p.animTimer = 0;
+    }
+
+    const len = Math.hypot(vx, vy);
+    if (len > 0) { vx /= len; vy /= len; }
+
+    // Par pas de 8px max : un dash rapide ne peut jamais traverser un mur de 16px
+    const dist = p.speed * speedMult * (deltaMs / 1000.0);
+    const steps = Math.max(1, Math.ceil(dist / 8));
+    const stepDist = dist / steps;
+    for (let i = 0; i < steps; i++) {
+        const newX = p.x + vx * stepDist;
+        const newY = p.y + vy * stepDist;
+        if (!collides(newX, p.y, p.size)) p.x = newX;
+        if (!collides(p.x, newY, p.size)) p.y = newY;
+    }
+}
+
+// Hôte : envoie l'état aux invités, 20 fois par seconde max et sous forme compacte
+// (avant : à chaque image, avec tous les meubles, soit des dizaines de Ko par message)
+const SNAPSHOT_INTERVAL_MS = 50;
+let lastSnapshotAt = 0;
+let lastFurnSig = '';
+let snapshotCount = 0;
+
+function sendSnapshot() {
+    const now = performance.now();
+    if (now - lastSnapshotAt < SNAPSHOT_INTERVAL_MS) return;
+    lastSnapshotAt = now;
+
+    const players = [];
+    for (const id in playersState) {
+        const p = playersState[id];
+        players.push({
+            id, pseudo: p.pseudo, role: p.role,
+            x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10,
+            size: p.size, speed: p.speed, alive: p.alive, hidden: p.hidden,
+            dir: p.dir, moving: p.moving, animTimer: Math.round(p.animTimer || 0),
+            dashTimer: Math.round(p.dashTimer || 0), dashCooldown: Math.round(p.dashCooldown || 0)
+        });
+    }
+    const state = { players, timeRemaining, hunterCountdown };
+
+    // Meubles : uniquement leur état (ouvert/fermé), quand il change + une fois toutes les 2 s par sécurité
+    const sig = furnitures.map(f => f.type).join(',');
+    if (sig !== lastFurnSig || ++snapshotCount % 40 === 0) {
+        state.ft = furnitures.map(f => f.type);
+        lastFurnSig = sig;
+    }
+    socket.emit('stateSnapshot', { room: currentRoom, state });
+}
 
 function updateHUD() {
     const hud = document.getElementById('time-left');
@@ -475,6 +695,26 @@ function updateHUD() {
     } else {
         hud.innerText = 'Temps : ' + Math.floor(timeRemaining / 1000);
         hud.style.color = '';
+    }
+    updateDashHUD();
+}
+
+// Indicateur du dash (traqués uniquement)
+function updateDashHUD() {
+    const el = document.getElementById('dash-hud');
+    if (!el) return;
+    const me = playersState[socket.id];
+    if (!me || me.role !== 'HIDER' || !me.alive) { el.classList.add('hidden'); return; }
+    el.classList.remove('hidden');
+    if (me.dashTimer > 0 || predDash > 0) {
+        el.innerText = 'DASH !';
+        el.className = 'dash-active';
+    } else if (me.dashCooldown > 0) {
+        el.innerText = 'DASH ' + Math.ceil(me.dashCooldown / 1000) + 's';
+        el.className = 'dash-cooldown';
+    } else {
+        el.innerText = 'DASH [MAJ]';
+        el.className = 'dash-ready';
     }
 }
 
@@ -487,12 +727,15 @@ function initGameEngine() {
     isPlaying = true;
     
     generateInitialState();
+    resetNetworkState();
 
-    // Envoi des inputs au serveur (30 fps)
-    setInterval(() => {
-        if (!isPlaying) return;
-        socket.emit('playerInput', { room: currentRoom, input: { ...keys } });
-    }, 1000 / 30);
+    // Battement de secours : renvoie les touches toutes les 500 ms même si rien ne change
+    // (une seule boucle, même si on relance plusieurs parties)
+    if (!inputHeartbeat) {
+        inputHeartbeat = setInterval(() => {
+            if (performance.now() - lastInputSentAt > 500) sendInputIfChanged(true);
+        }, 250);
+    }
 
     lastTime = performance.now();
     requestAnimationFrame(gameLoop);
@@ -501,18 +744,24 @@ function initGameEngine() {
 // --- NOUVELLE STRUCTURE DE CARTE ---
 
 function generateInitialState() {
-    // 1. Initialisation de la grille de murs (896x480px / 16px => 30 lignes x 56 colonnes)
+    const mapIndex = (gameSettings && gameSettings.mapIndex) || 0;
+
+    // 1. Initialisation de la grille de murs (cartes 1 à 3 : 896x480px => 30 lignes x 56 colonnes)
+    const size = MAP_SIZES[mapIndex] || { cols: 56, rows: 30 };
+    worldCols = size.cols;
+    worldRows = size.rows;
     isWallGrid = [];
-    for (let y = 0; y < 30; y++) {
-        isWallGrid[y] = new Array(56).fill(false);
+    for (let y = 0; y < worldRows; y++) {
+        isWallGrid[y] = new Array(worldCols).fill(false);
     }
-    furnitures = []; 
+    furnitures = [];
+    floorZones = [];
 
     // Outils de traçage sur grille
     function addWallBlock(gx, gy, gWidth, gHeight) {
         for (let y = gy; y < gy + gHeight; y++) {
             for (let x = gx; x < gx + gWidth; x++) {
-                if (y >= 0 && y < 30 && x >= 0 && x < 56) isWallGrid[y][x] = true;
+                if (y >= 0 && y < worldRows && x >= 0 && x < worldCols) isWallGrid[y][x] = true;
             }
         }
     }
@@ -523,18 +772,36 @@ function generateInitialState() {
         for (let i = 0; i <= steps; i++) {
             const gx = Math.floor((startX + (dx * i)) / 16);
             const gy = Math.floor((startY + (dy * i)) / 16);
-            if (gy >= 0 && gy < 30 && gx >= 0 && gx < 56) isWallGrid[gy][gx] = true;
+            if (gy >= 0 && gy < worldRows && gx >= 0 && gx < worldCols) isWallGrid[gy][gx] = true;
         }
     }
 
+    // Mur vertical / horizontal avec des portes : doors = [[début, longueur], ...] en tuiles
+    function addDoorWall(vertical, fixed, from, to, doors) {
+        for (let i = from; i < to; i++) {
+            if (doors.some(([start, len]) => i >= start && i < start + len)) continue;
+            if (vertical) addWallBlock(fixed, i, 1, 1);
+            else addWallBlock(i, fixed, 1, 1);
+        }
+    }
+    // Pose un meuble avec une position en tuiles (gx, gy) et une taille en pixels
+    function place(type, gx, gy, width, height, rotation, extra) {
+        const f = { x: Math.round(gx * 16), y: Math.round(gy * 16), width, height, type };
+        if (rotation) f.rotation = rotation;
+        furnitures.push(extra ? Object.assign(f, extra) : f);
+    }
+    // Zone de sol colorée (en tuiles)
+    function zone(gx, gy, gw, gh, color, label) {
+        floorZones.push({ x: gx * 16, y: gy * 16, w: gw * 16, h: gh * 16, color, label });
+    }
+
     // MURS EXTÉRIEURS (communs à toutes les cartes)
-    addWallBlock(0, 0, 56, 1);    addWallBlock(0, 29, 56, 1);
-    addWallBlock(0, 0, 1, 30);    addWallBlock(55, 0, 1, 30);
+    addWallBlock(0, 0, worldCols, 1);               addWallBlock(0, worldRows - 1, worldCols, 1);
+    addWallBlock(0, 0, 1, worldRows);               addWallBlock(worldCols - 1, 0, 1, worldRows);
 
     // ==========================================
     // SÉLECTION DE LA CARTE
     // ==========================================
-    const mapIndex = (gameSettings && gameSettings.mapIndex) || 0;
 
     // On prépare les variables de spawn 
     let hunterSpawn = { x: 0, y: 0 };
@@ -793,6 +1060,285 @@ function generateInitialState() {
         hunterSpawn = { x: 103, y: 427 };
         hiderSpawns = [{x: 200, y: 100}, {x: 750, y: 200}, {x: 800, y: 400}];
 
+    } else if (mapIndex === 3) {
+        // ----- CARTE 4 : LE MANOIR (88x48 tuiles, 12 pièces) -----
+        // Cloisons : 3 murs verticaux et 2 horizontaux, chacun percé de portes de 4 tuiles
+        addDoorWall(true, 22, 1, 47, [[6, 4], [24, 4], [39, 4]]);
+        addDoorWall(true, 44, 1, 47, [[10, 4], [20, 4], [36, 4]]);
+        addDoorWall(true, 66, 1, 47, [[4, 4], [26, 4], [41, 4]]);
+        addDoorWall(false, 16, 1, 87, [[10, 4], [30, 4], [52, 4], [74, 4]]);
+        addDoorWall(false, 32, 1, 87, [[6, 4], [34, 4], [58, 4], [78, 4]]);
+
+        // Sols des pièces
+        zone(1, 1, 21, 15, 'hsl(215, 22%, 62%)', 'CHAMBRE PARENTALE');
+        zone(23, 1, 21, 15, 'hsl(28, 38%, 58%)', 'SALON');
+        zone(45, 1, 21, 15, 'hsl(48, 25%, 68%)', 'CUISINE');
+        zone(67, 1, 20, 15, 'hsl(190, 22%, 68%)', 'SALLE DE BAIN');
+        zone(1, 17, 21, 15, 'hsl(100, 15%, 56%)', 'BUREAU');
+        zone(23, 17, 21, 15, 'hsl(150, 30%, 38%)', 'SALLE DE JEUX');
+        zone(45, 17, 21, 15, 'hsl(35, 40%, 62%)', 'SALLE A MANGER');
+        zone(67, 17, 20, 15, 'hsl(50, 60%, 68%)', 'CHAMBRE ENFANTS');
+        zone(1, 33, 21, 14, 'hsl(0, 0%, 52%)', 'GARAGE');
+        zone(23, 33, 21, 14, 'hsl(0, 35%, 36%)', 'CINEMA');
+        zone(45, 33, 21, 14, 'hsl(280, 15%, 60%)', 'DRESSING');
+        zone(67, 33, 20, 14, 'hsl(170, 30%, 62%)', 'SPA');
+
+        function tableSet(gx, gy) {
+            place(TILES.TABLE, gx, gy, 64, 64);
+            place(TILES.CHAIR, gx + 21 / 16, gy - 30 / 16, 35, 35, 0);
+            place(TILES.CHAIR, gx + 68 / 16, gy + 20 / 16, 35, 35, 90);
+            place(TILES.CHAIR, gx - 30 / 16, gy + 15 / 16, 35, 35, 270);
+            place(TILES.CHAIR, gx + 21 / 16, gy + 66 / 16, 35, 35, 180);
+        }
+
+        // A1 : chambre parentale
+        place(TILES.BED_DOUBLE, 8, 2, 64, 78);
+        place(TILES.NIGHTSTAND, 6, 2.2, 23, 23);   place(TILES.NIGHTSTAND, 12.5, 2.2, 23, 23);
+        place(TILES.WARDROBE, 1.5, 1, 65, 30);
+        place(TILES.DRESSING, 15, 2, 48, 80, 180, { scale: 48 / 36 });
+        place(TILES.PLANT, 19.5, 2, 25, 24);
+        // B1 : salon
+        place(TILES.TV, 30, 1.4, 64, 20);
+        place(TILES.RUG, 28.5, 3.3, 84, 70);
+        place(TILES.COUCH, 28.5, 7.5, 84, 42, 180);
+        place(TILES.SHELF, 24, 1.2, 52, 26);       place(TILES.ARMCHAIR, 37, 5, 35, 35, 180);
+        place(TILES.TABLE, 36, 10, 64, 64);
+        // C1 : cuisine
+        place(TILES.FRIDGE, 46, 1.1, 32, 33);      place(TILES.STOVE, 49, 1.1, 55, 32);
+        place(TILES.SINK, 53, 1.1, 55, 32);        place(TILES.BOILER, 63, 1.1, 32, 32);
+        tableSet(57, 6);
+        // D1 : salle de bain
+        place(TILES.BATHTUB, 68, 1.2, 57, 30);     place(TILES.SINK, 74, 1.2, 55, 32);
+        place(TILES.SHOWER, 80, 1.3, 55, 55, 180); place(TILES.TOILET, 83, 5, 32, 24, 90);
+        place(TILES.RUG, 72, 8, 84, 70);
+        // A2 : bureau
+        place(TILES.DESK_MAC, 2, 18, 51, 25);      place(TILES.CHAIR_DESK, 3.2, 19.8, 30, 28, 180);
+        place(TILES.DESK_MAC, 6, 18, 51, 25);      place(TILES.CHAIR_DESK, 7.2, 19.8, 30, 28, 180);
+        place(TILES.SHELF, 15.5, 17.3, 52, 26);    place(TILES.SHELF, 18.5, 17.3, 52, 26);
+        place(TILES.WARDROBE, 2, 29.8, 65, 30, 180);
+        place(TILES.PLANT, 19.5, 18.5, 25, 24);    place(TILES.RUG, 8, 24, 84, 70);
+        // B2 : salle centrale
+        place(TILES.BILLARD, 31, 22.5, 96, 52);
+        place(TILES.COUCH, 25, 18, 84, 42);        place(TILES.COUCH, 36, 18, 84, 42);
+        place(TILES.PLANT, 23.5, 29.5, 25, 24);    place(TILES.PLANT, 41, 29.5, 25, 24);
+        place(TILES.RUG, 27.5, 27, 84, 70);        place(TILES.RUG, 36, 27, 84, 70);
+        place(TILES.ARMCHAIR, 25, 22.5, 35, 35);
+        // C2 : salle à manger
+        tableSet(57, 22);
+        place(TILES.SHELF, 47, 17.3, 52, 26);      place(TILES.SHELF, 60, 17.3, 52, 26);
+        place(TILES.PLANT, 63.5, 18.5, 25, 24);    place(TILES.PLANT, 46, 30, 25, 24);
+        place(TILES.RUG, 46, 27, 84, 70);
+        // D2 : chambre d'enfants
+        place(TILES.BED, 68, 18.5, 46, 78);        place(TILES.BED, 73, 18.5, 46, 78);
+        place(TILES.NIGHTSTAND, 71.3, 18.5, 23, 23);
+        place(TILES.WARDROBE, 80, 17.2, 65, 30);   place(TILES.TRUNK, 83, 28.5, 48, 28);
+        place(TILES.RUG, 72, 25, 84, 70);          place(TILES.PLANT, 84, 22, 25, 24);
+        // A3 : garage
+        place(TILES.KANGOO, 3, 35, 61, 122);       place(TILES.MOTO, 11, 36, 32, 64);
+        place(TILES.BOILER, 18, 33.3, 32, 32);     place(TILES.TRUNK, 14, 43, 48, 28);
+        place(TILES.SHELF, 13, 33.2, 52, 26);
+        // B3 : cinéma maison
+        place(TILES.TV, 31, 45.3, 64, 20, 180);
+        place(TILES.COUCH, 28.5, 36.8, 84, 42);
+        place(TILES.ARMCHAIR, 25, 41, 35, 35);     place(TILES.ARMCHAIR, 37, 41, 35, 35);
+        place(TILES.RUG, 29, 40, 84, 70);
+        place(TILES.LAMP, 41, 34, 24, 24);         place(TILES.PLANT, 24, 44, 25, 24);
+        // C3 : dressing
+        place(TILES.DRESSING, 47, 34.5, 48, 80, 180, { scale: 48 / 36 });
+        place(TILES.DRESSING, 50, 34.5, 48, 80, 180, { scale: 48 / 36 });
+        place(TILES.DRESSING, 53, 34.5, 48, 80, 180, { scale: 48 / 36 });
+        place(TILES.WARDROBE, 46, 44.8, 65, 30, 180);   place(TILES.WARDROBE, 50.5, 44.8, 65, 30, 180);
+        place(TILES.WARDROBE, 55, 44.8, 65, 30, 180);   place(TILES.WARDROBE, 59.5, 44.8, 65, 30, 180);
+        place(TILES.RUG, 52, 39.5, 84, 70);        place(TILES.PLANT, 63.5, 34, 25, 24);
+        // D3 : spa
+        place(TILES.BATHTUB, 68, 34.3, 57, 30);    place(TILES.BATHTUB, 73, 34.3, 57, 30);
+        place(TILES.SHOWER, 83.5, 34, 55, 55, 180); place(TILES.SHOWER, 83.5, 39, 55, 55, 180);
+        place(TILES.BATHTUB, 76, 44.3, 57, 30);    place(TILES.RUG, 70, 40.5, 84, 70);
+        place(TILES.PLANT, 68, 44.5, 25, 24);      place(TILES.PLANT, 84, 44.5, 25, 24);
+
+        hunterSpawn = { x: 150, y: 704 };
+        hiderSpawns = [{x: 1170, y: 150}, {x: 560, y: 650}, {x: 1180, y: 420}];
+
+    } else if (mapIndex === 4) {
+        // ----- CARTE 5 : LA VILLA (104x56 tuiles, grand salon central + 14 pièces) -----
+        const topDoors = [[8, 4], [29, 4], [50, 4], [71, 4], [92, 4]];
+
+        // Rangées de pièces haut et bas, séparées du grand salon par un mur percé de 5 portes
+        addDoorWall(false, 15, 1, 103, topDoors);
+        addDoorWall(false, 40, 1, 103, topDoors);
+        for (const dx of [21, 42, 62, 83]) {
+            addDoorWall(true, dx, 1, 15, [[6, 4]]);
+            addDoorWall(true, dx, 41, 55, [[46, 4]]);
+        }
+        // Pièces latérales
+        addDoorWall(true, 21, 15, 41, [[19, 4], [33, 4]]);
+        addDoorWall(true, 83, 15, 41, [[19, 4], [33, 4]]);
+        addDoorWall(false, 28, 1, 21, [[8, 4]]);
+        addDoorWall(false, 28, 84, 103, [[92, 4]]);
+
+        // Obstacles du grand salon : piliers, bloc central et cloisons pendantes
+        addWallBlock(30, 20, 2, 2);  addWallBlock(30, 34, 2, 2);
+        addWallBlock(73, 20, 2, 2);  addWallBlock(73, 34, 2, 2);
+        addWallBlock(47, 26, 10, 4);
+        addWallBlock(38, 16, 1, 6);  addWallBlock(66, 16, 1, 6);
+        addWallBlock(38, 34, 1, 6);  addWallBlock(66, 34, 1, 6);
+
+        // Sols
+        zone(22, 16, 61, 24, 'hsl(28, 30%, 52%)', 'GRAND SALON');
+        zone(1, 1, 20, 14, 'hsl(25, 30%, 42%)', 'BIBLIOTHEQUE');
+        zone(22, 1, 20, 14, 'hsl(215, 22%, 62%)', 'CHAMBRE');
+        zone(43, 1, 19, 14, 'hsl(48, 25%, 68%)', 'CUISINE');
+        zone(63, 1, 20, 14, 'hsl(35, 40%, 60%)', 'SALON');
+        zone(84, 1, 19, 14, 'hsl(190, 22%, 68%)', 'SALLE DE BAIN');
+        zone(1, 16, 20, 12, 'hsl(100, 15%, 56%)', 'BUREAU');
+        zone(1, 29, 20, 11, 'hsl(50, 60%, 68%)', 'CHAMBRE ENFANTS');
+        zone(84, 16, 19, 12, 'hsl(30, 10%, 46%)', 'ATELIER');
+        zone(84, 29, 19, 11, 'hsl(120, 28%, 50%)', 'JARDIN D\'HIVER');
+        zone(1, 41, 20, 14, 'hsl(0, 0%, 52%)', 'GARAGE');
+        zone(22, 41, 20, 14, 'hsl(280, 15%, 60%)', 'DRESSING');
+        zone(43, 41, 19, 14, 'hsl(150, 30%, 38%)', 'SALLE DE JEUX');
+        zone(63, 41, 19, 14, 'hsl(200, 12%, 62%)', 'BUANDERIE');
+        zone(84, 41, 19, 14, 'hsl(260, 25%, 62%)', 'CHAMBRE ADO');
+
+        function tableSet(gx, gy) {
+            place(TILES.TABLE, gx, gy, 64, 64);
+            place(TILES.CHAIR, gx + 21 / 16, gy - 30 / 16, 35, 35, 0);
+            place(TILES.CHAIR, gx + 68 / 16, gy + 20 / 16, 35, 35, 90);
+            place(TILES.CHAIR, gx - 30 / 16, gy + 15 / 16, 35, 35, 270);
+            place(TILES.CHAIR, gx + 21 / 16, gy + 66 / 16, 35, 35, 180);
+        }
+
+        // Rangée du haut ---------------------------------------------
+        // T1 : bibliothèque
+        place(TILES.SHELF, 2, 1.2, 52, 26);        place(TILES.SHELF, 5.5, 1.2, 52, 26);
+        place(TILES.SHELF, 14, 1.2, 52, 26);       place(TILES.SHELF, 17.5, 1.2, 52, 26);
+        place(TILES.DESK_MAC, 3, 4, 51, 25);       place(TILES.CHAIR_DESK, 4.2, 5.8, 30, 28, 180);
+        place(TILES.ARMCHAIR, 3, 9, 35, 35);       place(TILES.PLANT, 18, 10, 25, 24);
+        place(TILES.RUG, 12, 6, 84, 70);
+        // T2 : chambre
+        place(TILES.BED_DOUBLE, 30, 2, 64, 78);
+        place(TILES.NIGHTSTAND, 28, 2.2, 23, 23);  place(TILES.NIGHTSTAND, 34.5, 2.2, 23, 23);
+        place(TILES.WARDROBE, 23, 12.5, 65, 30);   place(TILES.DRESSING, 37, 2.5, 48, 80, 180, { scale: 48 / 36 });
+        place(TILES.PLANT, 24, 2, 25, 24);
+        // T3 : cuisine
+        place(TILES.FRIDGE, 44, 1.1, 32, 33);      place(TILES.STOVE, 47, 1.1, 55, 32);
+        place(TILES.SINK, 51, 1.1, 55, 32);        place(TILES.BOILER, 59, 1.1, 32, 32);
+        tableSet(53.5, 6);
+        // T4 : salon
+        place(TILES.TV, 70, 1.4, 64, 20);          place(TILES.RUG, 68.5, 3.3, 84, 70);
+        place(TILES.COUCH, 68.5, 7.5, 84, 42, 180);
+        place(TILES.SHELF, 64, 1.2, 52, 26);       place(TILES.ARMCHAIR, 77, 6, 35, 35, 90);
+        place(TILES.PLANT, 80, 10, 25, 24);
+        // T5 : salle de bain
+        place(TILES.BATHTUB, 85, 1.2, 57, 30);     place(TILES.SINK, 91, 1.2, 55, 32);
+        place(TILES.SHOWER, 97, 1.3, 55, 55, 180); place(TILES.TOILET, 100, 7, 32, 24, 90);
+        place(TILES.RUG, 88, 8, 84, 70);
+
+        // Pièces latérales --------------------------------------------
+        // Bureau haut gauche
+        place(TILES.DESK_MAC, 2, 17.5, 51, 25);    place(TILES.CHAIR_DESK, 3.2, 19.3, 30, 28, 180);
+        place(TILES.DESK_MAC, 14, 17.5, 51, 25);   place(TILES.CHAIR_DESK, 15.2, 19.3, 30, 28, 180);
+        place(TILES.SHELF, 17, 24.5, 52, 26);      place(TILES.RUG, 5, 22, 84, 70);
+        place(TILES.ARMCHAIR, 14, 23, 35, 35);
+        // Chambre bas gauche
+        place(TILES.BED, 2, 31, 46, 78);           place(TILES.BED, 13, 31, 46, 78);
+        place(TILES.NIGHTSTAND, 6, 31.2, 23, 23);  place(TILES.WARDROBE, 14, 36.5, 65, 30, 180);
+        // Atelier haut droite
+        place(TILES.DESK_MAC, 86, 17.3, 51, 25);
+        place(TILES.SHELF, 89.5, 17.3, 52, 26);    place(TILES.SHELF, 96, 17.3, 52, 26);
+        place(TILES.MOTO, 99.5, 18.2, 32, 64);     place(TILES.BOILER, 85, 25.2, 32, 32);
+        place(TILES.TRUNK, 88.5, 25.3, 48, 28);    place(TILES.TRUNK, 97, 25.3, 48, 28);
+        // Jardin d'hiver bas droite
+        for (const [px, py] of [[85, 29.5], [88, 29.5], [98, 29.5], [101, 29.5], [85, 37.5], [90, 37.5], [96.5, 37.5], [101, 37.5]]) {
+            place(TILES.PLANT, px, py, 25, 24);
+        }
+        tableSet(95, 31.5);                        place(TILES.RUG, 86, 33.5, 84, 70);
+
+        // Grand salon central -----------------------------------------
+        place(TILES.RUG, 27, 23.5, 84, 70);        place(TILES.RUG, 70, 23.5, 84, 70);
+        place(TILES.RUG, 36, 33, 84, 70);          place(TILES.RUG, 60, 33, 84, 70);
+        tableSet(30.5, 26.5);
+        place(TILES.BILLARD, 41, 34, 96, 52);
+        place(TILES.COUCH, 58, 17.5, 84, 42);      place(TILES.COUCH, 58, 35.5, 84, 42, 180);
+        place(TILES.PLANT, 23, 17, 25, 24);        place(TILES.PLANT, 80.5, 17, 25, 24);
+        place(TILES.PLANT, 23, 37, 25, 24);        place(TILES.PLANT, 80.5, 37, 25, 24);
+        place(TILES.ARMCHAIR, 44, 18, 35, 35);     place(TILES.TRUNK, 76, 36, 48, 28);
+
+        // Rangée du bas -----------------------------------------------
+        // B1 : garage
+        place(TILES.KANGOO, 3, 43, 61, 122);       place(TILES.MOTO, 10, 44, 32, 64);
+        place(TILES.TRUNK, 15, 52, 48, 28);        place(TILES.BOILER, 18, 41.3, 32, 32);
+        // B2 : dressing
+        place(TILES.DRESSING, 33, 42.5, 48, 80, 180, { scale: 48 / 36 });
+        place(TILES.DRESSING, 36, 42.5, 48, 80, 180, { scale: 48 / 36 });
+        place(TILES.WARDROBE, 23, 52.8, 65, 30, 180);   place(TILES.WARDROBE, 28, 52.8, 65, 30, 180);
+        place(TILES.WARDROBE, 33, 52.8, 65, 30, 180);   place(TILES.WARDROBE, 37.5, 52.8, 65, 30, 180);
+        place(TILES.RUG, 27, 45.5, 84, 70);             place(TILES.PLANT, 40, 47, 25, 24);
+        // B3 : salle de jeux
+        place(TILES.BILLARD, 48, 44.5, 96, 52);    place(TILES.COUCH, 52, 51, 84, 42, 180);
+        place(TILES.ARMCHAIR, 45, 50, 35, 35);     place(TILES.SHELF, 58, 41.3, 52, 26);
+        place(TILES.PLANT, 44, 41.5, 25, 24);      place(TILES.RUG, 56, 47, 84, 70);
+        // B4 : buanderie
+        place(TILES.BOILER, 64.5, 41.3, 32, 32);   place(TILES.BOILER, 67.5, 41.3, 32, 32);
+        place(TILES.SINK, 77, 41.3, 55, 32);
+        place(TILES.SHELF, 64, 52.5, 52, 26);      place(TILES.SHELF, 68, 52.5, 52, 26);
+        place(TILES.TRUNK, 78, 52, 48, 28);        place(TILES.TRUNK, 79, 46.5, 48, 28);
+        place(TILES.RUG, 68, 47, 84, 70);
+        // B5 : chambre d'ado
+        place(TILES.BED, 96, 44.5, 46, 78);        place(TILES.NIGHTSTAND, 94, 44.5, 23, 23);
+        place(TILES.DESK_MAC, 86, 41.5, 51, 25);   place(TILES.CHAIR_DESK, 87.2, 43.3, 30, 28, 180);
+        place(TILES.TV, 97.5, 41.3, 64, 20);       place(TILES.ARMCHAIR, 90, 48, 35, 35);
+        place(TILES.WARDROBE, 98.5, 52.8, 65, 30, 180);
+        place(TILES.RUG, 87, 50.5, 84, 70);
+
+        hunterSpawn = { x: 400, y: 350 };
+        hiderSpawns = [{x: 520, y: 150}, {x: 1500, y: 330}, {x: 900, y: 790}];
+    }
+
+    // Cartes 4 et 5 : plantes, canapés et dressings sont collés aux murs
+    if (mapIndex >= 3) {
+        const isWallAt = (px, py) => {
+            const gx = Math.floor(px / 16), gy = Math.floor(py / 16);
+            return gx < 0 || gy < 0 || gx >= worldCols || gy >= worldRows || isWallGrid[gy][gx];
+        };
+        // Espace libre entre un meuble et le mur dans une direction, et la position qui le colle au mur
+        const wallGap = (f, dx, dy) => {
+            const cx = f.x + f.width / 2, cy = f.y + f.height / 2;
+            let d = 0;
+            while (!isWallAt(cx + dx * d, cy + dy * d) && d < 2000) d++;
+            const wall = Math.floor((dx ? cx + dx * d : cy + dy * d) / 16);
+            if (dx === -1) return { gap: f.x - (wall + 1) * 16, pos: (wall + 1) * 16 };
+            if (dx === 1)  return { gap: wall * 16 - (f.x + f.width), pos: wall * 16 - f.width };
+            if (dy === -1) return { gap: f.y - (wall + 1) * 16, pos: (wall + 1) * 16 };
+            return { gap: wall * 16 - (f.y + f.height), pos: wall * 16 - f.height };
+        };
+        const snap = (f, dx, dy, maxGap) => {
+            const r = wallGap(f, dx, dy);
+            if (r.gap < 0 || r.gap > maxGap) return;
+            if (dx) f.x = r.pos; else f.y = r.pos;
+        };
+        const DIRS = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+        for (const f of furnitures) {
+            if (f.type === TILES.PLANT) {
+                // Plante : mur le plus proche, quelle que soit la distance
+                let best = null;
+                for (const [dx, dy] of DIRS) {
+                    const gap = wallGap(f, dx, dy).gap;
+                    if (!best || gap < best.gap) best = { gap, dx, dy };
+                }
+                snap(f, best.dx, best.dy, Infinity);
+            } else if (f.type === TILES.COUCH) {
+                // Canapé : le dossier (haut à 0°, bas à 180°) et les côtés collés s'ils sont proches d'un mur
+                snap(f, 0, f.rotation === 180 ? 1 : -1, 48);
+                snap(f, -1, 0, 40);
+                snap(f, 1, 0, 40);
+            } else if (f.type === TILES.DRESSING) {
+                // Dressing : toujours dos au mur du haut, et contre le mur du côté s'il est tout proche
+                snap(f, 0, -1, 96);
+                snap(f, -1, 0, 16);
+                snap(f, 1, 0, 16);
+            }
+        }
     }
 
     // ==========================================
@@ -818,6 +1364,7 @@ function generateInitialState() {
         }
         
         p.alive = true; p.hidden = false; p.dir = 'down'; p.moving = false; p.animTimer = 0;
+        p.dashTimer = 0; p.dashCooldown = 0; p.lastAction3 = false;
     }
 }
 
@@ -830,6 +1377,7 @@ function gameLoop(time) {
     lastTime = time;
 
     if (isHost) computeHostPhysics(deltaMs);
+    else guestFrameUpdate(deltaMs);
     drawGame();
     
     // NOUVEAU : On vérifie qui a gagné à chaque image !
@@ -910,15 +1458,30 @@ function computeHostPhysics(deltaMs) {
             continue;
         }
 
-        // --- GESTION DES ACTIONS (E / F) ---
+        // --- GESTION DES ACTIONS (E / F / MAJ) ---
         const justPressedAction1 = input.action1 && !p.lastAction1;
         p.lastAction1 = input.action1;
         const justPressedAction2 = input.action2 && !p.lastAction2;
         p.lastAction2 = input.action2;
+        const justPressedAction3 = input.action3 && !p.lastAction3;
+        p.lastAction3 = input.action3;
 
         if (p.role === 'HIDER') {
+            // Dash : la durée s'écoule, puis le rechargement de 8 s démarre à la fin du dash
+            if (p.dashTimer > 0) {
+                p.dashTimer = Math.max(0, p.dashTimer - deltaMs);
+                if (p.dashTimer === 0) p.dashCooldown = DASH_COOLDOWN_MS;
+            } else if (p.dashCooldown > 0) {
+                p.dashCooldown = Math.max(0, p.dashCooldown - deltaMs);
+            }
+
             if (justPressedAction1) handleHiderAction(p);
-            if (p.hidden) continue; 
+            if (p.hidden) continue;
+
+            const wantsToMove = input.up || input.down || input.left || input.right;
+            if (justPressedAction3 && wantsToMove && !(p.dashTimer > 0) && !(p.dashCooldown > 0)) {
+                p.dashTimer = DASH_DURATION_MS;
+            }
         } else if (p.role === 'HUNTER') {
             if (justPressedAction1 || justPressedAction2) handleHunterSearch(p);
             
@@ -936,49 +1499,11 @@ function computeHostPhysics(deltaMs) {
         }
 
         // --- GESTION DU DÉPLACEMENT ET ANIMATION ---
-        let vx = 0, vy = 0;
-        if (input.up) vy -= 1;
-        if (input.down) vy += 1;
-        if (input.left) vx -= 1;
-        if (input.right) vx += 1;
-
-        if (vx !== 0 || vy !== 0) {
-            p.moving = true;
-            p.animTimer += deltaMs;
-            
-            // Déterminer la direction (priorité X puis Y)
-            if (Math.abs(vx) > Math.abs(vy)) {
-                p.dir = vx > 0 ? 'right' : 'left';
-            } else {
-                p.dir = vy > 0 ? 'down' : 'up';
-            }
-        } else {
-            p.moving = false;
-            p.animTimer = 0;
-        }
-
-        const len = Math.hypot(vx, vy);
-        if (len > 0) { vx /= len; vy /= len; }
-        
-        const dist = p.speed * (deltaMs / 1000.0);
-        let newX = p.x + vx * dist;
-        let newY = p.y + vy * dist;
-        
-        if (!collides(newX, p.y, p.size)) p.x = newX;
-        if (!collides(p.x, newY, p.size)) p.y = newY;
+        applyMovement(p, input, deltaMs, p.dashTimer > 0 ? DASH_SPEED_MULT : 1);
     }
 
-    // 4. Envoi de l'état aux invités
-    socket.emit('stateSnapshot', {
-        room: currentRoom,
-        state: {
-            players: playersState,
-            currentMapTiles: mapTiles,
-            furnitures: furnitures, // <-- NOUVEAU !
-            timeRemaining: timeRemaining,
-            hunterCountdown: hunterCountdown
-        }
-    });
+    // 4. Envoi de l'état aux invités (limité à 20 fois par seconde)
+    sendSnapshot();
 
     updateHUD();
 }
@@ -1048,7 +1573,7 @@ function hasLineOfSight(x0, y0, x1, y1) {
         const gy = Math.floor(checkY / 16);
 
         // Vérification de collision sur la grille
-        if (gy >= 0 && gy < 30 && gx >= 0 && gx < 56) {
+        if (gy >= 0 && gy < worldRows && gx >= 0 && gx < worldCols) {
             if (isWallGrid[gy][gx]) {
                 return false; // Ligne bloquée par la grille
             }
@@ -1076,7 +1601,21 @@ function drawGame() {
 
     // 1. DESSIN DU SOL (beige clair uniforme)
     ctx.fillStyle = 'hsl(28, 38%, 58%)';
-    ctx.fillRect(0, 0, 896, 480);
+    ctx.fillRect(0, 0, worldCols * 16, worldRows * 16);
+
+    // 1ter. ZONES DE SOL COLORÉES (pièces des grandes cartes)
+    for (const z of floorZones) {
+        ctx.fillStyle = z.color;
+        ctx.fillRect(z.x, z.y, z.w, z.h);
+    }
+    // Nom de chaque pièce, discret, au sol
+    ctx.font = '7px "Press Start 2P"';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    for (const z of floorZones) {
+        if (z.label) ctx.fillText(z.label, z.x + z.w / 2, z.y + z.h - 6);
+    }
+    ctx.textAlign = 'left';
 
     // 1bis. DESSIN DE L'ESCALIER (purement visuel)
     if (gameSettings && gameSettings.mapIndex === 0) {
@@ -1117,8 +1656,8 @@ function drawGame() {
 
     // 2. DESSIN DES MURS (Sur la grille 16x16)
     ctx.fillStyle = '#1a1a1a'; // Couleur des murs
-    for (let gy = 0; gy < 30; gy++) {
-        for (let gx = 0; gx < 56; gx++) {
+    for (let gy = 0; gy < worldRows; gy++) {
+        for (let gx = 0; gx < worldCols; gx++) {
             if (isWallGrid[gy][gx]) {
                 // Astuce anti-grille : on dessine 17x17 au lieu de 16x16 pour masquer les fissures !
                 ctx.fillRect(gx * 16, gy * 16, 17, 17);
@@ -1192,6 +1731,14 @@ function drawGame() {
         
         const img = images[imgKey] || images.hider_down;
 
+        // Halo bleu sous un traqué qui dash (visible par tous ceux qui le voient)
+        if (p.alive && p.role === 'HIDER' && (p.dashTimer > 0 || (id === socket.id && predDash > 0))) {
+            ctx.fillStyle = 'rgba(79, 172, 254, 0.45)';
+            ctx.beginPath();
+            ctx.ellipse(p.x + p.size / 2, p.y + p.size / 2 + 4, 14, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
         if (img && img.complete && img.naturalWidth > 0) {
             
             // Facteur de taille personnalisable par rôle et par état
@@ -1232,8 +1779,22 @@ function drawGame() {
         const farRadius = (me.role === 'HUNTER') ? 250 : 150;
         const nearRadius = farRadius * 0.5; 
         
-        for (let y = 0; y < 480; y += 16) {
-            for (let x = 0; x < 896; x += 16) {
+        // Au-delà du rayon de vue tout est noir : on ne calcule que la zone proche,
+        // et on remplit le reste d'un coup (indispensable sur les grandes cartes).
+        const worldW = worldCols * 16;
+        const worldH = worldRows * 16;
+        const fx0 = Math.max(0, Math.floor((px - farRadius) / 16) * 16);
+        const fy0 = Math.max(0, Math.floor((py - farRadius) / 16) * 16);
+        const fx1 = Math.min(worldW, Math.ceil((px + farRadius) / 16) * 16);
+        const fy1 = Math.min(worldH, Math.ceil((py + farRadius) / 16) * 16);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, worldW, fy0);
+        ctx.fillRect(0, fy1, worldW, worldH - fy1);
+        ctx.fillRect(0, fy0, fx0, fy1 - fy0);
+        ctx.fillRect(fx1, fy0, worldW - fx1, fy1 - fy0);
+
+        for (let y = fy0; y < fy1; y += 16) {
+            for (let x = fx0; x < fx1; x += 16) {
                 const cx = x + 8;
                 const cy = y + 8;
                 const dist = Math.hypot(cx - px, cy - py);
@@ -1270,8 +1831,8 @@ function drawGame() {
 function drawMinimap() {
     if (!isWallGrid || isWallGrid.length === 0) return;
 
-    const rows = 30;
-    const cols = 56;
+    const rows = worldRows;
+    const cols = worldCols;
     const miniTileSize = 4; // 4px par bloc pour que ça rentre bien
     const scale = miniTileSize / 16;
 
@@ -1302,11 +1863,11 @@ function drawMinimap() {
         }
     }
 
-    // 3. JOUEURS
+    // 3. JOUEUR LOCAL UNIQUEMENT (voir l'autre joueur gâcherait la cachette)
     for (const id in playersState) {
+        if (id !== socket.id) continue;
         const p = playersState[id];
         if (!p.alive || p.role === 'SPECTATOR') continue;
-        if (p.role === 'HIDER' && p.hidden && id !== socket.id) continue;
 
         minimapCtx.fillStyle = (p.role === 'HUNTER') ? '#e63946' : '#2196f3';
         const miniCx = (p.x + p.size / 2) * scale;
@@ -1323,13 +1884,13 @@ function drawMinimap() {
 // ==========================================
 
 function collides(x, y, size) {
-    if (x < 0 || x + size > 896 || y < 0 || y + size > 480) return true;
-    
+    if (x < 0 || x + size > worldCols * 16 || y < 0 || y + size > worldRows * 16) return true;
+
     const points = [[x, y], [x + size, y], [x, y + size], [x + size, y + size]];
     for (const p of points) {
         const gx = Math.floor(p[0] / 16);
         const gy = Math.floor(p[1] / 16);
-        if (gy >= 0 && gy < 30 && gx >= 0 && gx < 56) {
+        if (gy >= 0 && gy < worldRows && gx >= 0 && gx < worldCols) {
             if (isWallGrid[gy][gx]) return true;
         }
     }
@@ -1523,11 +2084,3 @@ canvas.addEventListener('mousemove', (e) => {
     document.title = `X: ${mouseX} | Y: ${mouseY}`;
 });
 
-// ==========================================
-// Écran de chargement initial (2 secondes)
-// ==========================================
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        showScreen('main-menu');
-    }, 2000);
-});

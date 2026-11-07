@@ -119,7 +119,7 @@ io.on('connection', (socket) => {
         // --- Choix de la carte (Seul l'Hôte peut faire ça) ---
         if (isHost && data.action.startsWith('SET_MAP_')) {
             const mapIdx = parseInt(data.action.split('_').pop(), 10);
-            if (!isNaN(mapIdx) && mapIdx >= 0 && mapIdx <= 2) {
+            if (!isNaN(mapIdx) && mapIdx >= 0 && mapIdx <= 4) {
                 room.settings.mapIndex = mapIdx;
                 io.to(data.room).emit('settingsUpdated', room.settings);
             }
@@ -136,9 +136,13 @@ io.on('connection', (socket) => {
     socket.on('startGame', (roomCode) => {
         const room = rooms[roomCode];
         if (room && room.clients[0].id === socket.id) {
+            if (room.clients.length < 2) {
+                socket.emit('errorMsg', "Il faut au moins 2 joueurs pour lancer la partie.");
+                return;
+            }
             room.isPlaying = true;
             room.timeRemaining = room.settings.roundDuration;
-            
+
             // On lance un intervalle serveur pour le temps (plus fiable)
             if (room.timerInterval) clearInterval(room.timerInterval);
             
@@ -199,8 +203,9 @@ io.on('connection', (socket) => {
         // Sécurité : Seul l'hôte a le droit d'envoyer l'état officiel
         if (room && room.clients[0].id === socket.id) {
             room.lastActivity = Date.now();
-            // Le serveur broadcast à tous les AUTRES joueurs du salon
-            socket.to(data.room).emit('syncState', data.state);
+            // Le serveur broadcast à tous les AUTRES joueurs du salon.
+            // volatile : si un invité a du retard, on jette l'ancien état au lieu de l'empiler (moins de lag cumulé)
+            socket.to(data.room).volatile.emit('syncState', data.state);
         }
     });
 

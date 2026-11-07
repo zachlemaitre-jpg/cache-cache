@@ -9,9 +9,8 @@
 </head>
 <body>
 
-    <div id="main-menu" class="screen hidden">
+    <div id="main-menu" class="screen">
         <h1 class="title">CACHE-CACHE</h1>
-        <p class="subtitle">version test</p>
         
         <div class="menu-box">
             <input type="text" id="pseudo-input" placeholder="Ton Pseudo" maxlength="12">
@@ -48,18 +47,14 @@
                     <button class="btn role-btn hider" onclick="requestRole('REQUEST_HIDER')">TRAQUE</button>
                 </div>
 
-                <button class="btn new-mode-btn" onclick="goToNouveauMode()">NOUVEAU MODE</button>
-
-                <button class="btn primary" onclick="goToFilmMode()">FILM</button>
-                <button class="btn loading-btn" onclick="goToLoadingScreen()">CHARGEMENT</button>
-                <button class="btn game-over-btn" onclick="goToGameOver()">GAME OVER</button>
-
                 <div id="host-settings" class="disabled-for-client">
                     <h3 class="panel-title">Carte</h3>
                     <select id="map-select" class="pixel-select" onchange="changeMap(this.value)">
                         <option value="0">CARTE 1 FILM</option>
                         <option value="1">CARTE 2</option>
                         <option value="2">CARTE 3</option>
+                        <option value="3">CARTE 4 (GRANDE)</option>
+                        <option value="4">CARTE 5 (TRÈS GRANDE)</option>
                     </select>
 
                     <h3 class="panel-title">Temps de jeu</h3>
@@ -83,6 +78,7 @@
             <div id="game-hud">
                 <div id="time-left">Temps : --</div>
                 <div id="game-message"></div>
+                <div id="dash-hud" class="hidden"></div>
             </div>
         </div>
 
@@ -112,7 +108,7 @@
         </div>
     </div>
 
-    <div id="loading-screen" class="screen">
+    <div id="loading-screen" class="screen hidden">
         <div class="pixel-spinner">
             <div class="pixel-spinner-dot"></div>
             <div class="pixel-spinner-dot"></div>
